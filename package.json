@@ -1,0 +1,27 @@
+{
+  "name": "zsharp",
+  "version": "1.0.0",
+  "description": "An amazing programming language",
+  "main": "dist/cmd.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Brendan Lucas",
+  "license": "ISC",
+  "dependencies": {
+    "@mnrendra/chalk": "^1.0.0",
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/commander": "^2.12.5",
+    "@types/node": "^22.15.15",
+    "module-alias": "^2.2.3",
+    "tsc-alias": "^1.8.16"
+  },
+  "_moduleAliases": {
+    "~": "dist"
+  },
+  "_moduleDirectories": [
+    "node_modules"
+  ]
+}
