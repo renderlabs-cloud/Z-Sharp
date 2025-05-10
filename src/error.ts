@@ -1,8 +1,10 @@
 import chalk from '@mnrendra/chalk';
 
-export namespace ErrorType {
-	const Colon = chalk.white(':');
-	const Exclamation = chalk.white('!');
+export namespace Errors {
+	const colon = chalk.reset(':');
+	const exclamation = chalk.reset('!');
+	const dash = chalk.reset('-');
+	const newline = chalk.reset('\n');
 	class MainError {
 		constructor (
 			public message: string,
@@ -12,11 +14,68 @@ export namespace ErrorType {
 			process.exit(1);
 		};
  	};
+ 	export type Position = {
+ 		path?: string,
+ 		line?: number,
+ 		column?: number
+ 	};
+ 	function highlight(position: Position, highlight: string) {
+ 		return chalk.cyan(position.path) + colon + chalk.yellow(String(position.line)) + colon + chalk.yellow(String(position.column)) + newline + 
+ 			chalk.white.bgRed(highlight);
+ 	};
+ 	export namespace Parts {
+ 		export class PartError extends MainError {
+ 			constructor(message: string, position: Position, contents: string) {
+ 				super(
+ 					chalk.red.bold('A parsing error has occurred') + exclamation + newline +
+ 					message + newline +
+ 					highlight(position, contents)
+ 				);
+ 			};
+ 		};
+ 		export class Unknown extends PartError {
+ 			constructor(contents: string, position: Position) {
+ 				super(
+ 					chalk.red('Unknown token detected') + colon,
+ 					position,
+ 					contents
+ 				);
+ 			};
+ 		};
+ 	};
+ 	export namespace Syntax {
+ 		export class SyntaxError extends MainError {
+ 			constructor(message: string, position: Position, contents: string) {
+ 				super(
+ 					chalk.red.bold('A syntax error has occurred') +	exclamation + newline,
+ 					message
+ 				);
+ 			};
+ 		};
+ 		export class Generic extends SyntaxError {
+ 			constructor(contents: string, position: Position) {
+ 				super(
+ 					chalk.red('Syntax is invalid') + colon,
+ 					position,
+ 					contents
+ 				);
+ 			};
+ 		};
+ 		export class Duplicate extends SyntaxError {
+ 			constructor(contents: string, position: Position) {
+ 				super(
+ 					chalk.red(`Duplicate entries for ${contents}`) + colon,
+ 					position,
+ 					contents	
+ 				);
+ 			};
+ 		};
+ 	};
 	export namespace Command {
 		export class CommandError extends MainError {
 			constructor(message: string) {
 				super(
-					chalk.red.bold('A command error has occurred') + Exclamation + '\n' +
+					chalk.red.bold('A command error has occurred') + exclamation + newline +
 					message
 				);	
 			};
@@ -25,8 +84,8 @@ export namespace ErrorType {
 			export class Parameters extends CommandError {
 				constructor(parameters: string[]) {
 					super(
-						chalk.red('Missing parameters') + Colon + '\n' +
-						'\t' + parameters.join(', ')	
+						chalk.red('Missing parameters') + colon + newline +
+						parameters.join(', ')
 					);
 				};
 			};
@@ -35,8 +94,8 @@ export namespace ErrorType {
 			export class Parameters extends CommandError {
 				constructor(parameters: string[]) {
 					super(
-						chalk.red('Conflicting parameters found') + Colon + '\n' +
-						'\t' + parameters.join(', ')
+						chalk.red('Conflicting parameters found') + colon + newline +
+						parameters.join(', ')
 					);	
 				};
 			};

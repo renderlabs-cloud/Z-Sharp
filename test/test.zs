@@ -1,2 +1,4 @@
 let myVar: byte[] = "Hello, World!";
-a;
+function myFunction(msg: byte[]) {
+	return `Hello, ${msg}`;
+};

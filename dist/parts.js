@@ -1,63 +1,71 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Parts = void 0;
+const error_1 = require("~/error");
 var Parts;
 (function (Parts) {
     let PartType;
     (function (PartType) {
-        PartType["WORD"] = "/([a-z,A-Z,$][a-z,A-Z,0-9]*)/g";
-        PartType["NUMBER"] = "/([0-9]*)/g";
+        PartType["WORD"] = "/([a-z,A-Z,$,_][a-z,A-Z,0-9,$,_]*)/g";
+        PartType["NUMBER"] = "/([0-9][0-9]*)/g";
         PartType["DOUBLE_QUOTE_STRING"] = "/\\\"(.*)\\\"/g";
         PartType["SINGLE_QUOTE_STRING"] = "/\\'(.*)\\'/g";
         PartType["BACKTICK_QUOTE_STRING"] = "/\\`([^\\0]+)\\`/g";
         PartType["BACKTICK_INTERPOLATION"] = "/\\$\\{[^\\0]+\\}/g";
-        PartType["PARENTHESIS_OPEN"] = "/\\(/";
-        PartType["PARENTHESIS_CLOSE"] = "/\\)/";
-        PartType["SQUARE_BRACKET_OPEN"] = "/\\[/";
-        PartType["SQUARE_BRACKET_CLOSE"] = "/\\]/";
-        PartType["CURLY_BRACKET_OPEN"] = "/\\{/";
-        PartType["CURLY_BRACKET_CLOSE"] = "/\\}/";
+        PartType["PARENTHESIS_OPEN"] = "/\\(/g";
+        PartType["PARENTHESIS_CLOSE"] = "/\\)/g";
+        PartType["SQUARE_BRACKET_OPEN"] = "/\\[/g";
+        PartType["SQUARE_BRACKET_CLOSE"] = "/\\]/g";
+        PartType["CURLY_BRACKET_OPEN"] = "/\\{/g";
+        PartType["CURLY_BRACKET_CLOSE"] = "/\\}/g";
         PartType["COLON"] = "/\\:/g";
+        PartType["COMMA"] = "/\\,/g";
         PartType["SEMICOLON"] = "/\\;/g";
         PartType["EQUALS"] = "/\\=/";
-        PartType["UNKNOWN"] = "/\\0/";
+        PartType["UNKNOWN"] = "/\\0/g";
     })(PartType = Parts.PartType || (Parts.PartType = {}));
     ;
     function parseRegex(str) {
         const match = str.match(/^\/(.*)\/([a-z]*)$/i);
         if (!match)
-            throw new Error("Invalid regex string");
+            return PartType.UNKNOWN;
         const [, pattern, flags] = match;
         return new RegExp(pattern, flags);
     }
     Parts.parseRegex = parseRegex;
     ;
-    function toParts(content) {
+    function toParts(content, path) {
         const parts = [];
+        const position = {};
+        const origin = content.split('\n');
         let done = false;
+        position.path = path;
         while (!done) {
             for (const partType of Object.values(PartType)) {
+                const match = content.match(parseRegex(partType));
                 if (partType == PartType.UNKNOWN) {
-                    // Throw error
+                    throw new error_1.Errors.Parts.Unknown(content[0], position);
                 }
                 ;
-                const match = content.match(parseRegex(partType));
                 if (!match)
                     continue;
                 if (content.indexOf(match[0]) == 0) {
+                    position.line = origin.indexOf(content.split('\n')[0]) + 1 || position.line;
+                    // position.column = origin[(position.line || 1) - 1].length;
                     content = content.slice(match[0].length).trim();
-                    console.log(content);
+                    parts.push(match[0]);
                     if (content == '' || match[0] == content) {
                         done = true;
-                        break;
                     }
                     ;
+                    break;
                 }
                 ;
             }
             ;
         }
         ;
+        return parts;
     }
     Parts.toParts = toParts;
     ;

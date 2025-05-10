@@ -1,32 +1,51 @@
 import { Parts } from '~/parts';
+import { Errors } from '~/error';
+import  { Z } from '~/zs';
 
 export namespace Feature {
 	export type SequenceItem = {
-		type: 'part' | 'feature',
 		part?: {
-			type: Parts.PartType	
+			type: Parts.PartType,
+			value?: string	
 		},
 		feature?: {
-			properties: string[],
-			type: Feature
-		}
+			type: typeof Feature,
+			properties?: string[]
+		},
+		
+		or?: Sequence[],
+		repeat?: Sequence,
+
+		export?: string,
+		required?: boolean,
 	};
 	export type Sequence = SequenceItem[];
 	export class Feature {
 		constructor(
 			public sequence: Sequence,
-			public properties: string[]
 		)	{
 			
 		};
-		public set(property: string, value: string | number) {
-			this._properties.set(property, value);
+		public create(data: any, scope: Scope, position: Errors.Position): { scope: Scope, export?: any } {
+			return { scope };
+		};
+	};
+	export class Scope {
+		constructor(
+			public importer: Z.Importer ,
+			public parent?: Scope
+		) {
+			this._data = parent?._data || { };
 		};
 		
-		public get(property: string) {
-			return this._properties.get(property);	
+		public set(name: string, value: any) {
+			this._data[name] = value;
 		};
 
-		private _properties: Map<string, string |  number> = new Map();
+		public get(name: string) {
+			return this._data[name];	
+		};
+
+		public _data: any;
 	};
 };

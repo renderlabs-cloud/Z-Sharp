@@ -5,7 +5,8 @@ import fs from 'fs';
 
 import { Z } from '~/zs';
 import { FileType } from '~/file';
-import { ErrorType } from '~/error';
+import { Errors } from '~/error';
+import { zHeader } from '~/cli/header';
 
 const project = JSON.parse(fs.readFileSync('Z#.project.json').toString());
 
@@ -13,6 +14,8 @@ program
 	.name('Z#')
 	.description('Z# compiler')
 ;
+
+console.log(zHeader);
 
 program.command('build')
 	.description('Compile Z# code')
@@ -22,20 +25,20 @@ program.command('build')
 	.action((_options) => {
 		for (const option in _options) {
 			if (project?.[option] && _options[option] !== project?.[option]) {
-				throw new ErrorType.Command.Conflicting.Parameters([option, option]);
+				throw new Errors.Command.Conflicting.Parameters([option, option]);
 			};
 		};
 		
-		const options = { ..._options, ...project};
+		const options = { ..._options, ...project };
 		if (!options.input) {
-			throw new ErrorType.Command.Missing.Parameters(['input']);	
+			throw new Errors.Command.Missing.Parameters(['input']);	
 		};
-
+		
 		const asm = Z.toAssembly(fs.readFileSync(options.input).toString(), { 
 			import: (path: string) => {
 				return fs.readFileSync(path).toString();
-			}
-		});
+			},
+		}, options.input);
 		fs.writeFileSync(options.output || options.input + '.asm', asm);
 	})
 ;
