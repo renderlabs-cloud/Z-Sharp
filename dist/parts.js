@@ -6,7 +6,7 @@ var Parts;
 (function (Parts) {
     let PartType;
     (function (PartType) {
-        PartType["WORD"] = "/([a-z,A-Z,$,_][a-z,A-Z,0-9,$,_]*)/g";
+        PartType["WORD"] = "/([a-zA-Z$_][a-zA-Z0-9$_]*)/g";
         PartType["NUMBER"] = "/([0-9][0-9]*)/g";
         PartType["DOUBLE_QUOTE_STRING"] = "/\\\"(.*)\\\"/g";
         PartType["SINGLE_QUOTE_STRING"] = "/\\'(.*)\\'/g";
@@ -18,8 +18,11 @@ var Parts;
         PartType["SQUARE_BRACKET_CLOSE"] = "/\\]/g";
         PartType["CURLY_BRACKET_OPEN"] = "/\\{/g";
         PartType["CURLY_BRACKET_CLOSE"] = "/\\}/g";
+        PartType["ANGLE_BRACKET_OPEN"] = "/\\</g";
+        PartType["ANGLE_BRACKET_CLOSE"] = "/\\>/g";
         PartType["COLON"] = "/\\:/g";
         PartType["COMMA"] = "/\\,/g";
+        PartType["PERIOD"] = "/\\./g";
         PartType["SEMICOLON"] = "/\\;/g";
         PartType["EQUALS"] = "/\\=/";
         PartType["UNKNOWN"] = "/\\0/g";
@@ -52,8 +55,8 @@ var Parts;
                 if (content.indexOf(match[0]) == 0) {
                     position.line = origin.indexOf(content.split('\n')[0]) + 1 || position.line;
                     // position.column = origin[(position.line || 1) - 1].length;
+                    parts.push({ content: match[0] || content, type: partType, position });
                     content = content.slice(match[0].length).trim();
-                    parts.push(match[0]);
                     if (content == '' || match[0] == content) {
                         done = true;
                     }

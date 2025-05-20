@@ -24,7 +24,7 @@ var Errors;
     }
     ;
     function highlight(position, highlight) {
-        return chalk_1.default.cyan(position.path) + colon + chalk_1.default.yellow(String(position.line)) + colon + chalk_1.default.yellow(String(position.column)) + newline +
+        return chalk_1.default.cyan(position?.path) + colon + chalk_1.default.yellow(String(position?.line)) + colon + chalk_1.default.yellow(String(position?.column)) + newline +
             chalk_1.default.white.bgRed(highlight);
     }
     ;
@@ -54,7 +54,8 @@ var Errors;
     (function (Syntax) {
         class SyntaxError extends MainError {
             constructor(message, position, contents) {
-                super(chalk_1.default.red.bold('A syntax error has occurred') + exclamation + newline, message);
+                super(chalk_1.default.red.bold('A syntax error has occurred') + exclamation + newline, message + newline +
+                    highlight(position, contents));
             }
             ;
         }

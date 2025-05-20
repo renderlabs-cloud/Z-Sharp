@@ -1,7 +1,14 @@
 import { Identifier } from '~/features/identifier';
 import { Type } from '~/features/type';
+import { Semicolon }  from '~/features/semantics';
 
 export const official = [
-	Identifier,
-	Type	
+	// Word specifics come first
+	Type,
+
+	// Then, generalized specifics
+// 	Identifier,
+
+	// And finally, semantics
+	Semicolon
 ];

@@ -17,17 +17,13 @@ export type SpinnerStyle = {
 	
 export const SpinnerTypes: Record<string, SpinnerStyle> = {
 	'compile': {
-		frames: new Proxy([ '', '', '', '', '', '', '', ''  ], {
-			get(target, prop) {
-				const i = Number(prop);
-				const animation = [ ' == ', '  ==', '   =', '  ==', ' == ', '==  ', '=   ', '==  ' ];
-				return chalk.white(`[${chalk.blue(animation[i])}]`);
-			}
+		frames: [ ' == ', '  ==', '   =', '  ==', ' == ', '==  ', '=   ', '==  ' ].map((v) => {
+			return chalk.white(`[${chalk.blue(v)}]`);			
 		}),
 		success: chalk.white(`[ ${chalk.green('OK')} ]`),
 		fail: chalk.white(`[ ${chalk.red('ER')} ]`),
 		warning: chalk.white(`[ ${chalk.yellow('WN')} ]`),
-		framecount: 8
+		framecount: 8,
 	}
 };
 

@@ -8,4 +8,4 @@ function hyperlink(text, url, attrs) {
 }
 ;
 exports.zHeader = chalk_1.chalk.white(':===: ' + chalk_1.chalk.red('Z#') + ' :===:' + '\n\n' +
-    chalk_1.chalk.blue(hyperlink('Documentation', 'https://z.labz.online')) + '\n\n');
+    chalk_1.chalk.blue(hyperlink('Documentation', 'https://docs.zsharp.dev')) + '\n\n');

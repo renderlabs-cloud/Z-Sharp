@@ -6,11 +6,10 @@ const parts_1 = require("~/parts");
 class Identifier extends feature_1.Feature.Feature {
     constructor() {
         super([
+            { 'part': { 'type': parts_1.Parts.PartType.WORD }, 'export': 'name' },
             { 'repeat': [
+                    { 'part': { 'type': parts_1.Parts.PartType.PERIOD } },
                     { 'part': { 'type': parts_1.Parts.PartType.WORD }, 'export': 'property' },
-                    { 'part': { 'type': parts_1.Parts.PartType.COLON } },
-                    { 'feature': { 'type': Identifier }, 'export': 'type' },
-                    { 'part': { 'type': parts_1.Parts.PartType.COMMA }, 'required': false, 'export': 'comma' }
                 ], 'export': 'location' }
         ]);
     }

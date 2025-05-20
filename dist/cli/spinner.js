@@ -4,17 +4,13 @@ exports.Spinner = exports.SpinnerTypes = void 0;
 const chalk_1 = require("@mnrendra/chalk");
 exports.SpinnerTypes = {
     'compile': {
-        frames: new Proxy(['', '', '', '', '', '', '', ''], {
-            get(target, prop) {
-                const i = Number(prop);
-                const animation = [' == ', '  ==', '   =', '  ==', ' == ', '==  ', '=   ', '==  '];
-                return chalk_1.chalk.white(`[${chalk_1.chalk.blue(animation[i])}]`);
-            }
+        frames: [' == ', '  ==', '   =', '  ==', ' == ', '==  ', '=   ', '==  '].map((v) => {
+            return chalk_1.chalk.white(`[${chalk_1.chalk.blue(v)}]`);
         }),
         success: chalk_1.chalk.white(`[ ${chalk_1.chalk.green('OK')} ]`),
         fail: chalk_1.chalk.white(`[ ${chalk_1.chalk.red('ER')} ]`),
         warning: chalk_1.chalk.white(`[ ${chalk_1.chalk.yellow('WN')} ]`),
-        framecount: 8
+        framecount: 8,
     }
 };
 class Spinner {

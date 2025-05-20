@@ -1,6 +1,6 @@
 {
-  "name": "zsharp",
-  "version": "1.0.0",
+  "name": "@zsharp/core",
+  "version": "0.0.0",
   "description": "An amazing programming language",
   "main": "dist/cmd.ts",
   "scripts": {
@@ -16,6 +16,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.15.15",
+    "cpp-merge": "^0.4.1",
     "module-alias": "^2.2.3",
     "tsc-alias": "^1.8.16"
   },

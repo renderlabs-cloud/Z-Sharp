@@ -2,7 +2,7 @@ import { Errors } from '~/error';
 
 export namespace Parts {
 	export enum PartType { 
-		WORD = "/([a-z,A-Z,$,_][a-z,A-Z,0-9,$,_]*)/g",
+		WORD = "/([a-zA-Z$_][a-zA-Z0-9$_]*)/g",
 		NUMBER = "/([0-9][0-9]*)/g",
 		DOUBLE_QUOTE_STRING = "/\\\"(.*)\\\"/g",
 		SINGLE_QUOTE_STRING = "/\\'(.*)\\'/g",
@@ -14,8 +14,11 @@ export namespace Parts {
 		SQUARE_BRACKET_CLOSE = "/\\]/g",
 		CURLY_BRACKET_OPEN = "/\\{/g",
 		CURLY_BRACKET_CLOSE = "/\\}/g",
+		ANGLE_BRACKET_OPEN = "/\\</g",
+		ANGLE_BRACKET_CLOSE = "/\\>/g",
 		COLON = "/\\:/g",
 		COMMA = "/\\,/g",
+		PERIOD = "/\\./g",
 		SEMICOLON = "/\\;/g",
 		EQUALS = "/\\=/",
 	
@@ -24,7 +27,8 @@ export namespace Parts {
 		
 	export type Part = {
 		content: string,
-		type: PartType	
+		type: PartType,
+		position?: Errors.Position
 	};
 
 	export function parseRegex(str: string) {
@@ -50,8 +54,8 @@ export namespace Parts {
 				if (content.indexOf(match[0]) == 0) {
 					position.line = origin.indexOf(content.split('\n')[0]) + 1 || position.line;
 					// position.column = origin[(position.line || 1) - 1].length;
+					parts.push({ content: match[0] || content, type: partType, position });
 					content = content.slice(match[0].length).trim();
-					parts.push(match[0]);
 					if (content == '' || match[0] == content) {
 						done = true;
 					};

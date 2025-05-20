@@ -10,11 +10,10 @@ type IdentifierData = {
 export class Identifier extends Feature.Feature {
 	constructor() {
 		super([ 
+			{ 'part': { 'type': Parts.PartType.WORD }, 'export': 'name' },
 			{ 'repeat': [
+				{ 'part': { 'type': Parts.PartType.PERIOD } },
 				{ 'part': { 'type': Parts.PartType.WORD }, 'export': 'property' },
-				{ 'part': { 'type': Parts.PartType.COLON } },
-				{ 'feature': { 'type': Identifier }, 'export': 'type' },
-				{ 'part': { 'type': Parts.PartType.COMMA }, 'required': false, 'export': 'comma' }
 			], 'export': 'location' }
 		]);
 	};

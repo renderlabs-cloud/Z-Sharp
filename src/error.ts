@@ -20,7 +20,7 @@ export namespace Errors {
  		column?: number
  	};
  	function highlight(position: Position, highlight: string) {
- 		return chalk.cyan(position.path) + colon + chalk.yellow(String(position.line)) + colon + chalk.yellow(String(position.column)) + newline + 
+ 		return chalk.cyan(position?.path) + colon + chalk.yellow(String(position?.line)) + colon + chalk.yellow(String(position?.column)) + newline + 
  			chalk.white.bgRed(highlight);
  	};
  	export namespace Parts {
@@ -48,7 +48,8 @@ export namespace Errors {
  			constructor(message: string, position: Position, contents: string) {
  				super(
  					chalk.red.bold('A syntax error has occurred') +	exclamation + newline,
- 					message
+ 					message + newline +
+ 					highlight(position, contents)
  				);
  			};
  		};

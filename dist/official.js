@@ -1,9 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.official = void 0;
-const identifier_1 = require("~/features/identifier");
 const type_1 = require("~/features/type");
+const semantics_1 = require("~/features/semantics");
 exports.official = [
-    identifier_1.Identifier,
-    type_1.Type
+    // Word specifics come first
+    type_1.Type,
+    // Then, generalized specifics
+    // 	Identifier,
+    // And finally, semantics
+    semantics_1.Semicolon
 ];
