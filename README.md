@@ -8,7 +8,7 @@ Write your code once—compile it anywhere.
 
 # Documentation
 
-[Z# Documentation](https:/docs.zsharp.dev)
+[Z# Documentation](https://docs.zsharp.dev)
 
 # Support & Donations
 
