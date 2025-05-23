@@ -17,11 +17,11 @@ var Errors;
         constructor(message, stack) {
             this.message = message;
             this.stack = stack;
-            console.log(this.message);
-            process.exit(1);
         }
         ;
+        count = 0;
     }
+    Errors.MainError = MainError;
     ;
     function highlight(position, highlight) {
         return chalk_1.default.cyan(position?.path) + colon + chalk_1.default.yellow(String(position?.line)) + colon + chalk_1.default.yellow(String(position?.column)) + newline +
@@ -79,12 +79,37 @@ var Errors;
         ;
     })(Syntax = Errors.Syntax || (Errors.Syntax = {}));
     ;
+    let Reference;
+    (function (Reference) {
+        class ReferenceError extends MainError {
+            constructor(message, contents, position) {
+                super(chalk_1.default.red.bold('A reference error has occured') + exclamation + newline +
+                    message + '\n' +
+                    highlight(position, contents));
+            }
+            ;
+        }
+        Reference.ReferenceError = ReferenceError;
+        ;
+        class Undefined extends ReferenceError {
+            constructor(reference, position) {
+                super(chalk_1.default.red('Undefined reference') + colon + newline +
+                    reference + newline, reference, position);
+            }
+            ;
+        }
+        Reference.Undefined = Undefined;
+        ;
+    })(Reference = Errors.Reference || (Errors.Reference = {}));
+    ;
     let Command;
     (function (Command) {
         class CommandError extends MainError {
             constructor(message) {
                 super(chalk_1.default.red.bold('A command error has occurred') + exclamation + newline +
                     message);
+                console.log(this.message);
+                process.exit(1);
             }
             ;
         }

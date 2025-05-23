@@ -10,25 +10,33 @@ class Type extends feature_1.Feature.Feature {
         super([
             { 'part': { 'type': parts_1.Parts.PartType.WORD, 'value': 'type' } },
             { 'part': { 'type': parts_1.Parts.PartType.WORD }, 'export': 'name' },
-            { 'or': [
+            {
+                'or': [
                     [
                         { 'part': { 'type': parts_1.Parts.PartType.EQUALS } },
                         { 'part': { 'type': parts_1.Parts.PartType.CURLY_BRACKET_OPEN } },
-                        { 'repeat': [
+                        {
+                            'repeat': [
                                 { 'part': { 'type': parts_1.Parts.PartType.WORD }, 'export': 'name' },
                                 { 'part': { 'type': parts_1.Parts.PartType.COLON } },
-                                { 'feature': { 'type': TypeRef }, 'export': 'type' },
+                                { 'feature': { 'type': TypeRef }, 'export': 'typeRef' },
                                 { 'part': { 'type': parts_1.Parts.PartType.COMMA }, 'required': false, 'export': 'comma' }
-                            ], 'export': 'fields' },
+                            ], 'export': 'fields'
+                        },
                         { 'part': { 'type': parts_1.Parts.PartType.CURLY_BRACKET_CLOSE } }
                     ],
-                ], 'export': 'type' }
+                    [
+                        { 'feature': { 'type': TypeRef }, 'export': 'alias' }
+                    ]
+                ], 'export': 'type'
+            }
         ]);
     }
     ;
     create(data, scope, position) {
         const typeData = {};
         typeData.name = data.name;
+        typeData.id = `type.${scope.alias(data.name)}`;
         if (data.type.fields) {
             let fields = [];
             for (const i in data.type.fields) {
@@ -37,6 +45,7 @@ class Type extends feature_1.Feature.Feature {
                     throw new error_1.Errors.Syntax.Generic(data.type.fields[String(Number(i) + 1)], position);
                 }
                 ;
+                item.id = `type_field.${scope.alias(item.name)}`;
                 // Check if type is defined
                 if (fields.map((v) => {
                     return v?.name == item?.name && v && item;
@@ -44,36 +53,49 @@ class Type extends feature_1.Feature.Feature {
                     throw new error_1.Errors.Syntax.Duplicate(item.name, position);
                 }
                 ;
+                scope.set(item.id, item);
                 fields.push(item);
             }
             ;
             typeData.fields = fields;
         }
         ;
-        scope.set(`type.${typeData.name}`, typeData);
+        scope.set(typeData.id, typeData);
         return { scope, exports: typeData };
     }
     ;
-    static toAssembly(typeData, scope) {
-        let content = `TYPE ${typeData?.name}\n`; // ? should not be required here!
+    toAssembly(typeData, scope) {
+        let content = `TYPE ${typeData?.id}\n`; // ? should not be required here!
         if (typeData.fields) {
-            for (const field of typeData.fields || []) { // || should not be require here!
+            for (const _field of typeData.fields || []) { // || should not be require here!
+                const field = _field;
                 content += '\tTYPE_FIELD ';
-                content += `${field.name}, `;
-                if (field.type?.name == 'byte') {
+                const type = scope.get(field.id);
+                if (!type) {
+                    throw new error_1.Errors.Reference.Undefined(field.name, field.position);
+                }
+                ;
+                if (type.typeRef.type?.alias.name == 'byte') {
                     content += 'BYTE, ';
                 }
                 else {
-                    // Verify type exists
-                    content += `${field.type.type.type.name}, `;
+                    if (type.typeRef.type.alias) {
+                        const alias = scope.get(`type.${scope.resolve(type.typeRef.type.alias.name)}`);
+                        content += `${alias.id}, `;
+                    }
+                    else {
+                        // Add more cases
+                    }
+                    ;
                 }
                 ;
+                content += `${type.id}, `;
                 content += '\n';
             }
             ;
         }
         ;
-        content += 'TYPE_END';
+        content += 'TYPE_END\n';
         return content;
     }
     ;
@@ -83,18 +105,21 @@ exports.Type = Type;
 class TypeRef extends feature_1.Feature.Feature {
     constructor() {
         super([
-            { 'or': [
+            {
+                'or': [
                     [
-                        { 'feature': { 'type': identifier_1.Identifier }, 'export': 'type' },
+                        { 'feature': { 'type': identifier_1.Identifier }, 'export': 'alias' },
                     ],
-                    [
-                        { 'repeat': [
-                                { 'part': { 'type': parts_1.Parts.PartType.SQUARE_BRACKET_OPEN } },
-                                { 'part': { 'type': parts_1.Parts.PartType.NUMBER }, 'required': false, 'export': 'size' },
-                                { 'part': { 'type': parts_1.Parts.PartType.SQUARE_BRACKET_CLOSE } },
-                            ], 'export': 'size' }
-                    ]
-                ], 'export': 'type'
+                    /*	[
+                            {
+                                'repeat': [
+                                    { 'part': { 'type': Parts.PartType.SQUARE_BRACKET_OPEN } },
+                                    { 'part': { 'type': Parts.PartType.NUMBER }, 'required': false, 'export': 'size' },
+                                    { 'part': { 'type': Parts.PartType.SQUARE_BRACKET_CLOSE } },
+                                ], 'export': 'size'
+                            }
+                        ]*/ // Replace with features/array.ts
+                ], 'export': 'type',
             }
         ]);
     }

@@ -5,14 +5,14 @@ export namespace Errors {
 	const exclamation = chalk.reset('!');
 	const dash = chalk.reset('-');
 	const newline = chalk.reset('\n');
-	class MainError {
+	export class MainError {
 		constructor (
 			public message: string,
 			public stack?: string
 		) { 
-			console.log(this.message);
-			process.exit(1);
+
 		};
+		public count: number = 0;
  	};
  	export type Position = {
  		path?: string,
@@ -72,13 +72,36 @@ export namespace Errors {
  			};
  		};
  	};
+ 	export namespace Reference {
+ 		export class ReferenceError extends MainError {
+ 			constructor(message: string, contents: string, position: Position) {
+ 				super(
+ 					chalk.red.bold('A reference error has occured') + exclamation + newline +
+ 					message + '\n' +
+ 					highlight(position, contents)
+ 				);
+ 			};
+ 		};
+ 		export class Undefined extends ReferenceError {
+ 			constructor(reference: string, position: Position) {
+ 				super(
+ 					chalk.red('Undefined reference') + colon + newline +
+ 					reference + newline,
+ 					reference,
+ 					position
+ 				);
+ 			};
+ 		};
+ 	};
 	export namespace Command {
 		export class CommandError extends MainError {
 			constructor(message: string) {
 				super(
 					chalk.red.bold('A command error has occurred') + exclamation + newline +
 					message
-				);	
+				);
+				console.log(this.message);
+				process.exit(1);
 			};
 		};
 		export namespace Missing {

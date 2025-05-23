@@ -1,18 +1,18 @@
 import { Parts } from '~/parts';
 import { Errors } from '~/error';
-import  { Z } from '~/zs';
+import { Z } from '~/zs';
 
 export namespace Feature {
 	export type SequenceItem = {
 		part?: {
 			type: Parts.PartType,
-			value?: string	
+			value?: string
 		},
 		feature?: {
 			type: any,
 			properties?: string[]
 		},
-		
+
 		or?: Sequence[],
 		repeat?: Sequence,
 
@@ -23,15 +23,15 @@ export namespace Feature {
 	export class Feature {
 		constructor(
 			public sequence: Sequence,
-		)	{
-			
+		) {
+
 		};
-		
+
 		public create(data: any, scope: Scope, position: Errors.Position): { scope: Scope, export?: any } {
 			return { scope };
 		};
-		public toAssembly(feature: Feature): string {
-			return '';	
+		public toAssembly(feature: any, scope: Scope): string {
+			return '';
 		};
 		public match(parts: Parts.Part[]) {
 			let i = 0;
@@ -39,13 +39,13 @@ export namespace Feature {
 			let d = 0;
 
 			const matchedParts: Parts.Part[] = [];
-			const exports: Record<string, any> = { };
+			const exports: Record<string, any> = {};
 
 			while (i < this.sequence.length && p < parts.length) {
 				const sequenceItem = this.sequence[i];
 				const currentPart = parts[p];
 				let matched = false;
-				
+
 				// 1. Match literal part
 				if (sequenceItem.part) {
 					if (sequenceItem.part.type === currentPart.type && (sequenceItem.part.value === undefined || sequenceItem.part.value === currentPart.content)) {
@@ -103,7 +103,7 @@ export namespace Feature {
 							p += result.parts.length;
 							if (sequenceItem.export) {
 								if (!exports[sequenceItem.export]) {
-									exports[sequenceItem.export] = [];	
+									exports[sequenceItem.export] = [];
 								};
 								exports[sequenceItem.export].push(result.exports);
 							};
@@ -131,22 +131,54 @@ export namespace Feature {
 			return null;
 		};
 	};
+	export function generateId(label: string, scope: Scope) {
+		const base62 = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+		const size = 64;
+		let n = size;
+		let current = scope.parent;
+		let id = scope.label + '_';
+		while (current) {
+			id += current.label + '_';
+			current = current.parent;
+		};
+		id += `$${label}$`;
+		while (n > 0) {
+			id += base62[Math.floor(Math.random() * 62)];
+			n--;
+		};
+		return id;
+	};
 	export class Scope {
 		constructor(
 			public importer: Z.Importer,
+			public label: string,
 			public parent?: Scope
 		) {
-			this._data = parent?._data || { };
+			this._data = parent?._data || {};
+			this._alias = parent?._alias || {};
+			this.id = generateId(this.label, this);
 		};
-		
+
 		public set(name: string, value: any) {
 			this._data[name] = value;
 		};
 
 		public get(name: string) {
-			return this._data[name];	
+			return this._data[name];
+		};
+
+		public alias(name: string) {
+			const id = generateId(name, this);
+			this._alias[name] = id;
+			return id;
+		};
+
+		public resolve(name: string) {
+			return this._alias[name];
 		};
 
 		public _data: any;
+		public _alias: any;
+		public id: string;
 	};
 };

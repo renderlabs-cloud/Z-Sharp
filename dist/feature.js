@@ -13,7 +13,7 @@ var Feature;
             return { scope };
         }
         ;
-        toAssembly(feature) {
+        toAssembly(feature, scope) {
             return '';
         }
         ;
@@ -129,13 +129,38 @@ var Feature;
     }
     Feature_1.Feature = Feature;
     ;
+    function generateId(label, scope) {
+        const base62 = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+        const size = 64;
+        let n = size;
+        let current = scope.parent;
+        let id = scope.label + '_';
+        while (current) {
+            id += current.label + '_';
+            current = current.parent;
+        }
+        ;
+        id += `$${label}$`;
+        while (n > 0) {
+            id += base62[Math.floor(Math.random() * 62)];
+            n--;
+        }
+        ;
+        return id;
+    }
+    Feature_1.generateId = generateId;
+    ;
     class Scope {
         importer;
+        label;
         parent;
-        constructor(importer, parent) {
+        constructor(importer, label, parent) {
             this.importer = importer;
+            this.label = label;
             this.parent = parent;
             this._data = parent?._data || {};
+            this._alias = parent?._alias || {};
+            this.id = generateId(this.label, this);
         }
         ;
         set(name, value) {
@@ -146,7 +171,19 @@ var Feature;
             return this._data[name];
         }
         ;
+        alias(name) {
+            const id = generateId(name, this);
+            this._alias[name] = id;
+            return id;
+        }
+        ;
+        resolve(name) {
+            return this._alias[name];
+        }
+        ;
         _data;
+        _alias;
+        id;
     }
     Feature_1.Scope = Scope;
     ;

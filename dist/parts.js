@@ -24,7 +24,8 @@ var Parts;
         PartType["COMMA"] = "/\\,/g";
         PartType["PERIOD"] = "/\\./g";
         PartType["SEMICOLON"] = "/\\;/g";
-        PartType["EQUALS"] = "/\\=/";
+        PartType["EQUALS"] = "/\\=/g";
+        PartType["EXTRA_WHITESPACE"] = "/\\s+/g";
         PartType["UNKNOWN"] = "/\\0/g";
     })(PartType = Parts.PartType || (Parts.PartType = {}));
     ;
@@ -53,6 +54,11 @@ var Parts;
                 if (!match)
                     continue;
                 if (content.indexOf(match[0]) == 0) {
+                    if (partType == PartType.EXTRA_WHITESPACE) {
+                        content = content.slice(match[0].length).trim();
+                        break;
+                    }
+                    ;
                     position.line = origin.indexOf(content.split('\n')[0]) + 1 || position.line;
                     // position.column = origin[(position.line || 1) - 1].length;
                     parts.push({ content: match[0] || content, type: partType, position });

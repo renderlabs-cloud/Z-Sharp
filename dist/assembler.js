@@ -6,9 +6,10 @@ var Assembler;
     function assemble(syntaxData) {
         let content = '#include "z.S"\n';
         for (const data of syntaxData) {
-            //			console.log(data);
+            content += data.feature.toAssembly(data.exports, data.scope);
         }
         ;
+        console.log(content);
         return content;
     }
     Assembler.assemble = assemble;
