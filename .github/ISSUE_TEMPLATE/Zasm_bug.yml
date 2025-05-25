@@ -6,10 +6,6 @@ body:
     attributes:
       value: |
         Thanks for reporting a bug!
-  - type: input
-    id: title
-    attributes:
-      label: Bug Title
   - type: textarea
     id: steps
     attributes:
