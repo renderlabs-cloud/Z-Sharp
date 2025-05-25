@@ -62,6 +62,12 @@ export class Type extends Feature.Feature {
 		]);
 	};
 
+	public static get (data: any, scope: Feature.Scope) {
+		if (data.type.alias) {
+			return scope.get(`type.${scope.resolve(data.type.alias.name)}`);
+		};
+	};
+
 	public create(data: any, scope: Feature.Scope, position: Errors.Position) {
 		const typeData: TypeData = {};
 		typeData.name = data.name;

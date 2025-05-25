@@ -17,7 +17,8 @@ export namespace Errors {
  	export type Position = {
  		path?: string,
  		line?: number,
- 		column?: number
+ 		column?: number,
+ 		content?: string
  	};
  	function highlight(position: Position, highlight: string) {
  		return chalk.cyan(position?.path) + colon + chalk.yellow(String(position?.line)) + colon + chalk.yellow(String(position?.column)) + newline + 

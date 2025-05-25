@@ -47,7 +47,7 @@ var Feature;
                     const result = subFeature.match(parts.slice(p));
                     if (result) {
                         matchedParts.push(...result.parts);
-                        p += result.parts.length;
+                        p += result.length;
                         i++;
                         matched = true;
                         if (sequenceItem.export) {
@@ -105,6 +105,37 @@ var Feature;
                     matched = true;
                     i++;
                 }
+                // 5. Match BETWEEN (all features between to points)
+                else if (sequenceItem.between) {
+                    let balance = 0;
+                    let j = 0;
+                    for (const part of parts.slice(p)) {
+                        if (part.type == sequenceItem.between.left.part?.type) {
+                            balance++;
+                        }
+                        ;
+                        if (part.type == sequenceItem.between.right.part?.type) {
+                            balance--;
+                        }
+                        ;
+                        j++;
+                        p++;
+                        if (balance == -1) {
+                            p--;
+                            j--;
+                            break;
+                        }
+                        ;
+                    }
+                    ;
+                    const between = parts.slice(p - j, p);
+                    if (sequenceItem.export) {
+                        exports[sequenceItem.export] = between;
+                    }
+                    ;
+                    matched = true;
+                    i++;
+                }
                 ;
                 if (!matched) {
                     if (sequenceItem.required !== false) {
@@ -120,7 +151,7 @@ var Feature;
             }
             ;
             if (i === this.sequence.length) {
-                return { parts: matchedParts, exports };
+                return { parts: matchedParts, length: p, exports };
             }
             ;
             return null;

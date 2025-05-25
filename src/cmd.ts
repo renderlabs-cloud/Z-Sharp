@@ -30,7 +30,7 @@ program
 ;
 
 program.command('build')
-	.description(`Compile ${zs} code`)
+	.description(`Build ${zs} code`)
 	.option('--input, -I <path>')
 	.option('--output, -O <path>')
 	.option('--mode, -M <string>')
@@ -55,6 +55,21 @@ program.command('build')
 			cli: true
 		}, options.input);
 		fs.writeFileSync(options.output || options.input + '.iz', asm);
+	})
+;
+
+program.command('emit')
+	.description(`Compile ${zs} intermediate assembly`)
+	.option('--input, -I <path>')
+	.option('--output, -O <path>')
+	.option('--target, -T <arch>')
+	.action(async (_options) => {
+		if (!_options.input) {
+			throw new Errors.Command.Missing.Parameters(['input']);	
+		};
+		const asm = fs.readFileSync(_options.input).toString();
+		const binary = await Z.emit(asm, FileType.get(_options.output));
+		fs.writeFileSync(_options.output, binary);
 	})
 ;
 

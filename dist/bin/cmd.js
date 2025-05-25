@@ -71,39 +71,39 @@ var require_module_alias = __commonJS({
       }
       return oldResolveFilename.call(this, request, parentModule, isMain, options2);
     };
-    function isPathMatchesAlias(path, alias) {
-      if (path.indexOf(alias) === 0) {
-        if (path.length === alias.length) return true;
-        if (path[alias.length] === "/") return true;
+    function isPathMatchesAlias(path2, alias) {
+      if (path2.indexOf(alias) === 0) {
+        if (path2.length === alias.length) return true;
+        if (path2[alias.length] === "/") return true;
       }
       return false;
     }
-    function addPathHelper(path, targetArray) {
-      path = nodePath.normalize(path);
-      if (targetArray && targetArray.indexOf(path) === -1) {
-        targetArray.unshift(path);
+    function addPathHelper(path2, targetArray) {
+      path2 = nodePath.normalize(path2);
+      if (targetArray && targetArray.indexOf(path2) === -1) {
+        targetArray.unshift(path2);
       }
     }
-    function removePathHelper(path, targetArray) {
+    function removePathHelper(path2, targetArray) {
       if (targetArray) {
-        var index = targetArray.indexOf(path);
+        var index = targetArray.indexOf(path2);
         if (index !== -1) {
           targetArray.splice(index, 1);
         }
       }
     }
-    function addPath(path) {
+    function addPath(path2) {
       var parent;
-      path = nodePath.normalize(path);
-      if (modulePaths.indexOf(path) === -1) {
-        modulePaths.push(path);
+      path2 = nodePath.normalize(path2);
+      if (modulePaths.indexOf(path2) === -1) {
+        modulePaths.push(path2);
         var mainModule = getMainModule();
         if (mainModule) {
-          addPathHelper(path, mainModule.paths);
+          addPathHelper(path2, mainModule.paths);
         }
         parent = module2.parent;
         while (parent && parent !== mainModule) {
-          addPathHelper(path, parent.paths);
+          addPathHelper(path2, parent.paths);
           parent = parent.parent;
         }
       }
@@ -120,18 +120,18 @@ var require_module_alias = __commonJS({
     }
     function reset() {
       var mainModule = getMainModule();
-      modulePaths.forEach(function(path) {
+      modulePaths.forEach(function(path2) {
         if (mainModule) {
-          removePathHelper(path, mainModule.paths);
+          removePathHelper(path2, mainModule.paths);
         }
         Object.getOwnPropertyNames(require.cache).forEach(function(name) {
-          if (name.indexOf(path) !== -1) {
+          if (name.indexOf(path2) !== -1) {
             delete require.cache[name];
           }
         });
         var parent = module2.parent;
         while (parent && parent !== mainModule) {
-          removePathHelper(path, parent.paths);
+          removePathHelper(path2, parent.paths);
           parent = parent.parent;
         }
       });
@@ -1315,8 +1315,8 @@ var require_command = __commonJS({
   "node_modules/commander/lib/command.js"(exports2) {
     var EventEmitter = require("node:events").EventEmitter;
     var childProcess = require("node:child_process");
-    var path = require("node:path");
-    var fs = require("node:fs");
+    var path2 = require("node:path");
+    var fs2 = require("node:fs");
     var process2 = require("node:process");
     var { Argument, humanReadableArgName } = require_argument();
     var { CommanderError } = require_error();
@@ -2297,7 +2297,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} subcommandName
        */
       _checkForMissingExecutable(executableFile, executableDir, subcommandName) {
-        if (fs.existsSync(executableFile)) return;
+        if (fs2.existsSync(executableFile)) return;
         const executableDirMessage = executableDir ? `searched for local subcommand relative to directory '${executableDir}'` : "no directory for search for local subcommand, use .executableDir() to supply a custom directory";
         const executableMissing = `'${executableFile}' does not exist
  - if '${subcommandName}' is not meant to be an executable command, remove description parameter from '.command()' and use '.description()' instead
@@ -2315,11 +2315,11 @@ Expecting one of '${allowedValues.join("', '")}'`);
         let launchWithNode = false;
         const sourceExt = [".js", ".ts", ".tsx", ".mjs", ".cjs"];
         function findFile(baseDir, baseName) {
-          const localBin = path.resolve(baseDir, baseName);
-          if (fs.existsSync(localBin)) return localBin;
-          if (sourceExt.includes(path.extname(baseName))) return void 0;
+          const localBin = path2.resolve(baseDir, baseName);
+          if (fs2.existsSync(localBin)) return localBin;
+          if (sourceExt.includes(path2.extname(baseName))) return void 0;
           const foundExt = sourceExt.find(
-            (ext) => fs.existsSync(`${localBin}${ext}`)
+            (ext) => fs2.existsSync(`${localBin}${ext}`)
           );
           if (foundExt) return `${localBin}${foundExt}`;
           return void 0;
@@ -2331,21 +2331,21 @@ Expecting one of '${allowedValues.join("', '")}'`);
         if (this._scriptPath) {
           let resolvedScriptPath;
           try {
-            resolvedScriptPath = fs.realpathSync(this._scriptPath);
+            resolvedScriptPath = fs2.realpathSync(this._scriptPath);
           } catch {
             resolvedScriptPath = this._scriptPath;
           }
-          executableDir = path.resolve(
-            path.dirname(resolvedScriptPath),
+          executableDir = path2.resolve(
+            path2.dirname(resolvedScriptPath),
             executableDir
           );
         }
         if (executableDir) {
           let localFile = findFile(executableDir, executableFile);
           if (!localFile && !subcommand._executableFile && this._scriptPath) {
-            const legacyName = path.basename(
+            const legacyName = path2.basename(
               this._scriptPath,
-              path.extname(this._scriptPath)
+              path2.extname(this._scriptPath)
             );
             if (legacyName !== this._name) {
               localFile = findFile(
@@ -2356,7 +2356,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
           }
           executableFile = localFile || executableFile;
         }
-        launchWithNode = sourceExt.includes(path.extname(executableFile));
+        launchWithNode = sourceExt.includes(path2.extname(executableFile));
         let proc;
         if (process2.platform !== "win32") {
           if (launchWithNode) {
@@ -3203,7 +3203,7 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @return {Command}
        */
       nameFromFilename(filename) {
-        this._name = path.basename(filename, path.extname(filename));
+        this._name = path2.basename(filename, path2.extname(filename));
         return this;
       }
       /**
@@ -3217,9 +3217,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @param {string} [path]
        * @return {(string|null|Command)}
        */
-      executableDir(path2) {
-        if (path2 === void 0) return this._executableDir;
-        this._executableDir = path2;
+      executableDir(path3) {
+        if (path3 === void 0) return this._executableDir;
+        this._executableDir = path3;
         return this;
       }
       /**
@@ -4033,12 +4033,12 @@ var init_parts = __esm({
       }
       Parts2.parseRegex = parseRegex;
       ;
-      function toParts(content, path) {
+      function toParts(content, path2) {
         const parts = [];
         const position = {};
         const origin = content.split("\n");
         let done = false;
-        position.path = path;
+        position.path = path2;
         while (!done) {
           for (const partType of Object.values(PartType)) {
             const match = content.match(parseRegex(partType));
@@ -4118,7 +4118,7 @@ var init_feature = __esm({
               const result = subFeature.match(parts.slice(p));
               if (result) {
                 matchedParts.push(...result.parts);
-                p += result.parts.length;
+                p += result.length;
                 i++;
                 matched = true;
                 if (sequenceItem.export) {
@@ -4169,6 +4169,35 @@ var init_feature = __esm({
               ;
               matched = true;
               i++;
+            } else if (sequenceItem.between) {
+              let balance = 0;
+              let j = 0;
+              for (const part of parts.slice(p)) {
+                if (part.type == sequenceItem.between.left.part?.type) {
+                  balance++;
+                }
+                ;
+                if (part.type == sequenceItem.between.right.part?.type) {
+                  balance--;
+                }
+                ;
+                j++;
+                p++;
+                if (balance == -1) {
+                  p--;
+                  j--;
+                  break;
+                }
+                ;
+              }
+              ;
+              const between = parts.slice(p - j, p);
+              if (sequenceItem.export) {
+                exports2[sequenceItem.export] = between;
+              }
+              ;
+              matched = true;
+              i++;
             }
             ;
             if (!matched) {
@@ -4184,7 +4213,7 @@ var init_feature = __esm({
           }
           ;
           if (i === this.sequence.length) {
-            return { parts: matchedParts, exports: exports2 };
+            return { parts: matchedParts, length: p, exports: exports2 };
           }
           ;
           return null;
@@ -4344,6 +4373,12 @@ var init_type = __esm({
           }
         ]);
       }
+      static get(data, scope) {
+        if (data.type.alias) {
+          return scope.get(`type.${scope.resolve(data.type.alias.name)}`);
+        }
+        ;
+      }
       create(data, scope, position) {
         const typeData = {};
         typeData.name = data.name;
@@ -4476,6 +4511,122 @@ var init_variable = __esm({
   }
 });
 
+// src/assembler.ts
+var Assembler;
+var init_assembler = __esm({
+  "src/assembler.ts"() {
+    "use strict";
+    ((Assembler2) => {
+      function assemble(syntaxData, isMain) {
+        let content = isMain ? '#include "z.S"\n' : "";
+        for (const data of syntaxData) {
+          content += data.feature.toAssembly(data.exports, data.scope);
+        }
+        ;
+        console.log(content);
+        return content;
+      }
+      Assembler2.assemble = assemble;
+      ;
+    })(Assembler || (Assembler = {}));
+  }
+});
+
+// src/features/body.ts
+var Body;
+var init_body = __esm({
+  "src/features/body.ts"() {
+    "use strict";
+    init_feature();
+    init_parts();
+    Body = class extends Feature.Feature {
+      constructor() {
+        super([
+          { "part": { "type": Parts.PartType.CURLY_BRACKET_OPEN } },
+          { "between": {
+            "left": { "part": { "type": Parts.PartType.CURLY_BRACKET_OPEN } },
+            "right": { "part": { "type": Parts.PartType.CURLY_BRACKET_CLOSE } }
+          }, "export": "parts" },
+          { "part": { "type": Parts.PartType.CURLY_BRACKET_CLOSE } }
+        ]);
+      }
+      create(data, scope, position) {
+        let bodyData = {};
+        console.log(bodyData, data);
+        return { scope, exports: bodyData };
+      }
+      toAssembly(bodyData, scope) {
+        let content = ``;
+        return content;
+      }
+    };
+  }
+});
+
+// src/features/function.ts
+var Function2;
+var init_function = __esm({
+  "src/features/function.ts"() {
+    "use strict";
+    init_feature();
+    init_parts();
+    init_syntax();
+    init_assembler();
+    init_type();
+    init_body();
+    Function2 = class extends Feature.Feature {
+      constructor() {
+        super([
+          { "part": { "type": Parts.PartType.WORD, "value": "function" } },
+          { "part": { "type": Parts.PartType.WORD }, "export": "name" },
+          { "part": { "type": Parts.PartType.PARENTHESIS_OPEN } },
+          { "repeat": [
+            { "part": { "type": Parts.PartType.WORD }, "export": "name" },
+            { "part": { "type": Parts.PartType.COLON } },
+            { "feature": { "type": TypeRef }, "export": "type" },
+            { "part": { "type": Parts.PartType.COMMA }, "required": false, "export": "comma" }
+          ], "export": "parameters", required: false },
+          { "part": { "type": Parts.PartType.PARENTHESIS_CLOSE } },
+          { "part": { "type": Parts.PartType.COLON } },
+          { "feature": { "type": TypeRef }, "export": "type" },
+          { "feature": { "type": Body }, "export": "body" }
+        ]);
+      }
+      create(data, scope, position) {
+        let functionData = {};
+        functionData.name = data.name;
+        functionData.id = `function.${scope.alias(functionData.name)}`;
+        functionData.scope = new Feature.Scope(scope.importer, functionData.name, scope);
+        functionData.type = data.type;
+        functionData.parameters = data.parameters;
+        const features = Syntax.toFeatures(data.body.parts, functionData.scope, position);
+        functionData.body = features;
+        console.log(functionData, data);
+        scope.set(functionData.id, functionData);
+        return { scope, exports: functionData };
+      }
+      toAssembly(functionData, scope) {
+        let content = `FUNC ${functionData.id}, PARAMS
+ `;
+        for (const parameter of functionData.parameters) {
+          const type = Type.get(parameter.type, scope);
+          parameter.id = functionData.scope.alias(parameter.name);
+          console.log(parameter);
+          content += `PARAM ${type.id}, ${parameter.id}
+`;
+        }
+        ;
+        content += `PARAMS_END
+`;
+        content += `${Assembler.assemble(functionData.body)}
+FUNC_END
+`;
+        return content;
+      }
+    };
+  }
+});
+
 // src/features/semantics.ts
 var Semicolon;
 var init_semantics = __esm({
@@ -4501,11 +4652,13 @@ var init_official = __esm({
     init_accessor();
     init_type();
     init_variable();
+    init_function();
     init_semantics();
     official = [
       // Word specifics come first
       Type,
       Variable,
+      Function2,
       // Then, generalized specifics
       Accessor,
       // And finally, semantics
@@ -4522,14 +4675,14 @@ var init_syntax = __esm({
     init_error();
     init_official();
     ((Syntax2) => {
-      function toFeatures(parts, scope, _features = official, contents, path) {
+      function toFeatures(parts, scope, position, _features = official, path2) {
         const features = _features.map((v) => {
           return new v();
         });
-        let syntax = [];
+        const syntax = [];
+        const contents = position.content || "";
         let done = false;
         let foundMatch = false;
-        let position = { path };
         while (!done) {
           if (parts.length == 0) {
             done = true;
@@ -4541,7 +4694,7 @@ var init_syntax = __esm({
             if (match) {
               const data = feature.create(match.exports, scope, position);
               syntax.push({ exports: data.exports, scope: data.scope, feature });
-              parts = parts.slice(match.parts.length);
+              parts = parts.slice(match.length);
               foundMatch = true;
               break;
             }
@@ -4563,41 +4716,104 @@ var init_syntax = __esm({
   }
 });
 
-// src/assembler.ts
-var Assembler;
-var init_assembler = __esm({
-  "src/assembler.ts"() {
+// src/asm/dist/z_S.ts
+var z_S_default;
+var init_z_S = __esm({
+  "src/asm/dist/z_S.ts"() {
     "use strict";
-    ((Assembler2) => {
-      function assemble(syntaxData) {
-        let content = '#include "z.S"\n';
-        for (const data of syntaxData) {
-          content += data.feature.toAssembly(data.exports, data.scope);
-        }
-        ;
-        console.log(content);
-        return content;
-      }
-      Assembler2.assemble = assemble;
-      ;
-    })(Assembler || (Assembler = {}));
+    z_S_default = '\n/*\n * This code was generated by the Z# programming system. \u{1FACE}\n *\n * Z# is an open-source community project. By using Z#, you acknowledge and agree:\n *\n * - You trust the code you are running.\n * - You may not hold the Z# organization, its developers, or contributors liable\n *   for any damage caused by the code, even if it behaves maliciously. \n * - Responsibility for malicious or harmful behavior lies solely with the author\n *   of the code, not with Z# or its maintainers. \u{1F47A}\n *\n * Z# is not designed to generate malicious code, but like any programming tool,\n * it can be used to write harmful or unsafe programs.\n *\n * If you find Z# useful, please consider supporting the project:\n * https://zsharp.dev/donate. \u2764\uFE0F\n *\n * Use at your own risk. \u26A0\uFE0F\n */\n\n#define EVAL(x) x\n\n/*\n * R0 - R4 : Mnemonic control\n * R5      : Scope\n * R6      : Selector control\n * R7      : Parameter control\n * R8      : Stack\n * R9 - R14: Unallocated\n * R15     : Temporary\n */\n# Architecture mapping\n\n/* x86_64 (64-bit) */\n#if defined(__x86_64__) || defined(__amd64__)\n    # Registers\n    #define RAX rax\n    #define RBX rbx\n    #define RCX rcx\n    #define RDX rdx\n    #define RSI rsi\n    #define RDI rdi\n    #define RSP rsp\n    #define RBP rbp\n    #define R8  r8\n    #define R9  r9\n    #define R10 r10\n    #define R11 r11\n    #define R12 r12\n    #define R13 r13\n    #define R14 r14\n    #define R15 r15\n\n    #define RIP rip\n\n    # Mnemonics\n    #define SYSCALL syscall\n    #define MOV(x, y) mov x, y\n    #define LDR(x, y) mov (x), y\n    #define LEA(x, y, z) lea x(z), y\n	#define XOR(x, y) xor x, y\n	#define ADD(x, y) add x, y\n	#define SUB(x, y) sub x, y\n	#define IMUL(x, y) imul x, y\n\n	#define JNE(x, y) jne x, y\n	\n    # Value\n    #define REF(x) $x\n/* ARM64 (AArch64) */\n#elif defined(__aarch64__)\n    # Registers\n    #define RAX x0\n    #define RBX x1\n    #define RCX x2\n    #define RDX x3\n    #define RSI x4\n    #define RDI x5\n    #define RSP sp\n    #define RBP x29\n    #define R8  x8\n    #define R9  x9\n    #define R10 x10\n    #define R11 x11\n    #define R12 x12\n    #define R13 x13\n    #define R14 x14\n    #define R15 x15\n\n    #define RIP rip\n\n    # Mnemonics\n    #define SYSCALL svc 0\n	#define MOV(x, y) mov y, x\n	#define LDR(x, y) ldr y, [x]\n	#define LEA(x, y, z) adr y, x\n	#define XOR(x, y) eor x, x, y\n	#define ADD(x, y) add x, x, y\n	#define SUB(x, y) sub x, x, y\n	#define IMUL(x, y, z) MOV(x, R15) \n \\\n						  MUL R15, y, z\n\n	#define JNE(x, y) \n	\n    # Value\n    #define REF(x) #EVAL(x)\n#else\n    #error "Unsupported architecture for register mapping"\n#endif\n\n#ifdef __WIN32\n	#define TARGET "MICROSOFT/WINDOWS"\n#elif TARGET_OS_MAC\n	#define TARGET "APPLE/MAC-OS"\n#elif TARGET_OS_IPHONE\n	#define TARGET "APPLE/IPHONE"\n#elif __linux__\n	#define TARGET "LINUX"\n#elif __ANDROID__\n	#define TARGET "ANDROID"\n#elif __unix__\n	#define TARGET "UNIX"\n#else\n	#define TARGET "UNKNOWN"\n#endif\n\n# Usage: \n# STRUCT name\n#   STRUCT_FIELD field_name, size\n# STRUCT_END\n\n.set STRUCT_OFFSET, 0\n\n.macro STRUCT name\n    .set \\name\\()_SIZE, 0\n    .pushsection .data\n\\name:\n.endm\n\n.macro STRUCT_FIELD name, size\n\\name:\n    .skip \\size\n    .set STRUCT_OFFSET, STRUCT_OFFSET + \\size\n.endm\n\n.macro STRUCT_END\n    .popsection\n    .set STRUCT_SIZE, STRUCT_OFFSET\n    .set STRUCT_OFFSET, 0\n.endm\n\n.macro ALIGN boundary\n    .balign \\boundary\n.endm\n\n# Allocate N bytes \u2192 result in %rax\n.macro MALLOC size\n    MOV (REF(9), RAX)     ;// sys_mmap\n    XOR (RDI, RDI)        ;// NULL address\n    MOV (REF(\\size), RSI) ;// size in bytes\n    MOV (REF(3), RAX)     ;// PROT_READ | PROT_WRITE\n    MOV (REF(34), R10)    ;// MAP_PRIVATE | MAP_ANONYMOUS\n    XOR (R8, R8)          ;// fd = -1\n    XOR (R9, R9)          ;// offset\n    SYSCALL               ;// -> %rax = allocated pointer\n.endm\n\n# Read value at pointer \u2192 %reg\n#   ptr = register with pointer\n#   reg = output register\n.macro PTR_READ ptr, reg\n    MOV ((\\ptr), \\reg)\n.endm\n\n# Write value to pointer\n#   value = register with value\n#   ptr = pointer register\n.macro PTR_WRITE value, ptr\n    MOV (\\value, (\\ptr))\n.endm\n\n# Store value in memory, and return a pointer to it\n#   value = register with value\n#   out = output register with pointer\n.macro PTR_CREATE value, out\n    MALLOC 8            ;// allocate 8 bytes\n    MOV (\\value, (RAX)) ;// store value at allocated address\n    MOV (RAX, \\out)     ;// return pointer\n.endm\n\n# Optional, depending on the environment\n.macro FREE ptr, size\n    MOV (REF(11), RAX)    ;// sys_munmap\n   	MOV (REF(\\ptr), RDI)  ;// pointer\n    MOV (REF(\\size), RSI) ;// size in bytes\n    SYSCALL\n.endm\n\n# Allocate the table itself once\n.macro LAZY_LIST_INIT name, slots\n    .lcomm \\name, \\slots * 8\n.endm\n\n# Get address of list[index] \u2192 in %rdi\n.macro LAZY_PTR_GET name, index, reg\n    LEA (\\name, \\reg, RIP)\n    MOV (REF(\\index), RSI)\n    IMUL (REF(8), RSI, RSI)\n    ADD (RSI, \\reg)\n.endm\n\n# Access item at index, allocate if null\n#   name = list name\n#   index = integer index\n#   size = allocation size\n#   reg = register for result address\n.macro LAZY_BLOCK_GET name, index, size, reg\n    LAZY_PTR_GET \\name, \\index, \\reg\n    MOV ((\\reg), RSI)\n    JNE (REF(1f), RSI)\n    MALLOC \\size\n    MOV (RAX, \\reg)\n1:\n    LDR (\\reg, \\reg)\n.endm\n\n# Set value at a specific index in a lazy list\n#   name = list name\n#   index = integer index\n#   value = value to set (in register)\n.macro LAZY_BLOCK_SET name, index, value\n    LAZY_PTR_GET \\name, \\index, RDI\n    MOV (REF(\\value), RDI)\n.endm\n\n# Type initialization\n.macro TYPE name\n    STRUCT \\name\n.endm\n\n.macro TYPE_FIELD type, name, size\n    #if type == BYTE\n        STRUCT_FIELD \\name, \\size\n    #endif\n.endm\n\n.macro TYPE_END\n    STRUCT_END\n.endm\n\n.macro FUNC name, _\n.section .text\n.global \\name\n\\name:\n.endm\n\n.macro PARAM type, name\n# Store param info\n.byte 0x10\n.asciz "\\name"\n.byte \\type\n.endm\n\n.macro PARAMS_END\n.byte 0x11\n.endm\n\n.macro FUNC_END\n.byte 0xFF\n.endm\n\n.macro DEBUG value\n    MOV(REF(1), RAX)  ;// sys_write system call\n    MOV(REF(1), RDI)  ;// stdout file descriptor\n    MOV(\\value, RSI)  ;// pointer to the string\n    MOV(REF(10), RDX) ;// length of the string\n    SYSCALL\n.endm\n\n.macro STRING name, string\n	.section data\n		\\name: .asciz \\string\n	.section text\n.endm\n\n';
+  }
+});
+
+// src/cli/header.ts
+var header_exports = {};
+__export(header_exports, {
+  Z_bug: () => Z_bug,
+  Zasm_bug: () => Zasm_bug,
+  failure: () => failure,
+  header: () => header,
+  hyperlink: () => hyperlink,
+  success: () => success,
+  zs: () => zs
+});
+function hyperlink(text, url, attrs) {
+  return `\x1B]8;${attrs || ""};${url || text}\x07${text}\x1B]8;;\x07`;
+}
+function success(data) {
+  return import_chalk2.chalk.white(
+    `
+Code compilation ${import_chalk2.chalk.green("succeeded")} in ${import_chalk2.chalk.green(data.time)}ms with ${data.vulnerabilities == 0 ? import_chalk2.chalk.green("0") : data.vulnerabilities < 5 ? import_chalk2.chalk.yellow(data.vulnerabilities) : import_chalk2.chalk.red(data.vulnerabilities)} known vulnerabilit(ies).`
+  );
+}
+function failure(data) {
+  return import_chalk2.chalk.white(
+    `
+Code compilation ${import_chalk2.chalk.red("failed")} with ${import_chalk2.chalk.red(data.errors)} error(s).`
+  );
+}
+var import_chalk2, header, Z_bug, Zasm_bug, zs;
+var init_header = __esm({
+  "src/cli/header.ts"() {
+    "use strict";
+    import_chalk2 = __toESM(require_dist3());
+    header = import_chalk2.chalk.white(
+      ":===: " + import_chalk2.chalk.red("Z#") + " :===:\n\n" + import_chalk2.chalk.blue(hyperlink("Documentation", "https://docs.zsharp.dev")) + "\n"
+    );
+    Z_bug = import_chalk2.chalk.red("This is a bug! Please report it:");
+    Zasm_bug = hyperlink("Report", "");
+    zs = import_chalk2.chalk.red("Z#");
+  }
+});
+
+// src/emit.ts
+async function compileAssemblyToBinary(source, output) {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "zsharp-"));
+  const inputFile = path.join(tempDir, "temp.s");
+  const outputFile = path.join(tempDir, "temp" + output);
+  const zHeaderFile = path.join(tempDir, "z.S");
+  await fs.writeFile(inputFile, source);
+  await fs.writeFile(zHeaderFile, z_S_default);
+  await new Promise((resolve, reject) => {
+    const gcc = (0, import_child_process.spawn)("gcc", ["-x", "assembler-with-cpp", "-c", inputFile, "-o", outputFile]);
+    gcc.stderr.on("data", (data) => console.error(`GCC Error: 
+${data}
+${Z_bug} ${Zasm_bug}`));
+    gcc.on("close", (code) => {
+      if (code === 0) resolve();
+      else reject(process.exit(1));
+    });
+  });
+  const binary = await fs.readFile(outputFile);
+  await fs.rm(tempDir, { recursive: true, force: true });
+  return binary;
+}
+var import_child_process, fs, path, os;
+var init_emit = __esm({
+  "src/emit.ts"() {
+    "use strict";
+    import_child_process = require("child_process");
+    fs = __toESM(require("fs/promises"));
+    path = __toESM(require("path"));
+    os = __toESM(require("os"));
+    init_z_S();
+    init_header();
   }
 });
 
 // src/cli/spinner.ts
-var import_chalk2, SpinnerTypes, Spinner;
+var import_chalk3, SpinnerTypes, Spinner;
 var init_spinner = __esm({
   "src/cli/spinner.ts"() {
     "use strict";
-    import_chalk2 = __toESM(require_dist3());
+    import_chalk3 = __toESM(require_dist3());
     SpinnerTypes = {
       "compile": {
         frames: [" == ", "  ==", "   =", "  ==", " == ", "==  ", "=   ", "==  "].map((v) => {
-          return import_chalk2.chalk.white(`[${import_chalk2.chalk.blue(v)}]`);
+          return import_chalk3.chalk.white(`[${import_chalk3.chalk.blue(v)}]`);
         }),
-        success: import_chalk2.chalk.white(`[ ${import_chalk2.chalk.green("OK")} ]`),
-        fail: import_chalk2.chalk.white(`[ ${import_chalk2.chalk.red("ER")} ]`),
-        warning: import_chalk2.chalk.white(`[ ${import_chalk2.chalk.yellow("WN")} ]`),
+        success: import_chalk3.chalk.white(`[ ${import_chalk3.chalk.green("OK")} ]`),
+        fail: import_chalk3.chalk.white(`[ ${import_chalk3.chalk.red("ER")} ]`),
+        warning: import_chalk3.chalk.white(`[ ${import_chalk3.chalk.yellow("WN")} ]`),
         framecount: 8
       }
     };
@@ -4634,42 +4850,6 @@ var init_spinner = __esm({
   }
 });
 
-// src/cli/header.ts
-var header_exports = {};
-__export(header_exports, {
-  failure: () => failure,
-  header: () => header,
-  hyperlink: () => hyperlink,
-  success: () => success,
-  zs: () => zs
-});
-function hyperlink(text, url, attrs) {
-  return `\x1B]8;${attrs || ""};${url || text}\x07${text}\x1B]8;;\x07`;
-}
-function success(data) {
-  return import_chalk3.chalk.white(
-    `
-Code compilation ${import_chalk3.chalk.green("succeeded")} in ${import_chalk3.chalk.green(data.time)}ms with ${data.vulnerabilities == 0 ? import_chalk3.chalk.green("0") : data.vulnerabilities < 5 ? import_chalk3.chalk.yellow(data.vulnerabilities) : import_chalk3.chalk.red(data.vulnerabilities)} known vulnerabilities.`
-  );
-}
-function failure(data) {
-  return import_chalk3.chalk.white(
-    `
-Code compilation ${import_chalk3.chalk.red("failed")} with ${import_chalk3.chalk.red(data.errors)} error(s).`
-  );
-}
-var import_chalk3, header, zs;
-var init_header = __esm({
-  "src/cli/header.ts"() {
-    "use strict";
-    import_chalk3 = __toESM(require_dist3());
-    header = import_chalk3.chalk.white(
-      ":===: " + import_chalk3.chalk.red("Z#") + " :===:\n\n" + import_chalk3.chalk.blue(hyperlink("Documentation", "https://docs.zsharp.dev")) + "\n"
-    );
-    zs = import_chalk3.chalk.red("Z#");
-  }
-});
-
 // src/zs.ts
 var zs_exports = {};
 __export(zs_exports, {
@@ -4683,20 +4863,21 @@ var init_zs = __esm({
     init_syntax();
     init_feature();
     init_assembler();
+    init_emit();
     init_spinner();
     init_header();
-    init_official();
     ((Z2) => {
       function spin(spinner) {
         spinner.start();
       }
       Z2.spin = spin;
       ;
-      function toAssembly(content, importer, path) {
+      function toAssembly(content, importer, path2) {
         const start = Date.now();
         let spinners = [];
         let assembly = "";
         if (importer.cli) {
+          console.log(header);
           spinners = Array.from({ length: 10 }, () => {
             const spinner = new Spinner({ text: "", style: SpinnerTypes["compile"] });
             return spinner;
@@ -4705,24 +4886,26 @@ var init_zs = __esm({
           spinners[1].options.text = "Applying syntax";
           spinners[2].options.text = "Compiling to assembly";
           spinners[0].start();
-          console.log(header);
         }
         ;
         try {
-          const parts = Parts.toParts(content, path);
+          const parts = Parts.toParts(content, path2);
           if (importer.cli) {
             spinners[0].success();
             spinners[1].start();
           }
           ;
           const scope = new Feature.Scope(importer, "main");
-          const syntax = Syntax.toFeatures(parts, scope, official, content, path);
+          const basePosition = {
+            content
+          };
+          const syntax = Syntax.toFeatures(parts, scope, basePosition, void 0, path2);
           if (importer.cli) {
             spinners[1].success();
             spinners[2].start();
           }
           ;
-          assembly = Assembler.assemble(syntax);
+          assembly = Assembler.assemble(syntax, true);
           if (importer.cli) {
             spinners[2].success();
           }
@@ -4749,7 +4932,32 @@ var init_zs = __esm({
       }
       Z2.toAssembly = toAssembly;
       ;
+      async function emit(content, output) {
+        const compiled = await compileAssemblyToBinary(content, output);
+        return compiled;
+      }
+      Z2.emit = emit;
+      ;
     })(Z || (Z = {}));
+  }
+});
+
+// src/file.ts
+var file_exports = {};
+__export(file_exports, {
+  FileType: () => FileType
+});
+var FileType;
+var init_file = __esm({
+  "src/file.ts"() {
+    "use strict";
+    ((FileType2) => {
+      function get(path2) {
+        return path2.match(/.*(\.\w*)/gm)?.[0];
+      }
+      FileType2.get = get;
+      ;
+    })(FileType || (FileType = {}));
   }
 });
 
@@ -4764,23 +4972,24 @@ var path_1 = __importDefault(require("path"));
 var fs_1 = __importDefault(require("fs"));
 var chalk_1 = __importDefault(require_dist3());
 var zs_1 = (init_zs(), __toCommonJS(zs_exports));
+var file_1 = (init_file(), __toCommonJS(file_exports));
 var error_1 = (init_error(), __toCommonJS(error_exports));
 var header_1 = (init_header(), __toCommonJS(header_exports));
 var project = {};
-function getProject(path) {
+function getProject(path2) {
   try {
-    return JSON.parse(fs_1.default.readFileSync(path_1.default.resolve(path + "/.zsharp.json")).toString());
+    return JSON.parse(fs_1.default.readFileSync(path_1.default.resolve(path2 + "/.zsharp.json")).toString());
   } catch (err) {
-    if (path == path_1.default.resolve(path)) {
+    if (path2 == path_1.default.resolve(path2)) {
       return {};
     }
     ;
-    return getProject(path_1.default.resolve(path + "/../"));
+    return getProject(path_1.default.resolve(path2 + "/../"));
   }
   ;
 }
 commander_1.program.name("zs").description(chalk_1.default.white(`${header_1.zs} compiler`));
-commander_1.program.command("build").description(`Compile ${header_1.zs} code`).option("--input, -I <path>").option("--output, -O <path>").option("--mode, -M <string>").action((_options) => {
+commander_1.program.command("build").description(`Build ${header_1.zs} code`).option("--input, -I <path>").option("--output, -O <path>").option("--mode, -M <string>").action((_options) => {
   for (const option in _options) {
     if (project?.[option] && _options[option] !== project?.[option]) {
       throw new error_1.Errors.Command.Conflicting.Parameters([option, option]);
@@ -4795,12 +5004,21 @@ commander_1.program.command("build").description(`Compile ${header_1.zs} code`).
   ;
   project = getProject(options2.input.split("/").slice(0, -1).join("/"));
   const asm = zs_1.Z.toAssembly(fs_1.default.readFileSync(options2.input).toString(), {
-    import: (path) => {
-      return fs_1.default.readFileSync(path).toString();
+    import: (path2) => {
+      return fs_1.default.readFileSync(path2).toString();
     },
     cli: true
   }, options2.input);
   fs_1.default.writeFileSync(options2.output || options2.input + ".iz", asm);
+});
+commander_1.program.command("emit").description(`Compile ${header_1.zs} intermediate assembly`).option("--input, -I <path>").option("--output, -O <path>").option("--target, -T <arch>").action(async (_options) => {
+  if (!_options.input) {
+    throw new error_1.Errors.Command.Missing.Parameters(["input"]);
+  }
+  ;
+  const asm = fs_1.default.readFileSync(_options.input).toString();
+  const binary = await zs_1.Z.emit(asm, file_1.FileType.get(_options.output));
+  fs_1.default.writeFileSync(_options.output, binary);
 });
 commander_1.program.parse();
 var options = commander_1.program.opts();

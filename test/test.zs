@@ -1,13 +1,9 @@
-type Test1 = {
+type myType = {
 	value: byte
 };
 
-type Test2 = {
-	value: Test1
-};
+let myVar: myType = foo;
 
-type Test3 = {
-	value: Test2
+function myFunction(myParam: myType): byte {
+	let abc: byte = myParam;
 };
-
-let foo: Test3 = hello;

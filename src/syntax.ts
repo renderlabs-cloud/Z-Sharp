@@ -10,15 +10,15 @@ export namespace Syntax {
 		feature: Feature.Feature	
 	};
 
-	export function toFeatures(parts: Parts.Part[], scope: Feature.Scope, _features: (any)[] = official, contents: string, path?: string) {
+	export function toFeatures(parts: Parts.Part[], scope: Feature.Scope, position: Errors.Position, _features: (any)[] = official, path?: string) {
 	 	const features = _features.map((v) => {
 			return new v();	
 		});
-		let syntax: SyntaxData[] = [ ];
+		const syntax: SyntaxData[] = [ ];
+		const contents = position.content || '';
 		
 		let done = false;
 		let foundMatch = false;
-		let position: Errors.Position = { path };
 		while (!done) {
 			if (parts.length == 0) {
 				done = true;
@@ -29,7 +29,7 @@ export namespace Syntax {
 				if (match) {
 					const data = feature.create(match.exports, scope, position);
 					syntax.push({ exports: data.exports, scope: data.scope, feature: feature });
-					parts = parts.slice(match.parts.length);
+					parts = parts.slice(match.length);
 					foundMatch = true;
 					break;
 				};

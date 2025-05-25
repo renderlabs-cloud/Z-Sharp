@@ -2,6 +2,8 @@ import { Parts } from '~/parts';
 import { Syntax } from '~/syntax';
 import { Feature } from '~/feature';
 import { Assembler } from '~/assembler';
+import { compileAssemblyToBinary } from '~/emit';
+import { FileType } from '~/file';
 import { Errors } from '~/error';
 import { Spinner, SpinnerTypes } from '~/cli/spinner';
 import { header, success, failure, SuccessData, FailureData } from '~/cli/header';
@@ -23,6 +25,7 @@ export namespace Z {
 		let spinners: Spinner[] = [];
 		let assembly: string = '';
 		if (importer.cli) {
+			console.log(header);
 			spinners = Array.from({ length: 10 }, () => {
 				const spinner = new Spinner({ text: '', style: SpinnerTypes['compile'] });
 				return spinner;
@@ -31,7 +34,6 @@ export namespace Z {
 			spinners[1].options.text = 'Applying syntax';
 			spinners[2].options.text = 'Compiling to assembly';
 			spinners[0].start();
-			console.log(header);
 		};
 		try {
 			const parts = Parts.toParts(content, path);
@@ -40,13 +42,16 @@ export namespace Z {
 				spinners[1].start();
 			};
 			const scope = new Feature.Scope(importer, 'main');
-			const syntax = Syntax.toFeatures(parts, scope, official, content, path);
+			const basePosition: Errors.Position = {
+				content,	
+			};
+			const syntax = Syntax.toFeatures(parts, scope, basePosition, undefined, path);
 			if (importer.cli) {
 				spinners[1].success();
 				spinners[2].start();
 			};
 
-			assembly = Assembler.assemble(syntax);
+			assembly = Assembler.assemble(syntax, true);
 			if (importer.cli) {
 				spinners[2].success();
 			};
@@ -69,4 +74,10 @@ export namespace Z {
 
 		return assembly;
 	};
+
+	export async function emit(content: string, output: FileType.FileType) {
+		const compiled = await compileAssemblyToBinary(content, output);
+		return compiled;
+	};
 };
+	

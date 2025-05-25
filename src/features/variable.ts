@@ -8,7 +8,7 @@ import { Accessor } from '~/features/accessor';
 type VariableData = {
 	name: string,
 	type: TypeRef,
-	id: string;
+	id: string
 };
 
 export class Variable extends Feature.Feature {
@@ -40,6 +40,7 @@ export class Variable extends Feature.Feature {
 
 	public toAssembly(variableData: VariableData, scope: Feature.Scope) {
 		let content = `VAR ${variableData.id}\n`;
+		
 		
 		return content;
 	};

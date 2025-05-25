@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.zs = exports.header = void 0;
+exports.zs = exports.Zasm_bug = exports.Z_bug = exports.header = void 0;
 exports.hyperlink = hyperlink;
 exports.success = success;
 exports.failure = failure;
@@ -11,10 +11,12 @@ function hyperlink(text, url, attrs) {
 ;
 exports.header = chalk_1.chalk.white(':===: ' + chalk_1.chalk.red('Z#') + ' :===:' + '\n\n' +
     chalk_1.chalk.blue(hyperlink('Documentation', 'https://docs.zsharp.dev')) + '\n');
+exports.Z_bug = chalk_1.chalk.red('This is a bug! Please report it:');
+exports.Zasm_bug = hyperlink('Report', '');
 exports.zs = chalk_1.chalk.red('Z#');
 function success(data) {
     return chalk_1.chalk.white('\n' +
-        `Code compilation ${chalk_1.chalk.green('succeeded')} in ${chalk_1.chalk.green(data.time)}ms with ${((data.vulnerabilities == 0) ? chalk_1.chalk.green('0') : ((data.vulnerabilities < 5) ? chalk_1.chalk.yellow(data.vulnerabilities) : chalk_1.chalk.red(data.vulnerabilities)))} known vulnerabilities.`);
+        `Code compilation ${chalk_1.chalk.green('succeeded')} in ${chalk_1.chalk.green(data.time)}ms with ${((data.vulnerabilities == 0) ? chalk_1.chalk.green('0') : ((data.vulnerabilities < 5) ? chalk_1.chalk.yellow(data.vulnerabilities) : chalk_1.chalk.red(data.vulnerabilities)))} known vulnerabilit(ies).`);
 }
 ;
 function failure(data) {

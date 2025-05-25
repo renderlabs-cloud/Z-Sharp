@@ -1,0 +1,22 @@
+name: Zasm Bug Report
+description: Report a reproducible bug or crash involving the Zasm compilement process
+labels: bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug!
+  - type: input
+    id: title
+    attributes:
+      label: Bug Title
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Please provide a clear and concise description.
+  - type: textarea
+    id: output
+    attributes:
+      label: The terminal output (censor any personal information).
+      description: Please provide the terminal output of the failure.

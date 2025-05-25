@@ -5,14 +5,14 @@ const error_1 = require("~/error");
 const official_1 = require("~/official");
 var Syntax;
 (function (Syntax) {
-    function toFeatures(parts, scope, _features = official_1.official, contents, path) {
+    function toFeatures(parts, scope, position, _features = official_1.official, path) {
         const features = _features.map((v) => {
             return new v();
         });
-        let syntax = [];
+        const syntax = [];
+        const contents = position.content || '';
         let done = false;
         let foundMatch = false;
-        let position = { path };
         while (!done) {
             if (parts.length == 0) {
                 done = true;
@@ -24,7 +24,7 @@ var Syntax;
                 if (match) {
                     const data = feature.create(match.exports, scope, position);
                     syntax.push({ exports: data.exports, scope: data.scope, feature: feature });
-                    parts = parts.slice(match.parts.length);
+                    parts = parts.slice(match.length);
                     foundMatch = true;
                     break;
                 }

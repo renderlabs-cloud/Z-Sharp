@@ -1,9 +1,9 @@
 export namespace FileType {
-	export type fileType = 
+	export type FileType = 
 	| ".zs"
 	| ".iz"
 	| null;
 	export function get(path: string) {
-		return path.match(/.*(\.\w*)/gm)?.[0] as fileType;
+		return path.match(/.*(\.\w*)/gm)?.[0] as FileType;
 	};
 };

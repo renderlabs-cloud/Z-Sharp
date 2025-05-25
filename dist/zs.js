@@ -5,9 +5,9 @@ const parts_1 = require("~/parts");
 const syntax_1 = require("~/syntax");
 const feature_1 = require("~/feature");
 const assembler_1 = require("~/assembler");
+const emit_1 = require("~/emit");
 const spinner_1 = require("~/cli/spinner");
 const header_1 = require("~/cli/header");
-const official_1 = require("~/official");
 var Z;
 (function (Z) {
     function spin(spinner) {
@@ -20,6 +20,7 @@ var Z;
         let spinners = [];
         let assembly = '';
         if (importer.cli) {
+            console.log(header_1.header);
             spinners = Array.from({ length: 10 }, () => {
                 const spinner = new spinner_1.Spinner({ text: '', style: spinner_1.SpinnerTypes['compile'] });
                 return spinner;
@@ -28,7 +29,6 @@ var Z;
             spinners[1].options.text = 'Applying syntax';
             spinners[2].options.text = 'Compiling to assembly';
             spinners[0].start();
-            console.log(header_1.header);
         }
         ;
         try {
@@ -39,13 +39,16 @@ var Z;
             }
             ;
             const scope = new feature_1.Feature.Scope(importer, 'main');
-            const syntax = syntax_1.Syntax.toFeatures(parts, scope, official_1.official, content, path);
+            const basePosition = {
+                content,
+            };
+            const syntax = syntax_1.Syntax.toFeatures(parts, scope, basePosition, undefined, path);
             if (importer.cli) {
                 spinners[1].success();
                 spinners[2].start();
             }
             ;
-            assembly = assembler_1.Assembler.assemble(syntax);
+            assembly = assembler_1.Assembler.assemble(syntax, true);
             if (importer.cli) {
                 spinners[2].success();
             }
@@ -71,6 +74,12 @@ var Z;
         return assembly;
     }
     Z.toAssembly = toAssembly;
+    ;
+    async function emit(content, output) {
+        const compiled = await (0, emit_1.compileAssemblyToBinary)(content, output);
+        return compiled;
+    }
+    Z.emit = emit;
     ;
 })(Z || (exports.Z = Z = {}));
 ;

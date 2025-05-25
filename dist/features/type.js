@@ -33,6 +33,13 @@ class Type extends feature_1.Feature.Feature {
         ]);
     }
     ;
+    static get(data, scope) {
+        if (data.type.alias) {
+            return scope.get(`type.${scope.resolve(data.type.alias.name)}`);
+        }
+        ;
+    }
+    ;
     create(data, scope, position) {
         const typeData = {};
         typeData.name = data.name;

@@ -3,8 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Assembler = void 0;
 var Assembler;
 (function (Assembler) {
-    function assemble(syntaxData) {
-        let content = '#include "z.S"\n';
+    function assemble(syntaxData, isMain) {
+        let content = isMain ? '#include "z.S"\n' : '';
         for (const data of syntaxData) {
             content += data.feature.toAssembly(data.exports, data.scope);
         }

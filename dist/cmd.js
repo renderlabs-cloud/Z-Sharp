@@ -10,6 +10,7 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const chalk_1 = __importDefault(require("@mnrendra/chalk"));
 const zs_1 = require("~/zs");
+const file_1 = require("~/file");
 const error_1 = require("~/error");
 const header_1 = require("~/cli/header");
 let project = {};
@@ -31,7 +32,7 @@ commander_1.program
     .name('zs')
     .description(chalk_1.default.white(`${header_1.zs} compiler`));
 commander_1.program.command('build')
-    .description(`Compile ${header_1.zs} code`)
+    .description(`Build ${header_1.zs} code`)
     .option('--input, -I <path>')
     .option('--output, -O <path>')
     .option('--mode, -M <string>')
@@ -56,6 +57,20 @@ commander_1.program.command('build')
         cli: true
     }, options.input);
     fs_1.default.writeFileSync(options.output || options.input + '.iz', asm);
+});
+commander_1.program.command('emit')
+    .description(`Compile ${header_1.zs} intermediate assembly`)
+    .option('--input, -I <path>')
+    .option('--output, -O <path>')
+    .option('--target, -T <arch>')
+    .action(async (_options) => {
+    if (!_options.input) {
+        throw new error_1.Errors.Command.Missing.Parameters(['input']);
+    }
+    ;
+    const asm = fs_1.default.readFileSync(_options.input).toString();
+    const binary = await zs_1.Z.emit(asm, file_1.FileType.get(_options.output));
+    fs_1.default.writeFileSync(_options.output, binary);
 });
 commander_1.program.parse();
 const options = commander_1.program.opts();
