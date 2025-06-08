@@ -9,10 +9,12 @@
 
 # Get address of list[index] → in %rdi
 .macro LAZY_PTR_GET name, index, reg
-    LEA (\name, \reg, RIP)
-    MOV (REF(\index), RSI)
-    IMUL (REF(8), RSI, RSI)
-    ADD (RSI, \reg)
+	SAVE
+	LEA (\name, \reg, RIP)
+	MOV (REF(\index), RSI)
+	IMUL (REF(8), RSI)
+	ADD (RSI, \reg)
+	LOAD
 .endm
 
 # Access item at index, allocate if null
@@ -21,13 +23,15 @@
 #   size = allocation size
 #   reg = register for result address
 .macro LAZY_BLOCK_GET name, index, size, reg
-    LAZY_PTR_GET \name, \index, \reg
-    MOV ((\reg), RSI)
-    JNE (REF(1f), RSI)
-    MALLOC \size
-    MOV (RAX, \reg)
+	SAVE
+	LAZY_PTR_GET \name, \index, \reg
+	MOV ((\reg), RSI)
+	JNE (REF(1f))
+	MALLOC \size
+	MOV (RAX, \reg)
 1:
-    LDR (\reg, \reg)
+	LDR (\reg, \reg, 0)
+	LOAD
 .endm
 
 # Set value at a specific index in a lazy list
@@ -35,6 +39,8 @@
 #   index = integer index
 #   value = value to set (in register)
 .macro LAZY_BLOCK_SET name, index, value
-    LAZY_PTR_GET \name, \index, RDI
-    MOV (REF(\value), RDI)
+	SAVE
+	LAZY_PTR_GET \name, \index, RDI
+	MOV (REF(\value), RDI)
+	LOAD
 .endm

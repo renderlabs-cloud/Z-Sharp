@@ -2,23 +2,47 @@ import { Parts } from '~/parts';
 import { Syntax } from '~/syntax';
 import { Feature } from '~/feature';
 import { Assembler } from '~/assembler';
-import { compileAssemblyToBinary } from '~/emit';
+import { Emit } from '~/emit';
 import { FileType } from '~/file';
 import { Errors } from '~/error';
 import { Spinner, SpinnerTypes } from '~/cli/spinner';
 import { header, success, failure, SuccessData, FailureData } from '~/cli/header';
 import { official } from '~/official';
+import { Util } from '~/util';
 
 export namespace Z {
 	export type Importer = {
 		import: (path: string) => string,
-		cli: boolean
+		cli: boolean,
+		debug: boolean
 	};
+
+
+	/**
+	 * Starts the provided spinner.
+	 *
+	 * @param spinner The spinner instance to start.
+	 */
 
 	export function spin(spinner: Spinner) {
 		spinner.start();
 	};
+	/**
+	 * Compiles Z# code to assembly.
+	 * @param content the content of the Z# file to compile
+	 * @param importer the importer object, used to import Z# modules
+	 * @param path the path of the Z# file to compile, if any
+	 * @returns the compiled assembly code
+	 */
 
+	/**
+	 * Compiles Z# code to assembly.
+	 *
+	 * @param content the content of the Z# file to compile
+	 * @param importer the importer object, used to import Z# modules
+	 * @param path the path of the Z# file to compile, if any
+	 * @returns the compiled assembly code
+	 */
 	export function toAssembly(content: string, importer: Importer, path?: string) {
 		const start = Date.now();
 
@@ -43,7 +67,7 @@ export namespace Z {
 			};
 			const scope = new Feature.Scope(importer, 'main');
 			const basePosition: Errors.Position = {
-				content,	
+				content,
 			};
 			const syntax = Syntax.toFeatures(parts, scope, basePosition, undefined, path);
 			if (importer.cli) {
@@ -51,7 +75,7 @@ export namespace Z {
 				spinners[2].start();
 			};
 
-			assembly = Assembler.assemble(syntax, true);
+			assembly = Assembler.assemble(syntax, scope, true);
 			if (importer.cli) {
 				spinners[2].success();
 			};
@@ -64,20 +88,23 @@ export namespace Z {
 				}));
 			};
 		} catch (_err) {
-			let err = (_err as Errors.MainError);
-			console.log(err.message);
-			console.log(failure({
-				errors: err.count || 1
-			}));
-			process.exit(1);
+			Util.error(_err as Errors.MainError);
 		};
 
 		return assembly;
 	};
 
-	export async function emit(content: string, output: FileType.FileType) {
-		const compiled = await compileAssemblyToBinary(content, output);
+	/**
+	 * Emit the given Z# assembly into a binary file.
+	 *
+	 * @param content The Z# assembly source code.
+	 * @param output The output file path.
+	 *
+	 * @returns The compiled binary data.
+	 */
+	export async function emit(content: string, output: string) {
+		const compiled = await Emit.compileAssemblyToBinary(content, output);
 		return compiled;
 	};
 };
-	
+

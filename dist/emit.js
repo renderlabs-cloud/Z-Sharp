@@ -36,32 +36,54 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.compileAssemblyToBinary = compileAssemblyToBinary;
+exports.Emit = void 0;
 const child_process_1 = require("child_process");
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 const os = __importStar(require("os"));
 const z_S_1 = __importDefault(require("~/asm/dist/z_S"));
 const header_1 = require("~/cli/header");
-async function compileAssemblyToBinary(source, output) {
-    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'zsharp-'));
-    const inputFile = path.join(tempDir, 'temp.s');
-    const outputFile = path.join(tempDir, 'temp' + output);
-    const zHeaderFile = path.join(tempDir, 'z.S');
-    await fs.writeFile(inputFile, source);
-    await fs.writeFile(zHeaderFile, z_S_1.default);
-    await new Promise((resolve, reject) => {
-        const gcc = (0, child_process_1.spawn)('gcc', ['-x', 'assembler-with-cpp', '-c', inputFile, '-o', outputFile]);
-        gcc.stderr.on('data', (data) => console.error(`GCC Error: \n${data}\n${header_1.Z_bug} ${header_1.Zasm_bug}`));
-        gcc.on('close', (code) => {
-            if (code === 0)
-                resolve();
-            else
-                reject(process.exit(1));
+var Emit;
+(function (Emit) {
+    /**
+     * Compiles the given assembly source code into a binary file.
+     *
+     * This function creates a temporary directory to handle the compilation process,
+     * writes the provided assembly source to a temporary file, and uses the GNU Compiler
+     * Collection (GCC) to compile the assembly into a binary format. The function also
+     * manages the inclusion of necessary header files required for the compilation.
+     *
+     * @param source - The assembly source code to be compiled.
+     * @param output - The desired output file path for the compiled binary.
+     * @returns A promise that resolves to the compiled binary data.
+     * @throws An error if the compilation process fails.
+     */
+    async function compileAssemblyToBinary(source, output) {
+        const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'zsharp-'));
+        const inputFile = path.join(tempDir, 'temp.s');
+        const outputFile = path.join(tempDir, path.join('main', output || ''));
+        const outputDir = path.dirname(outputFile);
+        const includeDir = path.join(tempDir, 'include');
+        await fs.mkdir(path.join(tempDir, 'include'));
+        const zHeaderFile = path.join(includeDir, 'z.S');
+        fs.mkdir(outputDir, { recursive: true });
+        await fs.writeFile(inputFile, source);
+        await fs.writeFile(zHeaderFile, z_S_1.default);
+        await new Promise((resolve, reject) => {
+            const gcc = (0, child_process_1.spawn)('gcc', ['-x', 'assembler-with-cpp', '-c', inputFile, '-o', outputFile, '-I', includeDir]);
+            gcc.stderr.on('data', (data) => console.error(`${header_1.Zasm_error}: \n${data}\n${header_1.Z_bug} ${header_1.Zasm_bug}`));
+            gcc.on('close', (code) => {
+                if (code === 0)
+                    resolve();
+                else
+                    reject(process.exit(1));
+            });
         });
-    });
-    const binary = await fs.readFile(outputFile);
-    await fs.rm(tempDir, { recursive: true, force: true });
-    return binary;
-}
+        const binary = await fs.readFile(outputFile);
+        await fs.rm(tempDir, { recursive: true, force: true });
+        return binary;
+    }
+    Emit.compileAssemblyToBinary = compileAssemblyToBinary;
+    ;
+})(Emit || (exports.Emit = Emit = {}));
 ;

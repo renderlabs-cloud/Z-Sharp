@@ -8,13 +8,34 @@ const assembler_1 = require("~/assembler");
 const emit_1 = require("~/emit");
 const spinner_1 = require("~/cli/spinner");
 const header_1 = require("~/cli/header");
+const util_1 = require("~/util");
 var Z;
 (function (Z) {
+    /**
+     * Starts the provided spinner.
+     *
+     * @param spinner The spinner instance to start.
+     */
     function spin(spinner) {
         spinner.start();
     }
     Z.spin = spin;
     ;
+    /**
+     * Compiles Z# code to assembly.
+     * @param content the content of the Z# file to compile
+     * @param importer the importer object, used to import Z# modules
+     * @param path the path of the Z# file to compile, if any
+     * @returns the compiled assembly code
+     */
+    /**
+     * Compiles Z# code to assembly.
+     *
+     * @param content the content of the Z# file to compile
+     * @param importer the importer object, used to import Z# modules
+     * @param path the path of the Z# file to compile, if any
+     * @returns the compiled assembly code
+     */
     function toAssembly(content, importer, path) {
         const start = Date.now();
         let spinners = [];
@@ -48,7 +69,7 @@ var Z;
                 spinners[2].start();
             }
             ;
-            assembly = assembler_1.Assembler.assemble(syntax, true);
+            assembly = assembler_1.Assembler.assemble(syntax, scope, true);
             if (importer.cli) {
                 spinners[2].success();
             }
@@ -63,20 +84,23 @@ var Z;
             ;
         }
         catch (_err) {
-            let err = _err;
-            console.log(err.message);
-            console.log((0, header_1.failure)({
-                errors: err.count || 1
-            }));
-            process.exit(1);
+            util_1.Util.error(_err);
         }
         ;
         return assembly;
     }
     Z.toAssembly = toAssembly;
     ;
+    /**
+     * Emit the given Z# assembly into a binary file.
+     *
+     * @param content The Z# assembly source code.
+     * @param output The output file path.
+     *
+     * @returns The compiled binary data.
+     */
     async function emit(content, output) {
-        const compiled = await (0, emit_1.compileAssemblyToBinary)(content, output);
+        const compiled = await emit_1.Emit.compileAssemblyToBinary(content, output);
         return compiled;
     }
     Z.emit = emit;

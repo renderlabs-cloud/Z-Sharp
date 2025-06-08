@@ -2,6 +2,8 @@ import { Feature } from '~/feature';
 import { Parts } from '~/parts';
 import { Errors } from '~/error';
 import { Identifier } from '~/features/identifier';
+import { List } from '~/features/list';
+import { Util } from '~/util';
 
 type TypeField = {
 	name: string,
@@ -16,6 +18,7 @@ type TypeFields = {
 	id?: string;
 	// To be extended in the future
 };
+
 type TypeData =
 	| TypeFields
 	| TypeRef
@@ -39,10 +42,10 @@ export class Type extends Feature.Feature {
 		super([
 			{ 'part': { 'type': Parts.PartType.WORD, 'value': 'type' } },
 			{ 'part': { 'type': Parts.PartType.WORD }, 'export': 'name' },
+			{ 'part': { 'type': Parts.PartType.EQUALS } },
 			{
 				'or': [
 					[
-						{ 'part': { 'type': Parts.PartType.EQUALS } },
 						{ 'part': { 'type': Parts.PartType.CURLY_BRACKET_OPEN } },
 						{
 							'repeat': [
@@ -62,16 +65,19 @@ export class Type extends Feature.Feature {
 		]);
 	};
 
-	public static get (data: any, scope: Feature.Scope) {
-		if (data.type.alias) {
-			return scope.get(`type.${scope.resolve(data.type.alias.name)}`);
+	public static get(data: any, scope: Feature.Scope) {
+		if (data?.type?.alias) {
+			const alias = Identifier.create(data.type.alias, scope, {}).export;
+			const name = scope.flatten(alias.path);
+			console.log(scope._alias, name);
+			return scope.get(`type.${scope.resolve(name)}`);
 		};
 	};
-
-	public create(data: any, scope: Feature.Scope, position: Errors.Position) {
+	public create = Type.create;
+	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
 		const typeData: TypeData = {};
 		typeData.name = data.name;
-		typeData.id = `type.${scope.alias(data.name)}`;
+		typeData.id = scope.alias(data.name);
 		if (data.type.fields) {
 			let fields: TypeField[] = [];
 			for (const i in data.type.fields) {
@@ -91,35 +97,37 @@ export class Type extends Feature.Feature {
 			};
 			typeData.fields = fields;
 		};
-		scope.set(typeData.id, typeData);
+		scope.set(`type.${typeData.id}`, typeData);
 
-		return { scope, exports: typeData };
+		return { scope, export: typeData };
 	};
 
-	public toAssembly(typeData: TypeData, scope: Feature.Scope) {
-		let content = `TYPE ${(typeData as any)?.id}\n`; // ? should not be required here!
-		if ((typeData as TypeFields).fields) {
-			for (const _field of (typeData as TypeFields).fields || []) { // || should not be require here!
-				const field = _field as any;
-				content += '\tTYPE_FIELD ';
-				const type = scope.get(field.id);
-				if (!type) {
-					throw new Errors.Reference.Undefined(field.name, field.position as Errors.Position);
-				};
-				if (type.typeRef.type?.alias.name == 'byte') {
-					content += 'BYTE, ';
-				} else {
-					if (type.typeRef.type.alias) {
-						const alias = scope.get(`type.${scope.resolve(type.typeRef.type.alias.name)}`);
-						content += `${alias.id}, `;
-					} else {
-						// Add more cases
-					};
-				};
-
-				content += `${type.id}, `;
-				content += '\n';
+	public toAssemblyText(typeData: TypeData, scope: Feature.Scope) {
+		console.log('Type Data:', typeData);
+		let content = `
+TYPE ${(typeData as any)?.id}
+		`; // ? should not be required here!
+		for (const _field of (typeData as TypeFields)?.fields || []) { // || should not be require here!
+			const field = _field as any;
+			content += '\tTYPE_FIELD ';
+			const fieldType = Type.get(field.typeRef, scope);
+			if (!fieldType) {
+				throw new Errors.Reference.Undefined(field.name, field.position as Errors.Position);
 			};
+			if (fieldType.typeRef.type?.alias.name == 'byte') {
+				content += 'BYTE, ';
+			} else {
+				if (fieldType.typeRef.type.alias) {
+					const alias = scope.get(`type.${scope.resolve(scope.flatten(fieldType.typeRef.type.alias.path))}`);
+					content += `${alias.id}, `;
+				} else {
+					// Add more cases
+				};
+			};
+
+			content += `${fieldType.id}, `;
+			content += '\n';
+
 		};
 		content += 'TYPE_END\n';
 		return content;
@@ -134,16 +142,12 @@ export class TypeRef extends Feature.Feature {
 					[
 						{ 'feature': { 'type': Identifier }, 'export': 'alias' },
 					],
-					/*	[
-							{
-								'repeat': [
-									{ 'part': { 'type': Parts.PartType.SQUARE_BRACKET_OPEN } },
-									{ 'part': { 'type': Parts.PartType.NUMBER }, 'required': false, 'export': 'size' },
-									{ 'part': { 'type': Parts.PartType.SQUARE_BRACKET_CLOSE } },
-								], 'export': 'size'
-							}
-						]*/ // Replace with features/array.ts
 				], 'export': 'type',
+			},
+			{
+				'repeat': [
+					{ 'feature': { 'type': List }, 'export': 'list' }
+				], 'export': 'lists', 'required': false
 			}
 		]);
 	};

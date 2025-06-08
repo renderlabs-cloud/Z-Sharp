@@ -1,20 +1,20 @@
 .macro FUNC name, _
-.section .text
-.global \name
+	.section .text
+	.global \name
 \name:
 .endm
 
 .macro PARAM type, name
-# Store param info
-.byte 0x10
-.asciz "\name"
-.byte \type
+	# Store param info
+	.quad 0x10
+	.asciz "\name"
+	.quad \type
 .endm
 
 .macro PARAMS_END
-.byte 0x11
+	.quad 0x11
 .endm
 
 .macro FUNC_END
-.byte 0xFF
+	.quad 0xFF
 .endm

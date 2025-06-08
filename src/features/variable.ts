@@ -3,12 +3,15 @@ import { Parts } from '~/parts';
 import { Errors } from '~/error';
 import { Identifier } from '~/features/identifier';
 import { TypeRef } from '~/features/type';
-import { Accessor } from '~/features/accessor';
+import { Accessor, PropertyData } from '~/features/accessor';
+import { ObjectLiteral } from '~/features/literal';
+import { Util } from '~/util';
 
 type VariableData = {
 	name: string,
 	type: TypeRef,
-	id: string
+	id: string,
+	declaration: PropertyData
 };
 
 export class Variable extends Feature.Feature {
@@ -18,30 +21,41 @@ export class Variable extends Feature.Feature {
 			{ 'part': { 'type': Parts.PartType.WORD }, 'export': 'name' },
 			{ 'part': { 'type': Parts.PartType.COLON } },
 			{ 'feature': { 'type': TypeRef }, 'export': 'type' },
-			{
-				'or': [
-					[
-						{ 'part': { 'type': Parts.PartType.EQUALS } },
-						{ 'feature': { 'type': Accessor }, 'export': 'acessor'}
-					]
-				], 'export': 'declaration'
-			}
+			{ 'part': { 'type': Parts.PartType.EQUALS }, 'export': 'equals', required: false },
+			{ 'feature': { 'type': Accessor }, 'export': 'declaration' },
 		]);
 	};
-
-	public create(data: any, scope: Feature.Scope, position: Errors.Position) {
-		let variableData: VariableData = { } as VariableData;
+	public create = Variable.create;
+	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
+		let variableData: VariableData = {} as VariableData;
 		variableData.name = data.name;
-		variableData.id = `var.${scope.alias(variableData.name)}`;
-		console.log(variableData, data);
+		variableData.id = scope.alias(variableData.name);
+		variableData.type = data.type;
+		variableData.declaration = new Accessor().create(data.declaration, scope, position).export;
+		scope.set(`var.${variableData.id}`, variableData);
 
-		return { scope, exports: variableData };
+		return { scope, export: variableData };
 	};
 
-	public toAssembly(variableData: VariableData, scope: Feature.Scope) {
-		let content = `VAR ${variableData.id}\n`;
-		
-		
+	public toAssemblyText(variableData: VariableData, scope: Feature.Scope) {
+		let variable = new Accessor();
+		let definition = `
+		${variable.toAssemblyText(variableData.declaration, scope)}
+		`;
+		console.log(variableData.declaration, variable);
+		let content = `
+/* Variable ${variableData.name} */
+${definition}
+VAR ${variableData.id}, RDI, RDI
+		`;
+
 		return content;
 	};
+
+	public toAssemblyData(variableData: VariableData, scope: Feature.Scope) {
+		let content = ``;
+		content += new Accessor().toAssemblyData(variableData.declaration, scope);
+
+		return content;
+	}
 };

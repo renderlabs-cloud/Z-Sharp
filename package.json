@@ -1,33 +1,36 @@
 {
-  "name": "@zsharp/core",
-  "version": "0.0.0",
-  "description": "An amazing programming language",
-  "main": "dist/cmd.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "Brendan Lucas",
-  "license": "ISC",
-  "dependencies": {
-    "@inquirer/core": "^10.1.10",
-    "@mnrendra/chalk": "^1.0.0",
-    "commander": "^13.1.0",
-    "ora-classic": "^5.4.2"
-  },
-  "devDependencies": {
-    "@types/node": "^22.15.15",
-    "cpp-merge": "^0.4.1",
-    "esbuild": "^0.25.4",
-    "module-alias": "^2.2.3",
-    "tsc-alias": "^1.8.16"
-  },
-  "bin": {
-    "zs": "./dist/bin/cmd.js"
-  },
-  "_moduleAliases": {
-    "~": "dist"
-  },
-  "_moduleDirectories": [
-    "node_modules"
-  ]
+	"name": "@zsharp/core",
+	"version": "0.0.0",
+	"description": "An amazing programming language",
+	"main": "dist/cmd.js",
+	"scripts": {
+		"test": "bash test.sh"
+	},
+	"author": "Brendan Lucas",
+	"license": "ISC",
+	"dependencies": {
+		"@inquirer/core": "^10.1.13",
+		"@inquirer/prompts": "^7.5.3",
+		"colorette": "^2.0.20",
+		"commander": "^13.1.0",
+		"ora-classic": "^5.4.2",
+		"toml": "^3.0.0",
+		"zod": "^3.25.53"
+	},
+	"devDependencies": {
+		"cpp-merge": "^0.4.1",
+		"esbuild": "^0.25.4",
+		"module-alias": "^2.2.3",
+		"tsc-alias": "^1.8.16",
+		"typescript": "~5.8.3"
+	},
+	"bin": {
+		"zs": "./dist/bin/cmd.js"
+	},
+	"_moduleAliases": {
+		"~": "dist"
+	},
+	"_moduleDirectories": [
+		"node_modules"
+	]
 }

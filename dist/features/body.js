@@ -7,21 +7,22 @@ class Body extends feature_1.Feature.Feature {
     constructor() {
         super([
             { 'part': { 'type': parts_1.Parts.PartType.CURLY_BRACKET_OPEN } },
-            { 'between': {
+            {
+                'between': {
                     'left': { 'part': { 'type': parts_1.Parts.PartType.CURLY_BRACKET_OPEN } },
                     'right': { 'part': { 'type': parts_1.Parts.PartType.CURLY_BRACKET_CLOSE } },
-                }, 'export': 'parts' },
+                }, 'export': 'parts'
+            },
             { 'part': { 'type': parts_1.Parts.PartType.CURLY_BRACKET_CLOSE } }
         ]);
     }
     ;
     create(data, scope, position) {
         let bodyData = {};
-        console.log(bodyData, data);
-        return { scope, exports: bodyData };
+        return { scope, export: bodyData };
     }
     ;
-    toAssembly(bodyData, scope) {
+    toAssemblyText(bodyData, scope) {
         let content = ``;
         return content;
     }

@@ -1,9 +1,17 @@
-type myType = {
-	value: byte
+type Person = {
+	name: byte[]
 };
 
-let myVar: myType = foo;
+let myName: byte[] = 'Brendan Lucas';
 
-function myFunction(myParam: myType): byte {
-	let abc: byte = myParam;
+let me: Person = {
+	name: myName
 };
+
+function greet(person: Person): byte[] {
+
+};
+
+let myGreeting: byte[] = greet(me);
+
+// Console.log(myGreeting);

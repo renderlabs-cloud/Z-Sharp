@@ -5,22 +5,58 @@ var Feature;
 (function (Feature_1) {
     class Feature {
         sequence;
+        /**
+         * Creates a new instance of the Feature class.
+         * @param sequence The sequence of parts that make up the feature.
+         */
         constructor(sequence) {
             this.sequence = sequence;
         }
         ;
+        /**
+         * Creates a feature within the given scope and position.
+         * @param data - The input data required for feature creation.
+         * @param scope - The scope in which the feature is to be created.
+         * @param position - The position context for error handling.
+         * @returns An object containing the updated scope and optionally the exported data.
+         */
         create(data, scope, position) {
             return { scope };
         }
         ;
-        toAssembly(feature, scope) {
+        /**
+         * Converts the given feature data into assembly text.
+         * @param data The data to be converted into assembly text.
+         * @param scope The scope in which the feature is being converted.
+         * @returns The assembly text representation of the feature.
+         */
+        toAssemblyText(data, scope) {
             return '';
         }
         ;
-        match(parts) {
+        /**
+         * Converts the given feature data into assembly data.
+         * @param data The data to be converted into assembly data.
+         * @param scope The scope in which the feature is being converted.
+         * @returns The assembly data representation of the feature.
+         */
+        toAssemblyData(data, scope) {
+            return '';
+        }
+        ;
+        /**
+         * Attempts to match the given parts against the feature sequence.
+         * @param parts The parts to be matched against the feature sequence.
+         * @param depth The current recursion depth. Used to prevent infinite recursion.
+         * @returns An object containing the matched parts, the length of the matched parts, and any exported values.
+         */
+        match(parts, depth = 0) {
             let i = 0;
             let p = 0;
             let d = 0;
+            if (depth++ > 20) {
+                return null;
+            }
             const matchedParts = [];
             const exports = {};
             while (i < this.sequence.length && p < parts.length) {
@@ -44,7 +80,7 @@ var Feature;
                 // 2. Match sub-feature
                 else if (sequenceItem.feature) {
                     const subFeature = new sequenceItem.feature.type();
-                    const result = subFeature.match(parts.slice(p));
+                    const result = subFeature.match(parts.slice(p), depth);
                     if (result) {
                         matchedParts.push(...result.parts);
                         p += result.length;
@@ -61,7 +97,7 @@ var Feature;
                 else if (sequenceItem.or) {
                     for (const altSeq of sequenceItem.or) {
                         const altFeature = new Feature(altSeq);
-                        const result = altFeature.match(parts.slice(p));
+                        const result = altFeature.match(parts.slice(p), depth);
                         if (result) {
                             matchedParts.push(...result.parts);
                             p += result.parts.length;
@@ -75,15 +111,17 @@ var Feature;
                         ;
                     }
                     ;
-                    if (matched)
+                    if (matched) {
                         i++;
+                    }
+                    ;
                 }
                 // 4. Match REPEAT (a pattern that can repeat)
                 else if (sequenceItem.repeat) {
                     const repeatFeature = new Feature(sequenceItem.repeat);
                     let repeatMatched = true;
                     while (repeatMatched) {
-                        const result = repeatFeature.match(parts.slice(p));
+                        const result = repeatFeature.match(parts.slice(p), depth);
                         if (result) {
                             matchedParts.push(...result.parts);
                             p += result.parts.length;
@@ -160,6 +198,22 @@ var Feature;
     }
     Feature_1.Feature = Feature;
     ;
+    /**
+     * Generate a unique identifier in the given scope.
+     * The identifier is base62 and will be at least 64 characters long.
+     * The identifier is composed of the following parts:
+     * - the label of the scope
+     * - the label of the parent scope (if any)
+     * - the label of the parent scope (if any)
+     * - ...
+     * - the label of the current scope
+     * - the label of the feature
+     * - a base62 random number
+     * The identifier is guaranteed to be unique among all features of the same type in the same scope.
+     * @param label the label of the feature
+     * @param scope the scope to generate the identifier in
+     * @returns a unique identifier
+     */
     function generateId(label, scope) {
         const base62 = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
         const size = 64;
@@ -185,6 +239,12 @@ var Feature;
         importer;
         label;
         parent;
+        /**
+         * Creates a new scope.
+         * @param importer the importer of this scope
+         * @param label the label of this scope
+         * @param parent the parent scope (optional)
+         */
         constructor(importer, label, parent) {
             this.importer = importer;
             this.label = label;
@@ -194,22 +254,59 @@ var Feature;
             this.id = generateId(this.label, this);
         }
         ;
+        /**
+         * Sets a value in the scope.
+         * @param name the name of the value to set
+         * @param value the value to set
+         */
         set(name, value) {
             this._data[name] = value;
         }
         ;
+        /**
+         * Gets a value from the scope.
+         * @param name the name of the value to get
+         * @returns the value associated with the given name
+         */
         get(name) {
             return this._data[name];
         }
         ;
+        /**
+         * Creates an alias in the scope.
+         * @param name the name of the value to alias
+         * @returns the id of the alias
+         */
         alias(name) {
             const id = generateId(name, this);
             this._alias[name] = id;
             return id;
         }
         ;
+        /**
+         * Resolves an alias in the scope.
+         * @param name the name of the alias to resolve
+         * @returns the id of the resolved alias
+         */
         resolve(name) {
             return this._alias[name];
+        }
+        ; // add generic?
+        /**
+         * Flattens a path by joining it with a dot.
+         * @param path the path to flatten
+         * @returns the flattened path
+         */
+        flatten(path) {
+            return path.join('.');
+        }
+        ;
+        /**
+         * Generates a random numeric identifier.
+         * @returns A string representation of a random numeric identifier.
+         */
+        generateRandomId() {
+            return String(Math.round(Math.random() * 10 ** 10));
         }
         ;
         _data;

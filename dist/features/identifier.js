@@ -6,18 +6,23 @@ const parts_1 = require("~/parts");
 class Identifier extends feature_1.Feature.Feature {
     constructor() {
         super([
-            { 'part': { 'type': parts_1.Parts.PartType.WORD }, 'export': 'name' },
-            { 'repeat': [
+            { 'part': { 'type': parts_1.Parts.PartType.WORD }, 'export': 'base' },
+            {
+                'repeat': [
                     { 'part': { 'type': parts_1.Parts.PartType.PERIOD } },
                     { 'part': { 'type': parts_1.Parts.PartType.WORD }, 'export': 'property' },
-                ], 'export': 'location' }
+                ], 'export': 'location', 'required': false
+            }
         ]);
     }
     ;
-    create(data, scope, position) {
-        return { scope, export: {
-                location: data.location?.join('.')
-            } };
+    create = Identifier.create;
+    static create(data, scope, position) {
+        const identifierData = {};
+        identifierData.base = data.base;
+        identifierData.location = data.location?.map((v) => { return v.property; });
+        identifierData.path = [identifierData.base, ...(identifierData.location || [])];
+        return { scope, export: identifierData };
     }
     ;
 }

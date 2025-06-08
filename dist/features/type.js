@@ -5,15 +5,16 @@ const feature_1 = require("~/feature");
 const parts_1 = require("~/parts");
 const error_1 = require("~/error");
 const identifier_1 = require("~/features/identifier");
+const list_1 = require("~/features/list");
 class Type extends feature_1.Feature.Feature {
     constructor() {
         super([
             { 'part': { 'type': parts_1.Parts.PartType.WORD, 'value': 'type' } },
             { 'part': { 'type': parts_1.Parts.PartType.WORD }, 'export': 'name' },
+            { 'part': { 'type': parts_1.Parts.PartType.EQUALS } },
             {
                 'or': [
                     [
-                        { 'part': { 'type': parts_1.Parts.PartType.EQUALS } },
                         { 'part': { 'type': parts_1.Parts.PartType.CURLY_BRACKET_OPEN } },
                         {
                             'repeat': [
@@ -34,16 +35,20 @@ class Type extends feature_1.Feature.Feature {
     }
     ;
     static get(data, scope) {
-        if (data.type.alias) {
-            return scope.get(`type.${scope.resolve(data.type.alias.name)}`);
+        if (data?.type?.alias) {
+            const alias = identifier_1.Identifier.create(data.type.alias, scope, {}).export;
+            const name = scope.flatten(alias.path);
+            console.log(scope._alias, name);
+            return scope.get(`type.${scope.resolve(name)}`);
         }
         ;
     }
     ;
-    create(data, scope, position) {
+    create = Type.create;
+    static create(data, scope, position) {
         const typeData = {};
         typeData.name = data.name;
-        typeData.id = `type.${scope.alias(data.name)}`;
+        typeData.id = scope.alias(data.name);
         if (data.type.fields) {
             let fields = [];
             for (const i in data.type.fields) {
@@ -67,39 +72,39 @@ class Type extends feature_1.Feature.Feature {
             typeData.fields = fields;
         }
         ;
-        scope.set(typeData.id, typeData);
-        return { scope, exports: typeData };
+        scope.set(`type.${typeData.id}`, typeData);
+        return { scope, export: typeData };
     }
     ;
-    toAssembly(typeData, scope) {
-        let content = `TYPE ${typeData?.id}\n`; // ? should not be required here!
-        if (typeData.fields) {
-            for (const _field of typeData.fields || []) { // || should not be require here!
-                const field = _field;
-                content += '\tTYPE_FIELD ';
-                const type = scope.get(field.id);
-                if (!type) {
-                    throw new error_1.Errors.Reference.Undefined(field.name, field.position);
-                }
-                ;
-                if (type.typeRef.type?.alias.name == 'byte') {
-                    content += 'BYTE, ';
-                }
-                else {
-                    if (type.typeRef.type.alias) {
-                        const alias = scope.get(`type.${scope.resolve(type.typeRef.type.alias.name)}`);
-                        content += `${alias.id}, `;
-                    }
-                    else {
-                        // Add more cases
-                    }
-                    ;
-                }
-                ;
-                content += `${type.id}, `;
-                content += '\n';
+    toAssemblyText(typeData, scope) {
+        console.log('Type Data:', typeData);
+        let content = `
+TYPE ${typeData?.id}
+		`; // ? should not be required here!
+        for (const _field of typeData?.fields || []) { // || should not be require here!
+            const field = _field;
+            content += '\tTYPE_FIELD ';
+            const fieldType = Type.get(field.typeRef, scope);
+            if (!fieldType) {
+                throw new error_1.Errors.Reference.Undefined(field.name, field.position);
             }
             ;
+            if (fieldType.typeRef.type?.alias.name == 'byte') {
+                content += 'BYTE, ';
+            }
+            else {
+                if (fieldType.typeRef.type.alias) {
+                    const alias = scope.get(`type.${scope.resolve(scope.flatten(fieldType.typeRef.type.alias.path))}`);
+                    content += `${alias.id}, `;
+                }
+                else {
+                    // Add more cases
+                }
+                ;
+            }
+            ;
+            content += `${fieldType.id}, `;
+            content += '\n';
         }
         ;
         content += 'TYPE_END\n';
@@ -117,16 +122,12 @@ class TypeRef extends feature_1.Feature.Feature {
                     [
                         { 'feature': { 'type': identifier_1.Identifier }, 'export': 'alias' },
                     ],
-                    /*	[
-                            {
-                                'repeat': [
-                                    { 'part': { 'type': Parts.PartType.SQUARE_BRACKET_OPEN } },
-                                    { 'part': { 'type': Parts.PartType.NUMBER }, 'required': false, 'export': 'size' },
-                                    { 'part': { 'type': Parts.PartType.SQUARE_BRACKET_CLOSE } },
-                                ], 'export': 'size'
-                            }
-                        ]*/ // Replace with features/array.ts
                 ], 'export': 'type',
+            },
+            {
+                'repeat': [
+                    { 'feature': { 'type': list_1.List }, 'export': 'list' }
+                ], 'export': 'lists', 'required': false
             }
         ]);
     }
