@@ -1917,14 +1917,14 @@ Expecting one of '${allowedValues.join("', '")}'`);
        * @return {Command} `this` command for chaining
        * @private
        */
-      _optionEx(config, flags, description, fn, defaultValue) {
+      _optionEx(config2, flags, description, fn, defaultValue) {
         if (typeof flags === "object" && flags instanceof Option) {
           throw new Error(
             "To add an Option object use addOption() instead of option() or requiredOption()"
           );
         }
         const option = this.createOption(flags, description);
-        option.makeOptionMandatory(!!config.mandatory);
+        option.makeOptionMandatory(!!config2.mandatory);
         if (typeof fn === "function") {
           option.default(defaultValue).argParser(fn);
         } else if (fn instanceof RegExp) {
@@ -2894,9 +2894,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
           this._outputConfiguration.writeErr("\n");
           this.outputHelp({ error: true });
         }
-        const config = errorOptions || {};
-        const exitCode = config.exitCode || 1;
-        const code = config.code || "commander.error";
+        const config2 = errorOptions || {};
+        const exitCode = config2.exitCode || 1;
+        const code = config2.code || "commander.error";
         this._exit(exitCode, code, message);
       }
       /**
@@ -6653,7 +6653,7 @@ var require_create_prompt = __commonJS({
     }
     function createPrompt(view) {
       const callSites = getCallSites();
-      const prompt = (config, context = {}) => {
+      const prompt = (config2, context = {}) => {
         const { input = process.stdin, signal } = context;
         const cleanups = /* @__PURE__ */ new Set();
         const output = new mute_stream_1.default();
@@ -6690,7 +6690,7 @@ var require_create_prompt = __commonJS({
           cleanups.add(() => rl.removeListener("close", hooksCleanup));
           cycle(() => {
             try {
-              const nextView = view(config, (value) => {
+              const nextView = view(config2, (value) => {
                 setImmediate(() => resolve(value));
               });
               if (nextView === void 0) {
@@ -6884,14 +6884,14 @@ var require_commonjs3 = __commonJS({
         return normalizedChoice;
       });
     }
-    exports2.default = (0, core_1.createPrompt)((config, done) => {
-      const { instructions, pageSize = 7, loop = true, required, validate = () => true } = config;
-      const shortcuts = { all: "a", invert: "i", ...config.shortcuts };
-      const theme = (0, core_1.makeTheme)(checkboxTheme, config.theme);
+    exports2.default = (0, core_1.createPrompt)((config2, done) => {
+      const { instructions, pageSize = 7, loop = true, required, validate = () => true } = config2;
+      const shortcuts = { all: "a", invert: "i", ...config2.shortcuts };
+      const theme = (0, core_1.makeTheme)(checkboxTheme, config2.theme);
       const firstRender = (0, core_1.useRef)(true);
       const [status, setStatus] = (0, core_1.useState)("idle");
       const prefix = (0, core_1.usePrefix)({ status, theme });
-      const [items, setItems] = (0, core_1.useState)(normalizeChoices(config.choices));
+      const [items, setItems] = (0, core_1.useState)(normalizeChoices(config2.choices));
       const bounds = (0, core_1.useMemo)(() => {
         const first = items.findIndex(isSelectable);
         const last = items.findLastIndex(isSelectable);
@@ -6942,7 +6942,7 @@ var require_commonjs3 = __commonJS({
           }
         }
       });
-      const message = theme.style.message(config.message, status);
+      const message = theme.style.message(config2.message, status);
       let description;
       const page = (0, core_1.usePagination)({
         items,
@@ -16558,11 +16558,11 @@ var require_commonjs4 = __commonJS({
     var editorTheme = {
       validationFailureMode: "keep"
     };
-    exports2.default = (0, core_1.createPrompt)((config, done) => {
-      const { waitForUseInput = true, file: { postfix = config.postfix ?? ".txt", ...fileProps } = {}, validate = () => true } = config;
-      const theme = (0, core_1.makeTheme)(editorTheme, config.theme);
+    exports2.default = (0, core_1.createPrompt)((config2, done) => {
+      const { waitForUseInput = true, file: { postfix = config2.postfix ?? ".txt", ...fileProps } = {}, validate = () => true } = config2;
+      const theme = (0, core_1.makeTheme)(editorTheme, config2.theme);
       const [status, setStatus] = (0, core_1.useState)("idle");
-      const [value = "", setValue] = (0, core_1.useState)(config.default);
+      const [value = "", setValue] = (0, core_1.useState)(config2.default);
       const [errorMsg, setError] = (0, core_1.useState)();
       const prefix = (0, core_1.usePrefix)({ status, theme });
       function startEditor(rl) {
@@ -16580,7 +16580,7 @@ var require_commonjs4 = __commonJS({
               done(answer);
             } else {
               if (theme.validationFailureMode === "clear") {
-                setValue(config.default);
+                setValue(config2.default);
               } else {
                 setValue(answer);
               }
@@ -16607,7 +16607,7 @@ var require_commonjs4 = __commonJS({
           startEditor(rl);
         }
       });
-      const message = theme.style.message(config.message, status);
+      const message = theme.style.message(config2.message, status);
       let helpTip = "";
       if (status === "loading") {
         helpTip = theme.style.help("Received");
@@ -16641,20 +16641,20 @@ var require_commonjs5 = __commonJS({
     function boolToString(value) {
       return value ? "Yes" : "No";
     }
-    exports2.default = (0, core_1.createPrompt)((config, done) => {
-      const { transformer = boolToString } = config;
+    exports2.default = (0, core_1.createPrompt)((config2, done) => {
+      const { transformer = boolToString } = config2;
       const [status, setStatus] = (0, core_1.useState)("idle");
       const [value, setValue] = (0, core_1.useState)("");
-      const theme = (0, core_1.makeTheme)(config.theme);
+      const theme = (0, core_1.makeTheme)(config2.theme);
       const prefix = (0, core_1.usePrefix)({ status, theme });
       (0, core_1.useKeypress)((key, rl) => {
         if ((0, core_1.isEnterKey)(key)) {
-          const answer = getBooleanValue(value, config.default);
+          const answer = getBooleanValue(value, config2.default);
           setValue(transformer(answer));
           setStatus("done");
           done(answer);
         } else if (key.name === "tab") {
-          const answer = boolToString(!getBooleanValue(value, config.default));
+          const answer = boolToString(!getBooleanValue(value, config2.default));
           rl.clearLine(0);
           rl.write(answer);
           setValue(answer);
@@ -16667,9 +16667,9 @@ var require_commonjs5 = __commonJS({
       if (status === "done") {
         formattedValue = theme.style.answer(value);
       } else {
-        defaultValue = ` ${theme.style.defaultAnswer(config.default === false ? "y/N" : "Y/n")}`;
+        defaultValue = ` ${theme.style.defaultAnswer(config2.default === false ? "y/N" : "Y/n")}`;
       }
-      const message = theme.style.message(config.message, status);
+      const message = theme.style.message(config2.message, status);
       return `${prefix} ${message}${defaultValue} ${formattedValue}`;
     });
   }
@@ -16684,11 +16684,11 @@ var require_commonjs6 = __commonJS({
     var inputTheme = {
       validationFailureMode: "keep"
     };
-    exports2.default = (0, core_1.createPrompt)((config, done) => {
-      const { required, validate = () => true } = config;
-      const theme = (0, core_1.makeTheme)(inputTheme, config.theme);
+    exports2.default = (0, core_1.createPrompt)((config2, done) => {
+      const { required, validate = () => true } = config2;
+      const theme = (0, core_1.makeTheme)(inputTheme, config2.theme);
       const [status, setStatus] = (0, core_1.useState)("idle");
-      const [defaultValue = "", setDefaultValue] = (0, core_1.useState)(config.default);
+      const [defaultValue = "", setDefaultValue] = (0, core_1.useState)(config2.default);
       const [errorMsg, setError] = (0, core_1.useState)();
       const [value, setValue] = (0, core_1.useState)("");
       const prefix = (0, core_1.usePrefix)({ status, theme });
@@ -16725,10 +16725,10 @@ var require_commonjs6 = __commonJS({
           setError(void 0);
         }
       });
-      const message = theme.style.message(config.message, status);
+      const message = theme.style.message(config2.message, status);
       let formattedValue = value;
-      if (typeof config.transformer === "function") {
-        formattedValue = config.transformer(value, { isFinal: status === "done" });
+      if (typeof config2.transformer === "function") {
+        formattedValue = config2.transformer(value, { isFinal: status === "done" });
       } else if (status === "done") {
         formattedValue = theme.style.answer(value);
       }
@@ -16770,12 +16770,12 @@ var require_commonjs7 = __commonJS({
       }
       return true;
     }
-    exports2.default = (0, core_1.createPrompt)((config, done) => {
-      const { validate = () => true, min = -Infinity, max = Infinity, step = 1, required = false } = config;
-      const theme = (0, core_1.makeTheme)(config.theme);
+    exports2.default = (0, core_1.createPrompt)((config2, done) => {
+      const { validate = () => true, min = -Infinity, max = Infinity, step = 1, required = false } = config2;
+      const theme = (0, core_1.makeTheme)(config2.theme);
       const [status, setStatus] = (0, core_1.useState)("idle");
       const [value, setValue] = (0, core_1.useState)("");
-      const validDefault = validateNumber(config.default, { min, max, step }) === true ? config.default?.toString() : void 0;
+      const validDefault = validateNumber(config2.default, { min, max, step }) === true ? config2.default?.toString() : void 0;
       const [defaultValue = "", setDefaultValue] = (0, core_1.useState)(validDefault);
       const [errorMsg, setError] = (0, core_1.useState)();
       const prefix = (0, core_1.usePrefix)({ status, theme });
@@ -16815,7 +16815,7 @@ var require_commonjs7 = __commonJS({
           setError(void 0);
         }
       });
-      const message = theme.style.message(config.message, status);
+      const message = theme.style.message(config2.message, status);
       let formattedValue = value;
       if (status === "done") {
         formattedValue = theme.style.answer(value);
@@ -16866,14 +16866,14 @@ var require_commonjs8 = __commonJS({
       name: "Help, list all options",
       value: void 0
     };
-    exports2.default = (0, core_1.createPrompt)((config, done) => {
-      const { default: defaultKey = "h" } = config;
-      const choices = (0, core_1.useMemo)(() => normalizeChoices(config.choices), [config.choices]);
+    exports2.default = (0, core_1.createPrompt)((config2, done) => {
+      const { default: defaultKey = "h" } = config2;
+      const choices = (0, core_1.useMemo)(() => normalizeChoices(config2.choices), [config2.choices]);
       const [status, setStatus] = (0, core_1.useState)("idle");
       const [value, setValue] = (0, core_1.useState)("");
-      const [expanded, setExpanded] = (0, core_1.useState)(config.expanded ?? false);
+      const [expanded, setExpanded] = (0, core_1.useState)(config2.expanded ?? false);
       const [errorMsg, setError] = (0, core_1.useState)();
-      const theme = (0, core_1.makeTheme)(config.theme);
+      const theme = (0, core_1.makeTheme)(config2.theme);
       const prefix = (0, core_1.usePrefix)({ theme, status });
       (0, core_1.useKeypress)((event, rl) => {
         if ((0, core_1.isEnterKey)(event)) {
@@ -16897,7 +16897,7 @@ var require_commonjs8 = __commonJS({
           setError(void 0);
         }
       });
-      const message = theme.style.message(config.message, status);
+      const message = theme.style.message(config2.message, status);
       if (status === "done") {
         const selectedChoice = choices.find((choice) => !core_1.Separator.isSeparator(choice) && choice.key === value.toLowerCase());
         return `${prefix} ${message} ${theme.style.answer(selectedChoice.name)}`;
@@ -16996,13 +16996,13 @@ var require_commonjs9 = __commonJS({
       }
       return selectedChoice ? [selectedChoice, choices.indexOf(selectedChoice)] : [void 0, void 0];
     }
-    exports2.default = (0, core_1.createPrompt)((config, done) => {
-      const { loop = true } = config;
-      const choices = (0, core_1.useMemo)(() => normalizeChoices(config.choices), [config.choices]);
+    exports2.default = (0, core_1.createPrompt)((config2, done) => {
+      const { loop = true } = config2;
+      const choices = (0, core_1.useMemo)(() => normalizeChoices(config2.choices), [config2.choices]);
       const [status, setStatus] = (0, core_1.useState)("idle");
       const [value, setValue] = (0, core_1.useState)("");
       const [errorMsg, setError] = (0, core_1.useState)();
-      const theme = (0, core_1.makeTheme)(config.theme);
+      const theme = (0, core_1.makeTheme)(config2.theme);
       const prefix = (0, core_1.usePrefix)({ status, theme });
       const bounds = (0, core_1.useMemo)(() => {
         const first = choices.findIndex(isSelectableChoice);
@@ -17043,7 +17043,7 @@ var require_commonjs9 = __commonJS({
           setError(void 0);
         }
       });
-      const message = theme.style.message(config.message, status);
+      const message = theme.style.message(config2.message, status);
       if (status === "done") {
         return `${prefix} ${message} ${theme.style.answer(value)}`;
       }
@@ -17083,9 +17083,9 @@ var require_commonjs10 = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     var core_1 = require_commonjs2();
     var ansi_escapes_1 = __importDefault2(require_ansi_escapes());
-    exports2.default = (0, core_1.createPrompt)((config, done) => {
-      const { validate = () => true } = config;
-      const theme = (0, core_1.makeTheme)(config.theme);
+    exports2.default = (0, core_1.createPrompt)((config2, done) => {
+      const { validate = () => true } = config2;
+      const theme = (0, core_1.makeTheme)(config2.theme);
       const [status, setStatus] = (0, core_1.useState)("idle");
       const [errorMsg, setError] = (0, core_1.useState)();
       const [value, setValue] = (0, core_1.useState)("");
@@ -17112,11 +17112,11 @@ var require_commonjs10 = __commonJS({
           setError(void 0);
         }
       });
-      const message = theme.style.message(config.message, status);
+      const message = theme.style.message(config2.message, status);
       let formattedValue = "";
       let helpTip;
-      if (config.mask) {
-        const maskChar = typeof config.mask === "string" ? config.mask : "*";
+      if (config2.mask) {
+        const maskChar = typeof config2.mask === "string" ? config2.mask : "*";
         formattedValue = maskChar.repeat(value.length);
       } else if (status !== "done") {
         helpTip = `${theme.style.help("[input is masked]")}${ansi_escapes_1.default.cursorHide}`;
@@ -17128,7 +17128,7 @@ var require_commonjs10 = __commonJS({
       if (errorMsg) {
         error = theme.style.error(errorMsg);
       }
-      return [[prefix, message, config.mask ? formattedValue : helpTip].join(" "), error];
+      return [[prefix, message, config2.mask ? formattedValue : helpTip].join(" "), error];
     });
   }
 });
@@ -17182,9 +17182,9 @@ var require_commonjs11 = __commonJS({
         return normalizedChoice;
       });
     }
-    exports2.default = (0, core_1.createPrompt)((config, done) => {
-      const { pageSize = 7, validate = () => true } = config;
-      const theme = (0, core_1.makeTheme)(searchTheme, config.theme);
+    exports2.default = (0, core_1.createPrompt)((config2, done) => {
+      const { pageSize = 7, validate = () => true } = config2;
+      const theme = (0, core_1.makeTheme)(searchTheme, config2.theme);
       const firstRender = (0, core_1.useRef)(true);
       const [status, setStatus] = (0, core_1.useState)("loading");
       const [searchTerm, setSearchTerm] = (0, core_1.useState)("");
@@ -17203,7 +17203,7 @@ var require_commonjs11 = __commonJS({
         setSearchError(void 0);
         const fetchResults = async () => {
           try {
-            const results = await config.source(searchTerm || void 0, {
+            const results = await config2.source(searchTerm || void 0, {
               signal: controller.signal
             });
             if (!controller.signal.aborted) {
@@ -17260,7 +17260,7 @@ var require_commonjs11 = __commonJS({
           setSearchTerm(rl.line);
         }
       });
-      const message = theme.style.message(config.message, status);
+      const message = theme.style.message(config2.message, status);
       if (active > 0) {
         firstRender.current = false;
       }
@@ -17365,14 +17365,14 @@ var require_commonjs12 = __commonJS({
         return normalizedChoice;
       });
     }
-    exports2.default = (0, core_1.createPrompt)((config, done) => {
-      const { loop = true, pageSize = 7 } = config;
+    exports2.default = (0, core_1.createPrompt)((config2, done) => {
+      const { loop = true, pageSize = 7 } = config2;
       const firstRender = (0, core_1.useRef)(true);
-      const theme = (0, core_1.makeTheme)(selectTheme, config.theme);
+      const theme = (0, core_1.makeTheme)(selectTheme, config2.theme);
       const [status, setStatus] = (0, core_1.useState)("idle");
       const prefix = (0, core_1.usePrefix)({ status, theme });
       const searchTimeoutRef = (0, core_1.useRef)();
-      const items = (0, core_1.useMemo)(() => normalizeChoices(config.choices), [config.choices]);
+      const items = (0, core_1.useMemo)(() => normalizeChoices(config2.choices), [config2.choices]);
       const bounds = (0, core_1.useMemo)(() => {
         const first = items.findIndex(isSelectable);
         const last = items.findLastIndex(isSelectable);
@@ -17382,10 +17382,10 @@ var require_commonjs12 = __commonJS({
         return { first, last };
       }, [items]);
       const defaultItemIndex = (0, core_1.useMemo)(() => {
-        if (!("default" in config))
+        if (!("default" in config2))
           return -1;
-        return items.findIndex((item) => isSelectable(item) && item.value === config.default);
-      }, [config.default, items]);
+        return items.findIndex((item) => isSelectable(item) && item.value === config2.default);
+      }, [config2.default, items]);
       const [active, setActive] = (0, core_1.useState)(defaultItemIndex === -1 ? bounds.first : defaultItemIndex);
       const selectedChoice = items[active];
       (0, core_1.useKeypress)((key, rl) => {
@@ -17432,16 +17432,16 @@ var require_commonjs12 = __commonJS({
       (0, core_1.useEffect)(() => () => {
         clearTimeout(searchTimeoutRef.current);
       }, []);
-      const message = theme.style.message(config.message, status);
+      const message = theme.style.message(config2.message, status);
       let helpTipTop = "";
       let helpTipBottom = "";
       if (theme.helpMode === "always" || theme.helpMode === "auto" && firstRender.current) {
         firstRender.current = false;
         if (items.length > pageSize) {
           helpTipBottom = `
-${theme.style.help(`(${config.instructions?.pager ?? "Use arrow keys to reveal more choices"})`)}`;
+${theme.style.help(`(${config2.instructions?.pager ?? "Use arrow keys to reveal more choices"})`)}`;
         } else {
-          helpTipTop = theme.style.help(`(${config.instructions?.navigation ?? "Use arrow keys"})`);
+          helpTipTop = theme.style.help(`(${config2.instructions?.navigation ?? "Use arrow keys"})`);
         }
       }
       const page = (0, core_1.usePagination)({
@@ -17813,6 +17813,17 @@ var init_error = __esm({
           }
         }
         Reference2.Undefined = Undefined;
+        ;
+        class TypeMismatch extends ReferenceError2 {
+          constructor(reference, position) {
+            super(
+              red("Type mismatch") + colon + newline + reference + newline,
+              reference,
+              position
+            );
+          }
+        }
+        Reference2.TypeMismatch = TypeMismatch;
         ;
       })(Reference = Errors2.Reference || (Errors2.Reference = {}));
       ;
@@ -18244,69 +18255,21 @@ var init_feature = __esm({
         generateRandomId() {
           return String(Math.round(Math.random() * 10 ** 10));
         }
+        /**
+         * Adds a value to the return stack of the scope.
+         * @param value The value to be added to the return stack.
+         */
+        pushReturn(value) {
+          this._return.push(value);
+        }
         _data;
         _alias;
+        _return = [];
         id;
       }
       _Feature.Scope = Scope;
       ;
     })(Feature || (Feature = {}));
-  }
-});
-
-// src/util.ts
-var util_exports = {};
-__export(util_exports, {
-  Util: () => Util
-});
-var import_node_util, Util;
-var init_util = __esm({
-  "src/util.ts"() {
-    "use strict";
-    import_node_util = __toESM(require("node:util"));
-    init_colorette();
-    init_header();
-    ((Util2) => {
-      function trimDepth(obj, maxDepth, currentDepth = 0) {
-        if (currentDepth >= maxDepth || obj === null || typeof obj !== "object") {
-          return null;
-        }
-        ;
-        const result = {};
-        for (const key in obj) {
-          if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            const trimmed = trimDepth(obj[key], maxDepth, currentDepth + 1);
-            if (trimmed !== null) {
-              result[key] = trimmed;
-            }
-            ;
-          }
-          ;
-        }
-        ;
-        return result;
-      }
-      Util2.trimDepth = trimDepth;
-      ;
-      function error(err) {
-        console.log(err.message, err.stack);
-        console.log(failure({
-          errors: err.count || 1
-        }));
-        console.debug(err.stack);
-        process.exit(1);
-      }
-      Util2.error = error;
-      ;
-      function debug(...args) {
-        for (const arg of args) {
-          console.log(`[${magenta("DEBUG")}:${new Error().stack?.split("\n")[2].replace("	", "")}]: ${import_node_util.default.inspect(arg, { colors: true, depth: Infinity })}`);
-        }
-        ;
-      }
-      Util2.debug = debug;
-      ;
-    })(Util || (Util = {}));
   }
 });
 
@@ -18415,9 +18378,10 @@ var init_literal = __esm({
         return { scope, export: stringData };
       }
       toAssemblyData(stringLiteralData, scope) {
-        let content = `${stringLiteralData.id}: 
+        let content = `
+${stringLiteralData.id}:
 	.asciz "${stringLiteralData.data}"
-`;
+		`;
         return content;
       }
     };
@@ -18441,11 +18405,56 @@ var init_builtin = __esm({
             }
           }
         });
+        scope.set(`type.${scope.alias("void")}`, {
+          "name": "void",
+          "typeRef": {
+            "type": {
+              "alias": {
+                "path": ["void"]
+              }
+            }
+          }
+        });
+        scope.set(`type.${scope.alias("never")}`, {
+          "name": "never",
+          "typeRef": {
+            "type": {
+              "alias": {
+                "path": ["never"]
+              }
+            }
+          }
+        });
         return scope;
       }
       BuiltIn2.inject = inject;
       ;
     })(BuiltIn || (BuiltIn = {}));
+  }
+});
+
+// src/format.ts
+var Format;
+var init_format = __esm({
+  "src/format.ts"() {
+    "use strict";
+    ((Format2) => {
+      function comment(content) {
+        return content.join("\n * ");
+      }
+      Format2.comment = comment;
+      ;
+      function section(header2) {
+        return `
+.section ${header2.type}
+${header2.label ? `
+#pragma section ${header2.label}
+` : ""}
+		`;
+      }
+      Format2.section = section;
+      ;
+    })(Format || (Format = {}));
   }
 });
 
@@ -18455,27 +18464,28 @@ var init_assembler = __esm({
   "src/assembler.ts"() {
     "use strict";
     init_builtin();
-    init_util();
+    init_format();
     ((Assembler2) => {
-      function assemble(syntaxData, scope, isMain, config) {
-        let content = `
-		.section .text
-		#pragma section ${scope.label}
-		`;
-        let data = ".section .data\n";
+      function assemble(syntaxData, scope, config2) {
+        let content = Format.section({
+          type: ".text",
+          label: scope.label
+        });
+        let data = Format.section({
+          type: ".data"
+        });
         scope = BuiltIn.inject(scope);
         for (const _data of syntaxData) {
           content += _data.feature.toAssemblyText(_data.export, _data.scope);
           data += _data.feature.toAssemblyData(_data.export, _data.scope);
         }
         ;
-        Util.debug(scope);
         content = data + content;
-        return (isMain ? `
+        return (scope.label == "main" ? `
 #include <z.S>
 /*
  * \u{1FACE} Mooseworth is here!
- ${[`Author: ${config?.Project?.Author.name}`, `Contributors: ${config?.Project?.Contributors?.names.join(", ")}`].join("\n * ")}
+ * ${Format.comment([`Author: ${config2?.Project?.Author.name}`, `Contributors: ${config2?.Project?.Contributors?.names.join("	\n")}`])}
  */
 ` : "") + content;
       }
@@ -18515,7 +18525,7 @@ var init_list = __esm({
 });
 
 // src/features/type.ts
-var Type, TypeRef;
+var Type, TypeRef, TypeValidation;
 var init_type = __esm({
   "src/features/type.ts"() {
     "use strict";
@@ -18557,7 +18567,6 @@ var init_type = __esm({
         if (data?.type?.alias) {
           const alias = Identifier.create(data.type.alias, scope, {}).export;
           const name = scope.flatten(alias.path);
-          console.log(scope._alias, name);
           return scope.get(`type.${scope.resolve(name)}`);
         }
         ;
@@ -18593,13 +18602,14 @@ var init_type = __esm({
         return { scope, export: typeData };
       }
       toAssemblyText(typeData, scope) {
-        console.log("Type Data:", typeData);
         let content = `
 TYPE ${typeData?.id}
 		`;
         for (const _field of typeData?.fields || []) {
           const field = _field;
-          content += "	TYPE_FIELD ";
+          content += `
+	TYPE_FIELD 
+			`;
           const fieldType = _Type.get(field.typeRef, scope);
           if (!fieldType) {
             throw new Errors.Reference.Undefined(field.name, field.position);
@@ -18616,11 +18626,14 @@ TYPE ${typeData?.id}
             ;
           }
           ;
-          content += `${fieldType.id}, `;
-          content += "\n";
+          content += `
+${fieldType.id}, 
+			`;
         }
         ;
-        content += "TYPE_END\n";
+        content += `
+TYPE_END
+		`;
         return content;
       }
     };
@@ -18645,6 +18658,17 @@ TYPE ${typeData?.id}
         ]);
       }
     };
+    ((TypeValidation3) => {
+      function expects(type, expected) {
+        if (type !== expected) {
+          throw new Errors.Reference.TypeMismatch(type.name || "", {});
+        }
+        ;
+        return type === expected;
+      }
+      TypeValidation3.expects = expects;
+      ;
+    })(TypeValidation || (TypeValidation = {}));
   }
 });
 
@@ -18682,7 +18706,7 @@ var init_body = __esm({
 });
 
 // src/features/function.ts
-var Function, FunctionCall;
+var Function, FunctionCall, Return;
 var init_function = __esm({
   "src/features/function.ts"() {
     "use strict";
@@ -18720,7 +18744,7 @@ var init_function = __esm({
         if (data.function) {
           const functionData = Identifier.create(data.function.declaration.reference, scope, position).export;
           const _function = scope.get(`function.${scope.resolve(scope.flatten(functionData.path))}`);
-          return scope.get(`function.${scope.resolve(scope.flatten(functionData.path))}`);
+          return _function;
         }
         ;
       }
@@ -18738,9 +18762,10 @@ var init_function = __esm({
         return { scope, export: functionData };
       }
       toAssemblyText(functionData, scope) {
-        let content = `/* Function ${functionData.name} */
+        let content = `
+/* Function ${functionData.name} */
 FUNC ${functionData.id}, PARAMS
- `;
+		`;
         for (const parameter of functionData.parameters) {
           const type = Type.get(parameter.type, scope);
           parameter.id = functionData.scope.alias(parameter.name);
@@ -18753,7 +18778,7 @@ PARAM ${type.id}, ${parameter.id}
 PARAMS_END
 		`;
         content += `
-${Assembler.assemble(functionData.body, scope)}
+${Assembler.assemble(functionData.body, functionData.scope, {})}
 FUNC_END
 		`;
         return content;
@@ -18788,9 +18813,9 @@ FUNC_END
       }
       toAssemblyText(callData, scope) {
         let content = `
-		MOV R8, ${callData.function.id}
-		MOV R7, ${callData.id}
-		CALL R8
+MOV R8, ${callData.function.id}
+MOV R7, ${callData.id}
+CALL R8
 		`;
         return content;
       }
@@ -18800,11 +18825,30 @@ FUNC_END
 		`;
         for (const parameter of callData.parameters.value) {
           content += `
-				.quad ${parameter.value.id}
+	.quad ${parameter.value.id}
 			`;
         }
         ;
         return content;
+      }
+    };
+    Return = class _Return extends Feature.Feature {
+      constructor() {
+        super([
+          { "part": { "type": Parts.PartType.WORD, "value": "return" } },
+          { "feature": { "type": Accessor }, "export": "value" }
+        ]);
+      }
+      create = _Return.create;
+      static create(data, scope, position) {
+        const accessor = Accessor.create(data.value, scope, position);
+        return { scope, export: accessor.export };
+      }
+      toAssemblyText(propertyData, scope) {
+        scope.pushReturn(propertyData);
+        return `
+RETURN ${propertyData.id}
+		`;
       }
     };
   }
@@ -18816,7 +18860,6 @@ var init_accessor = __esm({
   "src/features/accessor.ts"() {
     "use strict";
     init_feature();
-    init_util();
     init_identifier();
     init_literal();
     init_function();
@@ -18863,12 +18906,14 @@ var init_accessor = __esm({
           propertyData.value = {};
         }
         ;
+        propertyData.id = scope.alias(scope.generateRandomId());
+        scope.set(`accessor.${propertyData.id}`, propertyData);
         return { scope, export: propertyData };
       }
       toAssemblyText(propertyData, scope) {
-        let content = `/* Accessor */
-`;
-        Util.debug(propertyData);
+        let content = `
+/* Accessor */
+		`;
         switch (propertyData.is) {
           case 0 /* STRING */:
             {
@@ -18897,8 +18942,9 @@ MOV R7, REF(${propertyData.value.call?.id})
             ;
           default:
             {
-              content += `// ??? 
-`;
+              content += `
+// ??? 
+				`;
             }
             ;
         }
@@ -18916,8 +18962,9 @@ MOV R7, REF(${propertyData.value.call?.id})
             ;
           default:
             {
-              content += `// ??? 
-`;
+              content += `
+// ???
+				`;
             }
             ;
         }
@@ -18961,9 +19008,8 @@ var init_variable = __esm({
       toAssemblyText(variableData, scope) {
         let variable = new Accessor();
         let definition = `
-		${variable.toAssemblyText(variableData.declaration, scope)}
+${variable.toAssemblyText(variableData.declaration, scope)}
 		`;
-        console.log(variableData.declaration, variable);
         let content = `
 /* Variable ${variableData.name} */
 ${definition}
@@ -19012,6 +19058,8 @@ var init_official = __esm({
       Type,
       Variable,
       Function,
+      FunctionCall,
+      Return,
       // Then, generalized specifics
       Accessor,
       // And finally, semantics
@@ -19124,12 +19172,12 @@ ${Z_bug} ${Zasm_bug}`));
 });
 
 // src/cli/spinner.ts
-var SpinnerTypes, Spinner;
+var spinnerStyles, Spinner;
 var init_spinner = __esm({
   "src/cli/spinner.ts"() {
     "use strict";
     init_colorette();
-    SpinnerTypes = {
+    spinnerStyles = {
       "compile": {
         frames: [" == ", "  ==", "   =", "  ==", " == ", "==  ", "=   ", "==  "].map((v) => {
           return white(`[${blue(v)}]`);
@@ -19141,7 +19189,6 @@ var init_spinner = __esm({
       }
     };
     Spinner = class {
-      /*************  ✨ Windsurf Command ⭐  *************/
       /**
        * Constructs a new Spinner instance with the provided options.
        *
@@ -19150,11 +19197,9 @@ var init_spinner = __esm({
        *   - `framerate`: (Optional) The speed of the spinner in frames per second.
        *   - `style`: The style configuration for the spinner, including frames and messages.
        */
-      /*******  94c8dfec-3a0e-4fd0-b32f-2b887c48980b  *******/
       constructor(options2) {
         this.options = options2;
       }
-      /*************  ✨ Windsurf Command ⭐  *************/
       /**
        * Starts the spinner animation.
        *
@@ -19162,8 +19207,7 @@ var init_spinner = __esm({
        * configured framerate. The spinner is displayed on the current line, and
        * the display is updated every frame.
        */
-      /*******  004c3ed1-3a28-4700-8921-d9560c7ada6e  *******/
-      start() {
+      async start() {
         let i = 0;
         this.interval = setInterval(() => {
           process.stdout.clearLine(0);
@@ -19210,6 +19254,58 @@ var init_spinner = __esm({
   }
 });
 
+// src/util.ts
+var import_node_util, Util;
+var init_util = __esm({
+  "src/util.ts"() {
+    "use strict";
+    import_node_util = __toESM(require("node:util"));
+    init_colorette();
+    init_header();
+    ((Util2) => {
+      function trimDepth(obj, maxDepth, currentDepth = 0) {
+        if (currentDepth >= maxDepth || obj === null || typeof obj !== "object") {
+          return null;
+        }
+        ;
+        const result = {};
+        for (const key in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            const trimmed = trimDepth(obj[key], maxDepth, currentDepth + 1);
+            if (trimmed !== null) {
+              result[key] = trimmed;
+            }
+            ;
+          }
+          ;
+        }
+        ;
+        return result;
+      }
+      Util2.trimDepth = trimDepth;
+      ;
+      function error(err) {
+        console.log(err.message, err.stack);
+        console.log(failure({
+          errors: err.count || 1
+        }));
+        console.debug(err.stack);
+        process.exit(1);
+      }
+      Util2.error = error;
+      ;
+      function debug(...args) {
+        for (const arg of args) {
+          console.log(`[${magenta("DEBUG")}:${new Error().stack?.split("\n")[2].replace("	", "")}]: ${import_node_util.default.inspect(arg, { colors: true, depth: Infinity })}`);
+        }
+        ;
+      }
+      Util2.debug = debug;
+      ;
+    })(Util || (Util = {}));
+  }
+});
+
 // src/zs.ts
 var zs_exports = {};
 __export(zs_exports, {
@@ -19233,14 +19329,14 @@ var init_zs = __esm({
       }
       Z2.spin = spin;
       ;
-      function toAssembly(content, importer, path2) {
+      function toAssembly(content, importer, config2, path2) {
         const start = Date.now();
         let spinners = [];
         let assembly = "";
         if (importer.cli) {
           console.log(header);
           spinners = Array.from({ length: 10 }, () => {
-            const spinner = new Spinner({ text: "", style: SpinnerTypes["compile"] });
+            const spinner = new Spinner({ text: "", style: spinnerStyles["compile"] });
             return spinner;
           });
           spinners[0].options.text = "Parsing";
@@ -19266,7 +19362,7 @@ var init_zs = __esm({
             spinners[2].start();
           }
           ;
-          assembly = Assembler.assemble(syntax, scope, true);
+          assembly = Assembler.assemble(syntax, scope, config2);
           if (importer.cli) {
             spinners[2].success();
           }
@@ -27207,7 +27303,7 @@ var init_project = __esm({
       ;
       function validate(data) {
         try {
-          return Project2.ConfigurationSchema.parse(data).Project || {};
+          return Project2.ConfigurationSchema.parse(data) || {};
         } catch (_err) {
           const err = _err;
           Util.error(Project2.error(err));
@@ -27225,8 +27321,8 @@ var init_project = __esm({
       function get(path2) {
         try {
           const data = import_toml.default.parse(import_fs.default.readFileSync(import_path.default.resolve(path2 + "/.zsharp.toml")).toString());
-          const config = Project2.create(data);
-          return config;
+          const config2 = Project2.create(data);
+          return config2;
         } catch (err) {
           if (path2 == import_path.default.resolve(path2)) {
             return {};
@@ -27293,23 +27389,21 @@ var zs_1 = (init_zs(), __toCommonJS(zs_exports));
 var error_1 = (init_error(), __toCommonJS(error_exports));
 var header_1 = (init_header(), __toCommonJS(header_exports));
 var project_1 = (init_project(), __toCommonJS(project_exports));
-var util_1 = (init_util(), __toCommonJS(util_exports));
-var project = {};
+var config = {};
 commander_1.program.name("zs").description(ct.white(`${header_1.zs} compiler`));
 commander_1.program.command("build").description(`Build ${header_1.zs} code`).option("--input, -I <path>").option("--output, -O <path>").option("--mode, -M <string>").option("--debug, -D").action((options2) => {
   if (!options2.input) {
     throw new error_1.Errors.Command.Missing.Parameters(["input"]);
   }
   ;
-  project = project_1.Project.get(options2.input.split("/").slice(0, -1).join("/"));
-  util_1.Util.debug(project);
+  config = project_1.Project.get(options2.input.split("/").slice(0, -1).join("/"));
   const asm = zs_1.Z.toAssembly(fs_1.default.readFileSync(options2.input).toString(), {
     import: (path2) => {
       return fs_1.default.readFileSync(path2).toString();
     },
     cli: true,
     debug: options2.debug
-  }, options2.input);
+  }, config, options2.input);
   fs_1.default.writeFileSync(options2.output || options2.input + ".iz", asm);
 });
 commander_1.program.command("emit").description(`Compile ${header_1.zs} intermediate assembly`).option("--input, -I <path>").option("--output, -O <path>").option("--target, -T <arch>").option("--agree, -A").action(async (_options) => {

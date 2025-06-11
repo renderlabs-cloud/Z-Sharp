@@ -40,9 +40,8 @@ export class Variable extends Feature.Feature {
 	public toAssemblyText(variableData: VariableData, scope: Feature.Scope) {
 		let variable = new Accessor();
 		let definition = `
-		${variable.toAssemblyText(variableData.declaration, scope)}
+${variable.toAssemblyText(variableData.declaration, scope)}
 		`;
-		console.log(variableData.declaration, variable);
 		let content = `
 /* Variable ${variableData.name} */
 ${definition}

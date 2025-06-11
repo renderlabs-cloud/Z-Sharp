@@ -33,9 +33,9 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Spinner = exports.SpinnerTypes = void 0;
+exports.Spinner = exports.spinnerStyles = void 0;
 const ct = __importStar(require("colorette"));
-exports.SpinnerTypes = {
+exports.spinnerStyles = {
     'compile': {
         frames: [' == ', '  ==', '   =', '  ==', ' == ', '==  ', '=   ', '==  '].map((v) => {
             return ct.white(`[${ct.blue(v)}]`);
@@ -48,7 +48,6 @@ exports.SpinnerTypes = {
 };
 class Spinner {
     options;
-    /*************  ✨ Windsurf Command ⭐  *************/
     /**
      * Constructs a new Spinner instance with the provided options.
      *
@@ -57,12 +56,10 @@ class Spinner {
      *   - `framerate`: (Optional) The speed of the spinner in frames per second.
      *   - `style`: The style configuration for the spinner, including frames and messages.
      */
-    /*******  94c8dfec-3a0e-4fd0-b32f-2b887c48980b  *******/
     constructor(options) {
         this.options = options;
     }
     ;
-    /*************  ✨ Windsurf Command ⭐  *************/
     /**
      * Starts the spinner animation.
      *
@@ -70,8 +67,7 @@ class Spinner {
      * configured framerate. The spinner is displayed on the current line, and
      * the display is updated every frame.
      */
-    /*******  004c3ed1-3a28-4700-8921-d9560c7ada6e  *******/
-    start() {
+    async start() {
         let i = 0;
         this.interval = setInterval(() => {
             process.stdout.clearLine(0);

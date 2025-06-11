@@ -15,7 +15,7 @@ export type SpinnerStyle = {
 	warning: string
 };
 
-export const SpinnerTypes: Record<string, SpinnerStyle> = {
+export const spinnerStyles: Record<string, SpinnerStyle> = {
 	'compile': {
 		frames: [' == ', '  ==', '   =', '  ==', ' == ', '==  ', '=   ', '==  '].map((v) => {
 			return ct.white(`[${ct.blue(v)}]`);
@@ -28,7 +28,6 @@ export const SpinnerTypes: Record<string, SpinnerStyle> = {
 };
 
 export class Spinner {
-	/*************  ✨ Windsurf Command ⭐  *************/
 	/**
 	 * Constructs a new Spinner instance with the provided options.
 	 *
@@ -37,15 +36,12 @@ export class Spinner {
 	 *   - `framerate`: (Optional) The speed of the spinner in frames per second.
 	 *   - `style`: The style configuration for the spinner, including frames and messages.
 	 */
-
-	/*******  94c8dfec-3a0e-4fd0-b32f-2b887c48980b  *******/
 	constructor(
 		public options: SpinnerOptions
 	) {
 
 	};
 
-	/*************  ✨ Windsurf Command ⭐  *************/
 	/**
 	 * Starts the spinner animation.
 	 *
@@ -53,8 +49,7 @@ export class Spinner {
 	 * configured framerate. The spinner is displayed on the current line, and
 	 * the display is updated every frame.
 	 */
-	/*******  004c3ed1-3a28-4700-8921-d9560c7ada6e  *******/
-	public start() {
+	public async start() {
 		let i = 0;
 		this.interval = setInterval(() => {
 			process.stdout.clearLine(0);

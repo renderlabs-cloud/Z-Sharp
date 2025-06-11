@@ -31,9 +31,8 @@ class Variable extends feature_1.Feature.Feature {
     toAssemblyText(variableData, scope) {
         let variable = new accessor_1.Accessor();
         let definition = `
-		${variable.toAssemblyText(variableData.declaration, scope)}
+${variable.toAssemblyText(variableData.declaration, scope)}
 		`;
-        console.log(variableData.declaration, variable);
         let content = `
 /* Variable ${variableData.name} */
 ${definition}

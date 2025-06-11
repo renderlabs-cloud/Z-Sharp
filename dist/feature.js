@@ -309,8 +309,17 @@ var Feature;
             return String(Math.round(Math.random() * 10 ** 10));
         }
         ;
+        /**
+         * Adds a value to the return stack of the scope.
+         * @param value The value to be added to the return stack.
+         */
+        pushReturn(value) {
+            this._return.push(value);
+        }
+        ;
         _data;
         _alias;
+        _return = [];
         id;
     }
     Feature_1.Scope = Scope;

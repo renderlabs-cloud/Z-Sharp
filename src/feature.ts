@@ -317,8 +317,17 @@ export namespace Feature {
 			return String(Math.round(Math.random() * 10 ** 10));
 		};
 
+		/**
+		 * Adds a value to the return stack of the scope.
+		 * @param value The value to be added to the return stack.
+		 */
+		public pushReturn(value: any) {
+			this._return.push(value);
+		};
+
 		public _data: any;
 		public _alias: any;
+		public _return: any = [];
 		public id: string;
 	};
 };

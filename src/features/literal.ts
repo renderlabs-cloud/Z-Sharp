@@ -80,7 +80,10 @@ export class StringLiteral extends Feature.Feature {
 	};
 
 	public toAssemblyData(stringLiteralData: StringLiteralData, scope: Feature.Scope) {
-		let content = `${stringLiteralData.id}: \n\t.asciz "${stringLiteralData.data}"\n`;
+		let content = `
+${stringLiteralData.id}:
+	.asciz "${stringLiteralData.data}"
+		`;
 
 		return content;
 	}

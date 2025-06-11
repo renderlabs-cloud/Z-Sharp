@@ -3,7 +3,8 @@ import { Syntax } from '~/syntax';
 import { BuiltIn } from '~/builtin';
 import { official } from '~/official';
 import { Project } from '~/project';
-import { Util } from './util';
+import { Util } from '~/util';
+import { Format } from '~/format'; 
 
 export namespace Assembler {
 	/**
@@ -20,12 +21,14 @@ export namespace Assembler {
 	 *
 	 * @returns A string of Z# assembly code.
 	 */
-	export function assemble(syntaxData: Syntax.SyntaxData[], scope: Feature.Scope, isMain?: boolean, config?: Project.Configuration) {
-		let content = `
-		.section .text
-		#pragma section ${scope.label}
-		`;
-		let data = '.section .data\n';
+	export function assemble(syntaxData: Syntax.SyntaxData[], scope: Feature.Scope, config: Project.Configuration) {
+		let content = Format.section({
+			type: '.text',
+			label: scope.label
+		});
+		let data = Format.section({
+			type: '.data'
+		});
 
 
 		scope = BuiltIn.inject(scope);
@@ -34,13 +37,13 @@ export namespace Assembler {
 			content += _data.feature.toAssemblyText(_data.export, _data.scope);
 			data += _data.feature.toAssemblyData(_data.export, _data.scope)
 		};
-		Util.debug(scope);
+		// Util.debug(scope);
 		content = data + content;
-		return (isMain ? `
+		return (scope.label == 'main' ? `
 #include <z.S>
 /*
  * 🫎 Mooseworth is here!
- * ${[`Author: ${config?.Project?.Author.name}`, `Contributors: ${config?.Project?.Contributors?.names.join(', ')}`].join('\n * ')}
+ * ${Format.comment([`Author: ${config?.Project?.Author.name}`, `Contributors: ${config?.Project?.Contributors?.names.join('\t\n')}`])}
  */
 ` : '') + content;
 	};

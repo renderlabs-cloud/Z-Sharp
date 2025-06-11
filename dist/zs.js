@@ -23,27 +23,20 @@ var Z;
     ;
     /**
      * Compiles Z# code to assembly.
-     * @param content the content of the Z# file to compile
-     * @param importer the importer object, used to import Z# modules
-     * @param path the path of the Z# file to compile, if any
-     * @returns the compiled assembly code
-     */
-    /**
-     * Compiles Z# code to assembly.
      *
      * @param content the content of the Z# file to compile
      * @param importer the importer object, used to import Z# modules
      * @param path the path of the Z# file to compile, if any
      * @returns the compiled assembly code
      */
-    function toAssembly(content, importer, path) {
+    function toAssembly(content, importer, config, path) {
         const start = Date.now();
         let spinners = [];
         let assembly = '';
         if (importer.cli) {
             console.log(header_1.header);
             spinners = Array.from({ length: 10 }, () => {
-                const spinner = new spinner_1.Spinner({ text: '', style: spinner_1.SpinnerTypes['compile'] });
+                const spinner = new spinner_1.Spinner({ text: '', style: spinner_1.spinnerStyles['compile'] });
                 return spinner;
             });
             spinners[0].options.text = 'Parsing';
@@ -69,7 +62,7 @@ var Z;
                 spinners[2].start();
             }
             ;
-            assembly = assembler_1.Assembler.assemble(syntax, scope, true);
+            assembly = assembler_1.Assembler.assemble(syntax, scope, config);
             if (importer.cli) {
                 spinners[2].success();
             }

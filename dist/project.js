@@ -59,7 +59,7 @@ var Project;
      */
     function validate(data) {
         try {
-            return Project.ConfigurationSchema.parse(data).Project || {};
+            return Project.ConfigurationSchema.parse(data) || {};
         }
         catch (_err) {
             const err = _err;

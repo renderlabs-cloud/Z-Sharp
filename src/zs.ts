@@ -5,7 +5,8 @@ import { Assembler } from '~/assembler';
 import { Emit } from '~/emit';
 import { FileType } from '~/file';
 import { Errors } from '~/error';
-import { Spinner, SpinnerTypes } from '~/cli/spinner';
+import { Project } from '~/project';
+import { Spinner, spinnerStyles } from '~/cli/spinner';
 import { header, success, failure, SuccessData, FailureData } from '~/cli/header';
 import { official } from '~/official';
 import { Util } from '~/util';
@@ -23,17 +24,9 @@ export namespace Z {
 	 *
 	 * @param spinner The spinner instance to start.
 	 */
-
 	export function spin(spinner: Spinner) {
 		spinner.start();
 	};
-	/**
-	 * Compiles Z# code to assembly.
-	 * @param content the content of the Z# file to compile
-	 * @param importer the importer object, used to import Z# modules
-	 * @param path the path of the Z# file to compile, if any
-	 * @returns the compiled assembly code
-	 */
 
 	/**
 	 * Compiles Z# code to assembly.
@@ -43,7 +36,7 @@ export namespace Z {
 	 * @param path the path of the Z# file to compile, if any
 	 * @returns the compiled assembly code
 	 */
-	export function toAssembly(content: string, importer: Importer, path?: string) {
+	export function toAssembly(content: string, importer: Importer, config: Project.Configuration, path?: string) {
 		const start = Date.now();
 
 		let spinners: Spinner[] = [];
@@ -51,7 +44,7 @@ export namespace Z {
 		if (importer.cli) {
 			console.log(header);
 			spinners = Array.from({ length: 10 }, () => {
-				const spinner = new Spinner({ text: '', style: SpinnerTypes['compile'] });
+				const spinner = new Spinner({ text: '', style: spinnerStyles['compile'] });
 				return spinner;
 			});
 			spinners[0].options.text = 'Parsing';
@@ -74,8 +67,7 @@ export namespace Z {
 				spinners[1].success();
 				spinners[2].start();
 			};
-
-			assembly = Assembler.assemble(syntax, scope, true);
+			assembly = Assembler.assemble(syntax, scope, config);
 			if (importer.cli) {
 				spinners[2].success();
 			};

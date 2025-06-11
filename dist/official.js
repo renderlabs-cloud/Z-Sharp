@@ -11,6 +11,8 @@ exports.official = [
     type_1.Type,
     variable_1.Variable,
     function_1.Function,
+    function_1.FunctionCall,
+    function_1.Return,
     // Then, generalized specifics
     accessor_1.Accessor,
     // And finally, semantics

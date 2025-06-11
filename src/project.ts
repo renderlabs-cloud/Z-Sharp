@@ -60,7 +60,7 @@ export namespace Project {
 	 */
 	export function validate(data: any) {
 		try {
-			return ConfigurationSchema.parse(data).Project || {};
+			return ConfigurationSchema.parse(data) || {};
 		} catch (_err) {
 			const err = _err as Zod.ZodError;
 			Util.error(Project.error(err));

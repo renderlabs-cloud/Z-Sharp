@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Assembler = void 0;
 const builtin_1 = require("~/builtin");
-const util_1 = require("./util");
+const format_1 = require("~/format");
 var Assembler;
 (function (Assembler) {
     /**
@@ -19,25 +19,27 @@ var Assembler;
      *
      * @returns A string of Z# assembly code.
      */
-    function assemble(syntaxData, scope, isMain, config) {
-        let content = `
-		.section .text
-		#pragma section ${scope.label}
-		`;
-        let data = '.section .data\n';
+    function assemble(syntaxData, scope, config) {
+        let content = format_1.Format.section({
+            type: '.text',
+            label: scope.label
+        });
+        let data = format_1.Format.section({
+            type: '.data'
+        });
         scope = builtin_1.BuiltIn.inject(scope);
         for (const _data of syntaxData) {
             content += _data.feature.toAssemblyText(_data.export, _data.scope);
             data += _data.feature.toAssemblyData(_data.export, _data.scope);
         }
         ;
-        util_1.Util.debug(scope);
+        // Util.debug(scope);
         content = data + content;
-        return (isMain ? `
+        return (scope.label == 'main' ? `
 #include <z.S>
 /*
  * 🫎 Mooseworth is here!
- ${[`Author: ${config?.Project?.Author.name}`, `Contributors: ${config?.Project?.Contributors?.names.join(', ')}`].join('\n * ')}
+ * ${format_1.Format.comment([`Author: ${config?.Project?.Author.name}`, `Contributors: ${config?.Project?.Contributors?.names.join('\t\n')}`])}
  */
 ` : '') + content;
     }

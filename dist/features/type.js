@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TypeRef = exports.Type = void 0;
+exports.TypeValidation = exports.TypeRef = exports.Type = void 0;
 const feature_1 = require("~/feature");
 const parts_1 = require("~/parts");
 const error_1 = require("~/error");
@@ -38,7 +38,6 @@ class Type extends feature_1.Feature.Feature {
         if (data?.type?.alias) {
             const alias = identifier_1.Identifier.create(data.type.alias, scope, {}).export;
             const name = scope.flatten(alias.path);
-            console.log(scope._alias, name);
             return scope.get(`type.${scope.resolve(name)}`);
         }
         ;
@@ -77,13 +76,14 @@ class Type extends feature_1.Feature.Feature {
     }
     ;
     toAssemblyText(typeData, scope) {
-        console.log('Type Data:', typeData);
         let content = `
 TYPE ${typeData?.id}
 		`; // ? should not be required here!
         for (const _field of typeData?.fields || []) { // || should not be require here!
             const field = _field;
-            content += '\tTYPE_FIELD ';
+            content += `
+	TYPE_FIELD 
+			`;
             const fieldType = Type.get(field.typeRef, scope);
             if (!fieldType) {
                 throw new error_1.Errors.Reference.Undefined(field.name, field.position);
@@ -103,11 +103,14 @@ TYPE ${typeData?.id}
                 ;
             }
             ;
-            content += `${fieldType.id}, `;
-            content += '\n';
+            content += `
+${fieldType.id}, 
+			`;
         }
         ;
-        content += 'TYPE_END\n';
+        content += `
+TYPE_END
+		`;
         return content;
     }
     ;
@@ -134,4 +137,17 @@ class TypeRef extends feature_1.Feature.Feature {
     ;
 }
 exports.TypeRef = TypeRef;
+;
+var TypeValidation;
+(function (TypeValidation) {
+    function expects(type, expected) {
+        if (type !== expected) {
+            throw new error_1.Errors.Reference.TypeMismatch(type.name || '', {}); // TODO: position
+        }
+        ;
+        return type === expected;
+    }
+    TypeValidation.expects = expects;
+    ;
+})(TypeValidation || (exports.TypeValidation = TypeValidation = {}));
 ;

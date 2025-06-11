@@ -17,7 +17,6 @@ export enum PropertyType {
 };
 
 export type PropertyData = {
-	name: string,
 	type: TypeRef,
 	value: {
 		string?: StringLiteralData,
@@ -84,12 +83,17 @@ export class Accessor extends Feature.Feature {
 			propertyData.value = {};
 		};
 
+		propertyData.id = scope.alias(scope.generateRandomId());
+
+		scope.set(`accessor.${propertyData.id}`, propertyData);
+
 		return { scope, export: propertyData };
 	};
 
 	public toAssemblyText(propertyData: PropertyData, scope: Feature.Scope) {
-		let content = `/* Accessor */\n`;
-		Util.debug(propertyData);
+		let content = `
+/* Accessor */
+		`;
 		switch (propertyData.is) {
 			case PropertyType.STRING: {
 				content += `
@@ -111,7 +115,9 @@ MOV R7, REF(${propertyData.value.call?.id})
 				break;
 			};
 			default: {
-				content += `// ??? \n`;
+				content += `
+// ??? 
+				`;
 			};
 		};
 
@@ -126,7 +132,9 @@ MOV R7, REF(${propertyData.value.call?.id})
 				break;
 			};
 			default: {
-				content += `// ??? \n`;
+				content += `
+// ???
+				`;
 			};
 		};
 		return content;

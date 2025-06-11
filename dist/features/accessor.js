@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Accessor = exports.PropertyType = void 0;
 const feature_1 = require("~/feature");
-const util_1 = require("~/util");
 const identifier_1 = require("~/features/identifier");
 const literal_1 = require("~/features/literal");
 const function_1 = require("~/features/function");
@@ -60,12 +59,15 @@ class Accessor extends feature_1.Feature.Feature {
             propertyData.value = {};
         }
         ;
+        propertyData.id = scope.alias(scope.generateRandomId());
+        scope.set(`accessor.${propertyData.id}`, propertyData);
         return { scope, export: propertyData };
     }
     ;
     toAssemblyText(propertyData, scope) {
-        let content = `/* Accessor */\n`;
-        util_1.Util.debug(propertyData);
+        let content = `
+/* Accessor */
+		`;
         switch (propertyData.is) {
             case PropertyType.STRING:
                 {
@@ -94,7 +96,9 @@ MOV R7, REF(${propertyData.value.call?.id})
                 ;
             default:
                 {
-                    content += `// ??? \n`;
+                    content += `
+// ??? 
+				`;
                 }
                 ;
         }
@@ -113,7 +117,9 @@ MOV R7, REF(${propertyData.value.call?.id})
                 ;
             default:
                 {
-                    content += `// ??? \n`;
+                    content += `
+// ???
+				`;
                 }
                 ;
         }

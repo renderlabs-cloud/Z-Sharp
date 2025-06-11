@@ -14,7 +14,7 @@ import { zs } from '~/cli/header';
 import { Project } from '~/project';
 import { Util } from '~/util';
 
-let project: Record<any, any> = {};
+let config: Project.Configuration = {};
 
 program
 	.name('zs')
@@ -32,15 +32,14 @@ program.command('build')
 			throw new Errors.Command.Missing.Parameters(['input']);
 		};
 
-		project = Project.get(options.input.split('/').slice(0, -1).join('/'));
-		Util.debug(project);
+		config = Project.get(options.input.split('/').slice(0, -1).join('/'));
 		const asm = Z.toAssembly(fs.readFileSync(options.input).toString(), {
 			import: (path: string) => {
 				return fs.readFileSync(path).toString();
 			},
 			cli: true,
 			debug: options.debug
-		}, options.input);
+		}, config, options.input);
 		fs.writeFileSync(options.output || options.input + '.iz', asm);
 	})
 	;

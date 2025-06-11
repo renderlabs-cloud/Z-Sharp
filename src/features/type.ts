@@ -19,9 +19,9 @@ type TypeFields = {
 	// To be extended in the future
 };
 
-type TypeData =
-	| TypeFields
-	| TypeRef
+export type TypeData =
+	& TypeFields
+	& TypeRef
 	;
 
 type TypeRefBuildPart =
@@ -30,7 +30,7 @@ type TypeRefBuildPart =
 	| '&'
 	;
 
-type TypeRefData = {
+export type TypeRefData = {
 	name?: string,
 	generic?: TypeData[],
 	build?: TypeRefBuildPart[]
@@ -69,13 +69,12 @@ export class Type extends Feature.Feature {
 		if (data?.type?.alias) {
 			const alias = Identifier.create(data.type.alias, scope, {}).export;
 			const name = scope.flatten(alias.path);
-			console.log(scope._alias, name);
 			return scope.get(`type.${scope.resolve(name)}`);
 		};
 	};
 	public create = Type.create;
 	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
-		const typeData: TypeData = {};
+		const typeData: TypeData = {} as TypeData;
 		typeData.name = data.name;
 		typeData.id = scope.alias(data.name);
 		if (data.type.fields) {
@@ -103,13 +102,14 @@ export class Type extends Feature.Feature {
 	};
 
 	public toAssemblyText(typeData: TypeData, scope: Feature.Scope) {
-		console.log('Type Data:', typeData);
 		let content = `
 TYPE ${(typeData as any)?.id}
 		`; // ? should not be required here!
 		for (const _field of (typeData as TypeFields)?.fields || []) { // || should not be require here!
 			const field = _field as any;
-			content += '\tTYPE_FIELD ';
+			content += `
+	TYPE_FIELD 
+			`;
 			const fieldType = Type.get(field.typeRef, scope);
 			if (!fieldType) {
 				throw new Errors.Reference.Undefined(field.name, field.position as Errors.Position);
@@ -125,11 +125,14 @@ TYPE ${(typeData as any)?.id}
 				};
 			};
 
-			content += `${fieldType.id}, `;
-			content += '\n';
+			content += `
+${fieldType.id}, 
+			`;
 
 		};
-		content += 'TYPE_END\n';
+		content += `
+TYPE_END
+		`;
 		return content;
 	};
 };
@@ -150,5 +153,14 @@ export class TypeRef extends Feature.Feature {
 				], 'export': 'lists', 'required': false
 			}
 		]);
+	};
+};
+
+export namespace TypeValidation {
+	export function expects(type: TypeData, expected: TypeData) {
+		if (type !== expected) {
+			throw new Errors.Reference.TypeMismatch(type.name || '', {}); // TODO: position
+		};
+		return type === expected;
 	};
 };

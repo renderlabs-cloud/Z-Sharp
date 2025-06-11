@@ -2,60 +2,81 @@
 #include <z.S>
 /*
  * 🫎 Mooseworth is here!
- Author: undefined
- * Contributors: undefined
+ * Author: Brendan,Lucas
+ * Contributors: Brendan,Lucas
  */
+
 .section .data
-main_$4532178276$1mR5h2jzBPBMTNWJWqDdK74KRV8WE8KnDi2JAZHmarwbs6fesSnpKgzPot2dt5wx: 
-	.asciz "Brendan Lucas"
-// ??? 
-// ??? 
 
-		.section .text
-		#pragma section main
 		
-TYPE main_$Person$xBqpUEiwJ3jNXgIbpYEFdwfLpXDTrn2a4hxdy8Oy2F8SlmouY1mjsvt6lxX3ni3Z
-			TYPE_FIELD undefined, undefined, 
-TYPE_END
+main_$5289112665$YqHwwLSwegXzjazBBf2CAO8LucwsSBrev0ytgQJ0UkuMK6nrIZ9J2l5JjicQ6krJ:
+	.asciz "Brendan Lucas"
+		
+// ???
+				
+// ???
+				
+.section .text
 
+#pragma section main
+
+		
+TYPE main_$Person$Vvuc4ybCWaYlmjsG1iSFw6f61WaLOj0W6YVqhDxvarP0nXinUXGELnkv7sIGAGaU
+		
+	TYPE_FIELD 
+			undefined, 
+undefined, 
+			
+TYPE_END
+		
 /* Variable myName */
 
-		/* Accessor */
 
-MOV RDI, REF(main_$4532178276$1mR5h2jzBPBMTNWJWqDdK74KRV8WE8KnDi2JAZHmarwbs6fesSnpKgzPot2dt5wx)
+/* Accessor */
+		
+MOV RDI, REF(main_$5289112665$YqHwwLSwegXzjazBBf2CAO8LucwsSBrev0ytgQJ0UkuMK6nrIZ9J2l5JjicQ6krJ)
 				
 		
-VAR main_$myName$58zwGoFnQPqjQVsETEBL9bUdLU2xiTnQMZGCy4GHoMHVMXYWdQoa0PWGf1THukCi, RDI, RDI
+VAR main_$myName$e7pGrv8fZYHVCbFG3bQ80Mz1xes9MId3lguIN77oRuxo7TyS4KOMGDlJ9bMpHygg, RDI, RDI
 		
 /* Variable me */
 
-		/* Accessor */
 
-MOV RDI, REF(main_$2313394286$JXE4uB2UQrxsPJvzJqYA9M5RCHpmui4AHcQuO265lSnzCkp8BiYwscm4Ci9RS04n)
+/* Accessor */
+		
+MOV RDI, REF(main_$5880277408$qZnUtDyjwXGJcnvgYupqQ4ld5S0AOYuuiZWhHKy7iLtgwkKTgkDKf9EgUwxHRDqL)
 				
 		
-VAR main_$me$x0Y5t6aWoVAfHsH8Bkhj0HwAnN1BRpirxxHKnjPKlUNfk6SCytUbmA0rWXm5S4pR, RDI, RDI
-		/* Function greet */
-FUNC main_$greet$CHleZU1EEkk0S4DJhOBYTBlhxJ2akaD18DaiC2oaYhfpjJmOJNOIZ8rDPlQNVcUz, PARAMS
- 
-PARAM main_$Person$xBqpUEiwJ3jNXgIbpYEFdwfLpXDTrn2a4hxdy8Oy2F8SlmouY1mjsvt6lxX3ni3Z, greet_main_$person$ABINx4usPCxT4p729xZQsPMH7tpMvJwVPGjUh8bjmGc5MBzGHW57KLmV64nezY8X
+VAR main_$me$rKOMzRJfWGyrQ2FFbOYihBP2bmOnKVr9PVWw2KLknmAnY7PQ5mcxupjg6GllbrdQ, RDI, RDI
+		
+/* Function greet */
+FUNC main_$greet$xJ05f1SnPbP52HGnfLSz67JKTylClAVUnLSxFv7RXUZlNJ6uaJBXI7E3GBjl2eBP, PARAMS
+		
+PARAM main_$Person$Vvuc4ybCWaYlmjsG1iSFw6f61WaLOj0W6YVqhDxvarP0nXinUXGELnkv7sIGAGaU, greet_main_$person$dFvQr5QmXM4Tz95QgkJVVkVD5NcFuJLt2AckTvejPjLIf7kfhS0lEZVOJksYhQoi
 			
 PARAMS_END
 		
+
 .section .data
 
-		.section .text
-		#pragma section main
+		
+.section .text
+
+#pragma section greet
+
+		
+RETURN greet_main_$7999440079$oN7427AS0s2hxTwqFqj9gmIgvo9MT9waQZUZiSxwO50m2IriIR35rRbo8IYy0huE
 		
 FUNC_END
 		
 /* Variable myGreeting */
 
-		/* Accessor */
 
-MOV R8, REF(main_$greet$CHleZU1EEkk0S4DJhOBYTBlhxJ2akaD18DaiC2oaYhfpjJmOJNOIZ8rDPlQNVcUz)
-MOV R7, REF(main_$2112317300$88aXA5udGBMwm1Ri8Cka50e9gvxl4mxB7OAr6t20siGUQMVsdPDpBHhDW6axhQiY)
+/* Accessor */
+		
+MOV R8, REF(main_$greet$xJ05f1SnPbP52HGnfLSz67JKTylClAVUnLSxFv7RXUZlNJ6uaJBXI7E3GBjl2eBP)
+MOV R7, REF(main_$3829858006$2VwYApY4dUjANThnQ3G4b7viMQQnRIdrGJ5sJ8KT7SKsOqBgpGpQbYpuOFlP3wSw)
 				
 		
-VAR main_$myGreeting$EBO6dJoprYpE3pPWfY6ttvcvaHeIIHcleaNi4wB9qvhfWixQZzmetQZtH2wHAqEy, RDI, RDI
+VAR main_$myGreeting$apm1SMqDl24uT2SRKKr9wsnOPQTD2uM8LfVQvUmTW6Z9zZs4gk8AhMuXZqPTlnHj, RDI, RDI
 		

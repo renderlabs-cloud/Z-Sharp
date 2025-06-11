@@ -4,7 +4,7 @@ import { Syntax } from '~/syntax';
 import { Assembler } from '~/assembler';
 import { Util } from '~/util';
 import { Errors } from '~/error';
-import { TypeRef, Type } from '~/features/type';
+import { TypeRef, Type, TypeValidation } from '~/features/type';
 import { Accessor, PropertyData } from '~/features/accessor';
 import { Body } from '~/features/body';
 import { Identifier } from '~/features/identifier';
@@ -63,7 +63,7 @@ export class Function extends Feature.Feature {
 			// Update !!!
 			const functionData = Identifier.create(data.function.declaration.reference, scope, position).export;
 			const _function = scope.get(`function.${scope.resolve(scope.flatten(functionData.path))}`);
-			return scope.get(`function.${scope.resolve(scope.flatten(functionData.path))}`);
+			return _function;
 		};
 	};
 	public create = Function.create;
@@ -83,7 +83,9 @@ export class Function extends Feature.Feature {
 	};
 
 	public toAssemblyText(functionData: FunctionData, scope: Feature.Scope) {
-		let content = `/* Function ${functionData.name} */\nFUNC ${functionData.id}, PARAMS\n `;
+		let content = `
+/* Function ${functionData.name} */\nFUNC ${functionData.id}, PARAMS
+		`;
 		for (const parameter of functionData.parameters) {
 			const type = Type.get(parameter.type, scope);
 			parameter.id = functionData.scope.alias(parameter.name);
@@ -95,7 +97,7 @@ PARAM ${type.id}, ${parameter.id}
 PARAMS_END
 		`;
 		content += `
-${Assembler.assemble(functionData.body, scope)}
+${Assembler.assemble(functionData.body, functionData.scope, {})}
 FUNC_END
 		`;
 
@@ -132,9 +134,9 @@ export class FunctionCall extends Feature.Feature {
 	};
 	public toAssemblyText(callData: FunctionCallData, scope: Feature.Scope) {
 		let content = `
-		MOV R8, ${callData.function.id}
-		MOV R7, ${callData.id}
-		CALL R8
+MOV R8, ${callData.function.id}
+MOV R7, ${callData.id}
+CALL R8
 		`;
 
 		return content;
@@ -145,10 +147,30 @@ export class FunctionCall extends Feature.Feature {
 		`;
 		for (const parameter of callData.parameters.value) {
 			content += `
-				.quad ${parameter.value.id}
+	.quad ${parameter.value.id}
 			`;
 		};
 
 		return content;
+	};
+};
+
+export class Return extends Feature.Feature {
+	constructor() {
+		super([
+			{ 'part': { 'type': Parts.PartType.WORD, 'value': 'return' } },
+			{ 'feature': { 'type': Accessor }, 'export': 'value' }
+		]);
+	};
+	public create = Return.create;
+	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
+		const accessor = Accessor.create(data.value, scope, position);
+		return { scope, export: accessor.export };
+	};
+	public toAssemblyText(propertyData: PropertyData, scope: Feature.Scope) {
+		scope.pushReturn(propertyData);
+		return `
+RETURN ${propertyData.id}
+		`;
 	};
 };

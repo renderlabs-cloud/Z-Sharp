@@ -46,8 +46,7 @@ const zs_1 = require("~/zs");
 const error_1 = require("~/error");
 const header_1 = require("~/cli/header");
 const project_1 = require("~/project");
-const util_1 = require("~/util");
-let project = {};
+let config = {};
 commander_1.program
     .name('zs')
     .description(ct.white(`${header_1.zs} compiler`));
@@ -62,15 +61,14 @@ commander_1.program.command('build')
         throw new error_1.Errors.Command.Missing.Parameters(['input']);
     }
     ;
-    project = project_1.Project.get(options.input.split('/').slice(0, -1).join('/'));
-    util_1.Util.debug(project);
+    config = project_1.Project.get(options.input.split('/').slice(0, -1).join('/'));
     const asm = zs_1.Z.toAssembly(fs_1.default.readFileSync(options.input).toString(), {
         import: (path) => {
             return fs_1.default.readFileSync(path).toString();
         },
         cli: true,
         debug: options.debug
-    }, options.input);
+    }, config, options.input);
     fs_1.default.writeFileSync(options.output || options.input + '.iz', asm);
 });
 commander_1.program.command('emit')

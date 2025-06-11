@@ -9,9 +9,7 @@ let me: Person = {
 };
 
 function greet(person: Person): byte[] {
-
+	return `Hello, ${person.name}`;
 };
 
 let myGreeting: byte[] = greet(me);
-
-// Console.log(myGreeting);

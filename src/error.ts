@@ -106,6 +106,16 @@ export namespace Errors {
 				);
 			};
 		};
+		export class TypeMismatch extends ReferenceError {
+			constructor(reference: string, position: Position) {
+				super(
+					ct.red('Type mismatch') + colon + newline +
+					reference + newline,
+					reference,
+					position
+				);
+			};
+		};
 	};
 	export namespace Project {
 		export class ProjectError extends MainError {

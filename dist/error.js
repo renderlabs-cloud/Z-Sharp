@@ -143,6 +143,15 @@ var Errors;
         }
         Reference.Undefined = Undefined;
         ;
+        class TypeMismatch extends ReferenceError {
+            constructor(reference, position) {
+                super(ct.red('Type mismatch') + colon + newline +
+                    reference + newline, reference, position);
+            }
+            ;
+        }
+        Reference.TypeMismatch = TypeMismatch;
+        ;
     })(Reference = Errors.Reference || (Errors.Reference = {}));
     ;
     let Project;
