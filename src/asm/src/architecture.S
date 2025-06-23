@@ -2,7 +2,9 @@
 
 #include "macro.S"
 
-/*
+/**
+ * # Register usage
+ *
  * R0 - R4  : Mnemonic control
  * R5       : Scope
  * R6       : Selector control
@@ -95,7 +97,7 @@
 	#define MOV(x, y) mov x, y
 	#define LDR(x, y, z) ldr x, [y, z]
 	#define LDL(x, y) ldr x, =y
-	#define LEA(x, y, z) adr x, y // or add x, y, z for computed address
+	#define LEA(x, y, z) adr x, y
 	#define XOR(x, y) eor x, x, y
 	#define ADD(x, y) add x, x, y
 	#define SUB(x, y) sub x, x, y

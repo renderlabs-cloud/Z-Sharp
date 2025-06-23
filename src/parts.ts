@@ -1,4 +1,4 @@
-import { Errors } from '~/error';
+	import { Errors } from '~/error';
 
 export namespace Parts {
 	export enum PartType {
@@ -64,7 +64,8 @@ export namespace Parts {
 	 * content, type, and position information.
 	 * @throws {Errors.Parts.Unknown} Throws an error if an unknown token is detected.
 	 */
-	export function toParts(content: string, path?: string) {
+	/* Awaiting removal */
+	export function toPartsButSlow(content: string, path?: string) {
 		const parts: Array<Part> = [];
 		const position: Errors.Position = {};
 		const origin: string[] = content.split('\n');
@@ -97,5 +98,45 @@ export namespace Parts {
 			};
 		};
 		return parts;
+	};
+	export function toParts(content: string, path?: string) {
+	    const parts: Array<Part> = [];
+	    const position: Errors.Position = { path };
+	    const origin: string[] = content.split('\n');
+	
+	    // Build master regex using PartType
+	    const patterns = Object.entries(PartType)
+	        .filter(([key, value]) => key !== 'UNKNOWN') // skip UNKNOWN on purpose
+	        .map(([key, value]) => `(?<${key}>${value.slice(1, -2)})`); // Remove the leading and trailing "/" in regex string
+	
+	    const masterRegex = new RegExp(patterns.join('|'), 'gs');
+	
+	    let match;
+	    while ((match = masterRegex.exec(content)) !== null) {
+	        const groups = match.groups!;
+	        const type = Object.keys(groups).find(k => groups[k] !== undefined);
+	
+	        if (!type || !(type in PartType)) {
+	            throw new Errors.Parts.Unknown(match[0], position);
+	        };
+	
+	        // Calculate line number
+	        
+	        if (type === 'EXTRA_WHITESPACE' || 
+	            type === 'SINGLE_LINE_COMMENT' || 
+	            type === 'MULTI_LINE_COMMENT') {
+	            continue; // skip this part
+	        };
+
+			// Calculate line number
+	        const line = content.slice(0, match.index).split('\n').length;
+
+	        parts.push({
+	            content: match[0],
+	            type: PartType[type as keyof typeof PartType],
+	            position: { path, line }
+	        });
+	    };
+	    return parts;
 	};
 };

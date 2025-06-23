@@ -1,10 +1,9 @@
 import { Feature } from '~/feature';
 import { Syntax } from '~/syntax';
-import { BuiltIn } from '~/builtin';
 import { official } from '~/official';
 import { Project } from '~/project';
 import { Util } from '~/util';
-import { Format } from '~/format'; 
+import { Format } from '~/format';
 
 export namespace Assembler {
 	/**
@@ -30,9 +29,6 @@ export namespace Assembler {
 			type: '.data'
 		});
 
-
-		scope = BuiltIn.inject(scope);
-
 		for (const _data of syntaxData) {
 			content += _data.feature.toAssemblyText(_data.export, _data.scope);
 			data += _data.feature.toAssemblyData(_data.export, _data.scope)
@@ -40,11 +36,14 @@ export namespace Assembler {
 		// Util.debug(scope);
 		content = data + content;
 		return (scope.label == 'main' ? `
-#include <z.S>
-/*
+#pragma block ASM
+#include "z.S"
+/**
  * 🫎 Mooseworth is here!
  * ${Format.comment([`Author: ${config?.Project?.Author.name}`, `Contributors: ${config?.Project?.Contributors?.names.join('\t\n')}`])}
  */
-` : '') + content;
+` : '') + content.replace(/\n{1,2}(\s*)/gm, '\n$1') + (scope.label == 'main' ? `
+#pragma block end
+` : '');
 	};
 };

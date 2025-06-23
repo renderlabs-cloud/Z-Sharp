@@ -1,13 +1,15 @@
 import { Feature } from '~/feature';
 import { Parts } from '~/parts';
 import { Errors } from '~/error';
+import { TypeRef, TypeRefData } from '~/features/type';
 import { Util } from '~/util';
 
-type ListData = {
-	size: number
+export type ListTypeData = {
+	size: number,
+	type?: TypeRefData
 };
 
-export class List extends Feature.Feature {
+export class List extends Feature.Feature<ListTypeData> {
 	constructor() {
 		super([
 			{ 'part': { 'type': Parts.PartType.SQUARE_BRACKET_OPEN } },
@@ -23,7 +25,7 @@ export class List extends Feature.Feature {
 	};
 
 	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
-		let listData: ListData = { size: data.length };
+		let listData: ListTypeData = { size: data.length || null };
 
 		return { scope, export: listData };
 	};

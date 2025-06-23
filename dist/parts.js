@@ -61,7 +61,8 @@ var Parts;
      * content, type, and position information.
      * @throws {Errors.Parts.Unknown} Throws an error if an unknown token is detected.
      */
-    function toParts(content, path) {
+    /* Awaiting removal */
+    function toPartsButSlow(content, path) {
         const parts = [];
         const position = {};
         const origin = content.split('\n');
@@ -99,6 +100,43 @@ var Parts;
                 ;
             }
             ;
+        }
+        ;
+        return parts;
+    }
+    Parts.toPartsButSlow = toPartsButSlow;
+    ;
+    function toParts(content, path) {
+        const parts = [];
+        const position = { path };
+        const origin = content.split('\n');
+        // Build master regex using PartType
+        const patterns = Object.entries(PartType)
+            .filter(([key, value]) => key !== 'UNKNOWN') // skip UNKNOWN on purpose
+            .map(([key, value]) => `(?<${key}>${value.slice(1, -2)})`); // Remove the leading and trailing "/" in regex string
+        const masterRegex = new RegExp(patterns.join('|'), 'gs');
+        let match;
+        while ((match = masterRegex.exec(content)) !== null) {
+            const groups = match.groups;
+            const type = Object.keys(groups).find(k => groups[k] !== undefined);
+            if (!type || !(type in PartType)) {
+                throw new error_1.Errors.Parts.Unknown(match[0], position);
+            }
+            ;
+            // Calculate line number
+            if (type === 'EXTRA_WHITESPACE' ||
+                type === 'SINGLE_LINE_COMMENT' ||
+                type === 'MULTI_LINE_COMMENT') {
+                continue; // skip this part
+            }
+            ;
+            // Calculate line number
+            const line = content.slice(0, match.index).split('\n').length;
+            parts.push({
+                content: match[0],
+                type: PartType[type],
+                position: { path, line }
+            });
         }
         ;
         return parts;

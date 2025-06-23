@@ -2,19 +2,19 @@ import { Feature } from '~/feature';
 import { Parts } from '~/parts';
 import { Errors } from '~/error';
 import { Identifier } from '~/features/identifier';
-import { TypeRef } from '~/features/type';
+import { TypeRef, Type, TypeRefData } from '~/features/type';
 import { Accessor, PropertyData } from '~/features/accessor';
 import { ObjectLiteral } from '~/features/literal';
 import { Util } from '~/util';
 
 type VariableData = {
 	name: string,
-	type: TypeRef,
+	type: TypeRefData,
 	id: string,
 	declaration: PropertyData
 };
 
-export class Variable extends Feature.Feature {
+export class Variable extends Feature.Feature<VariableData> {
 	constructor() {
 		super([
 			{ 'part': { 'type': Parts.PartType.WORD, 'value': 'let' } },
@@ -26,12 +26,19 @@ export class Variable extends Feature.Feature {
 		]);
 	};
 	public create = Variable.create;
-	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
+	public static create(data: any, scope: Feature.Scope, position: Errors.Position): Feature.Return<VariableData> {
+		if (scope.get(`var.${data.name}`)) {
+			throw new Errors.Syntax.Duplicate(data.name, position);
+		};
 		let variableData: VariableData = {} as VariableData;
 		variableData.name = data.name;
 		variableData.id = scope.alias(variableData.name);
-		variableData.type = data.type;
+		variableData.type = new TypeRef().create(data.type, scope, position).export;
 		variableData.declaration = new Accessor().create(data.declaration, scope, position).export;
+		Util.debug(`Variable ${variableData.name} created`, variableData);
+		if (!Type.isCompatible(variableData.type, variableData.declaration.type)) {
+			Type.incompatible(variableData.type, variableData.declaration.type, position);
+		};
 		scope.set(`var.${variableData.id}`, variableData);
 
 		return { scope, export: variableData };
@@ -46,6 +53,7 @@ ${variable.toAssemblyText(variableData.declaration, scope)}
 /* Variable ${variableData.name} */
 ${definition}
 VAR ${variableData.id}, RDI, RDI
+SCOPE SET ${variableData.id}, RDI
 		`;
 
 		return content;

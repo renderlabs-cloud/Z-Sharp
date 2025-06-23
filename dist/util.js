@@ -39,6 +39,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Util = void 0;
 const node_util_1 = __importDefault(require("node:util"));
 const ct = __importStar(require("colorette"));
+const os_1 = __importDefault(require("os"));
+const worker_threads_1 = require("worker_threads");
 const header_1 = require("~/cli/header");
 var Util;
 (function (Util) {
@@ -73,13 +75,58 @@ var Util;
     Util.trimDepth = trimDepth;
     ;
     /**
+     * Replaces all instances of `~` in the given path with the actual home directory
+     * as determined by the `os.homedir()` function.
+     *
+     * @param path The path to be modified.
+     *
+     * @returns The modified path.
+     */
+    function OSPath(path) {
+        return path
+            .replace(/~/g, os_1.default.homedir());
+    }
+    Util.OSPath = OSPath;
+    ;
+    /**
+     * Replaces backslashes with forward slashes and all instances of `@` with
+     * `~/.zsharp/modules/` in the given path.
+     *
+     * @param path The path to be modified.
+     *
+     * @returns The modified path.
+     */
+    function modPath(path) {
+        return Util.OSPath(path
+            .replace(/\\/g, '/')
+            .replace(/\@/g, '~/.zsharp/modules/'));
+    }
+    Util.modPath = modPath;
+    ;
+    async function runInWorker(func, ...args) {
+        return new Promise((resolve, reject) => {
+            const worker = new worker_threads_1.Worker((() => {
+                const { parentPort } = require('worker_threads');
+                parentPort?.postMessage(func());
+            }).toString(), {
+                eval: true
+            });
+            worker.on('error', reject);
+            worker.on('message', (result) => {
+                resolve(result);
+            });
+        });
+    }
+    Util.runInWorker = runInWorker;
+    ;
+    /**
      * Logs the error message, stack trace, and failure details, then exits the process.
      *
      * @param err An instance of `Errors.MainError` containing the error details to be logged.
      */
     function error(err) {
         console.log(err.message, err.stack);
-        console.log((0, header_1.failure)({
+        console.log(header_1.Header.failure({
             errors: err.count || 1
         }));
         console.debug(err.stack);
@@ -87,6 +134,11 @@ var Util;
     }
     Util.error = error;
     ;
+    /**
+     * Logs debug information for the provided arguments, including a stack trace.
+     *
+     * @param args A list of arguments to be logged as debug information.
+     */
     function debug(...args) {
         for (const arg of args) {
             console.log(`[${ct.magenta('DEBUG')}:${new Error().stack?.split('\n')[2].replace('\t', '')}]: ${node_util_1.default.inspect(arg, { colors: true, depth: Infinity })}`);
@@ -94,6 +146,16 @@ var Util;
         ;
     }
     Util.debug = debug;
+    ;
+    /**
+     * Logs the provided arguments.
+     *
+     * @param args A list of arguments to be logged.
+     */
+    function log(...args) {
+        console.log(...args);
+    }
+    Util.log = log;
     ;
 })(Util || (exports.Util = Util = {}));
 ;

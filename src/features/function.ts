@@ -4,7 +4,7 @@ import { Syntax } from '~/syntax';
 import { Assembler } from '~/assembler';
 import { Util } from '~/util';
 import { Errors } from '~/error';
-import { TypeRef, Type, TypeValidation } from '~/features/type';
+import { TypeRef, Type } from '~/features/type';
 import { Accessor, PropertyData } from '~/features/accessor';
 import { Body } from '~/features/body';
 import { Identifier } from '~/features/identifier';
@@ -38,7 +38,7 @@ export type FunctionCallData = {
 	id: string
 };
 
-export class Function extends Feature.Feature {
+export class Function extends Feature.Feature<FunctionData> {
 	constructor() {
 		super([
 			{ 'part': { 'type': Parts.PartType.WORD, 'value': 'function' } },
@@ -90,7 +90,7 @@ export class Function extends Feature.Feature {
 			const type = Type.get(parameter.type, scope);
 			parameter.id = functionData.scope.alias(parameter.name);
 			content += `
-PARAM ${type.id}, ${parameter.id}
+PARAM ${type?.id}, ${parameter.id}
 			`;
 		};
 		content += `
@@ -105,7 +105,7 @@ FUNC_END
 	};
 };
 
-export class FunctionCall extends Feature.Feature {
+export class FunctionCall extends Feature.Feature<FunctionCallData> {
 	constructor() {
 		super([
 			{ 'feature': { 'type': Accessor }, 'export': 'function' },
@@ -121,7 +121,7 @@ export class FunctionCall extends Feature.Feature {
 		]);
 	};
 	public create = FunctionCall.create;
-	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
+	public static create(data: any, scope: Feature.Scope, position: Errors.Position): Feature.Return<FunctionCallData> {
 		const callData = { parameters: {} } as FunctionCallData;
 		const _function: FunctionData = Function.get(data, scope, position);
 		callData.function = _function;
@@ -155,7 +155,7 @@ CALL R8
 	};
 };
 
-export class Return extends Feature.Feature {
+export class Return extends Feature.Feature<PropertyData> {
 	constructor() {
 		super([
 			{ 'part': { 'type': Parts.PartType.WORD, 'value': 'return' } },

@@ -57,7 +57,9 @@
  * If you find Z# useful, please consider supporting the project:
  * https://zsharp.dev/donate ❤️
  */
-/*
+/**
+ * # Register usage
+ *
  * R0 - R4  : Mnemonic control
  * R5       : Scope
  * R6       : Selector control
@@ -252,50 +254,7 @@ _start:
  .balign \boundary
 .endm
 .macro VAR id, value, out
- MALLOC 24 ;// struct is 3 quads = 24 bytes
- ldr \id, =x0 ;// id
- ldr \value, [x0, #8] ;// value
- eor x2, x2, x2 ;// next = null
- ldr x2, [x0, #16]
- mov x0, \out ;// return pointer in `out`
-.endm
-# Set a variable in current_scope
-# If it exists: update
-# Else: prepend new node
-.macro SET_VAR id, value
- SAVE_R0_R4
- mov current_scope, x1 ;// start of list
-.loop:
- cmp x1, 0
- JE .not_found
- mov (x1), x2 ;// read id
- cmp x2, \id
- JE .update
- mov 16(x1), x1 ;// next node
- JMP .loop
-.update:
- mov \value, 8(x1) ;// update value
- JMP .done
-.done:
- LOAD_R0_R4
-.endm
-# Get a variable by id → out
-.macro GET_VAR id, out
- SAVE_R0_R4
- mov current_scope, x1
-.loop:
- cmp x1, 0
- JE .not_found
- mov (x1), x2
- cmp x2, \id
- JE .found
- mov 16(x1), x1
- JMP .loop
-.found:
- mov 8(x1), \out
- JMP .end
-.end:
- LOAD_R0_R4
+ ;// TODO
 .endm
 .macro FUNC name, _
  .section .text

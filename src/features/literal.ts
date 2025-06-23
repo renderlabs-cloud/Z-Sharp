@@ -19,7 +19,7 @@ export type StringLiteralData = {
 	interpolated: boolean
 };
 
-export class ObjectLiteral extends Feature.Feature {
+export class ObjectLiteral extends Feature.Feature<ObjectLiteralData> {
 	constructor() {
 		super([
 			{ 'part': { 'type': Parts.PartType.CURLY_BRACKET_OPEN } },
@@ -51,7 +51,7 @@ export class ObjectLiteral extends Feature.Feature {
 	};
 };
 
-export class StringLiteral extends Feature.Feature {
+export class StringLiteral extends Feature.Feature<StringLiteralData> {
 	constructor() {
 		super([
 			{

@@ -41,49 +41,93 @@ const child_process_1 = require("child_process");
 const fs = __importStar(require("fs/promises"));
 const path = __importStar(require("path"));
 const os = __importStar(require("os"));
+const util_1 = require("~/util");
 const z_S_1 = __importDefault(require("~/asm/dist/z_S"));
-const header_1 = require("~/cli/header");
+const header_1 = require("./cli/header");
 var Emit;
 (function (Emit) {
-    /**
-     * Compiles the given assembly source code into a binary file.
-     *
-     * This function creates a temporary directory to handle the compilation process,
-     * writes the provided assembly source to a temporary file, and uses the GNU Compiler
-     * Collection (GCC) to compile the assembly into a binary format. The function also
-     * manages the inclusion of necessary header files required for the compilation.
-     *
-     * @param source - The assembly source code to be compiled.
-     * @param output - The desired output file path for the compiled binary.
-     * @returns A promise that resolves to the compiled binary data.
-     * @throws An error if the compilation process fails.
-     */
-    async function compileAssemblyToBinary(source, output) {
-        const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'zsharp-'));
-        const inputFile = path.join(tempDir, 'temp.s');
-        const outputFile = path.join(tempDir, path.join('main', output || ''));
-        const outputDir = path.dirname(outputFile);
-        const includeDir = path.join(tempDir, 'include');
-        await fs.mkdir(path.join(tempDir, 'include'));
-        const zHeaderFile = path.join(includeDir, 'z.S');
-        fs.mkdir(outputDir, { recursive: true });
-        await fs.writeFile(inputFile, source);
-        await fs.writeFile(zHeaderFile, z_S_1.default);
-        await new Promise((resolve, reject) => {
-            const gcc = (0, child_process_1.spawn)('gcc', ['-x', 'assembler-with-cpp', '-c', inputFile, '-o', outputFile, '-I', includeDir]);
-            gcc.stderr.on('data', (data) => console.error(`${header_1.Zasm_error}: \n${data}\n${header_1.Z_bug} ${header_1.Zasm_bug}`));
-            gcc.on('close', (code) => {
+    async function parseIZFile(source) {
+        const lines = source.split('\n');
+        let currentBlock = null;
+        let cSource = '';
+        let asmSource = '';
+        for (const line of lines) {
+            if (line.startsWith('#pragma block')) {
+                if (line.includes('C'))
+                    currentBlock = 'C';
+                else if (line.includes('ASM'))
+                    currentBlock = 'ASM';
+                else if (line.includes('end'))
+                    currentBlock = null;
+                continue;
+            }
+            ;
+            if (currentBlock === 'C')
+                cSource += line + '\n';
+            else if (currentBlock === 'ASM')
+                asmSource += line + '\n';
+        }
+        ;
+        return { cSource, asmSource };
+    }
+    ;
+    async function runCommand(command, args) {
+        return new Promise((resolve, reject) => {
+            const proc = (0, child_process_1.spawn)(command, args, { stdio: 'inherit' });
+            proc.on('close', (code) => {
                 if (code === 0)
                     resolve();
                 else
-                    reject(process.exit(1));
+                    reject(new Error(`Command "${command} ${args.join(' ')}" failed with exit code ${code}`));
+            });
+            proc.on('error', (err) => {
+                util_1.Util.log(`
+${header_1.Header.Z_bug} ${header_1.Header.Zasm_bug}:
+${err.message}
+					 `);
             });
         });
-        const binary = await fs.readFile(outputFile);
-        await fs.rm(tempDir, { recursive: true, force: true });
-        return binary;
     }
-    Emit.compileAssemblyToBinary = compileAssemblyToBinary;
+    ;
+    /**
+     * Compiles the given .iz source into an ELF binary.
+     * Returns the ELF file as a Uint8Array (no files saved permanently).
+     *
+     * @param izSource - The .iz source code.
+     * @returns Promise resolving to the ELF binary as Uint8Array.
+     */
+    async function compileIZToELF(izSource) {
+        const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'zsharp-'));
+        const { cSource, asmSource } = await parseIZFile(izSource);
+        const SFile = path.join(tempDir, 'z.S');
+        const cFile = path.join(tempDir, 'temp.c');
+        const asmFile = path.join(tempDir, 'temp.S');
+        const cOut = path.join(tempDir, 'temp_c.s');
+        const asmOut = path.join(tempDir, 'temp_asm.s');
+        const elfFile = path.join(tempDir, 'output.elf');
+        // Write C and ASM temp files
+        await fs.writeFile(SFile, z_S_1.default);
+        await fs.writeFile(cFile, cSource);
+        await fs.writeFile(asmFile, asmSource);
+        // Compile to object files
+        try {
+            await runCommand('gcc', ['-S', cFile, '-o', cOut]);
+            await runCommand('gcc', ['-S', asmFile, '-o', asmOut]);
+            util_1.Util.debug(await fs.readFile(asmOut));
+            // Link to ELF
+            await runCommand('gcc', [cOut, asmOut, '-o', elfFile]);
+        }
+        catch (err) {
+            // Util.error(err.message);
+        }
+        ;
+        // Read ELF binary buffer
+        const elfBuffer = await fs.readFile(elfFile);
+        // Cleanup temp files
+        await fs.rm(tempDir, { recursive: true, force: true });
+        return elfBuffer; // Return pure ELF Uint8Array
+    }
+    Emit.compileIZToELF = compileIZToELF;
     ;
 })(Emit || (exports.Emit = Emit = {}));
 ;

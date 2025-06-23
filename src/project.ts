@@ -6,6 +6,7 @@ import Zod from 'zod';
 
 import { Errors } from '~/error';
 import { Util } from '~/util';
+import { Module } from '~/module';
 
 export namespace Project {
 	const name = Zod.union([
@@ -14,27 +15,28 @@ export namespace Project {
 	]);
 	export const ConfigurationSchema = Zod.object(
 		{
-			'Project': Zod.optional(Zod.object({
-				'name': Zod.optional(Zod.string()),
-				'version': Zod.optional(Zod.tuple([
+			'Project': Zod.object({
+				'name': Zod.string().optional(),
+				'version': Zod.tuple([
 					Zod.number().int(),
 					Zod.number().int(),
 					Zod.number().int()
-				])),
-				'description': Zod.optional(Zod.string()),
+				]).optional(),
+				'description': Zod.string().optional(),
 				'Author': Zod.object({
 					'name': name
 				}).strict(),
 				'Contributors': Zod.object({
 					'names': Zod.array(name).min(1)
 				}),
-				'repository': Zod.optional(Zod.string()),
-				'license': Zod.optional(Zod.string()).default('MIT'),
-			}).strict()),
-			'Mods': Zod.optional(Zod.array(Zod.object({
+				'repository': Zod.string().optional(),
+				'license': Zod.string().default('MIT'),
+			}).strict().optional(),
+			'Mods': Zod.array(Zod.object({
 				source: Zod.string(),
-				config: Zod.optional(Zod.string())
-			}).strict()))
+				config: Zod.string().optional()
+			}).strict()).optional(),
+			'base': Zod.string().optional()
 		}
 	).strict();
 
@@ -86,6 +88,7 @@ export namespace Project {
 		try {
 			const data = TOML.parse(fs.readFileSync(Path.resolve(path + '/.zsharp.toml')).toString());
 			const config: Configuration = Project.create(data);
+			config.base = path;
 			return config;
 		} catch (err) {
 			if (path == Path.resolve(path)) {

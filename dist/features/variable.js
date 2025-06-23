@@ -3,8 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Variable = void 0;
 const feature_1 = require("~/feature");
 const parts_1 = require("~/parts");
+const error_1 = require("~/error");
 const type_1 = require("~/features/type");
 const accessor_1 = require("~/features/accessor");
+const util_1 = require("~/util");
 class Variable extends feature_1.Feature.Feature {
     constructor() {
         super([
@@ -19,11 +21,20 @@ class Variable extends feature_1.Feature.Feature {
     ;
     create = Variable.create;
     static create(data, scope, position) {
+        if (scope.get(`var.${data.name}`)) {
+            throw new error_1.Errors.Syntax.Duplicate(data.name, position);
+        }
+        ;
         let variableData = {};
         variableData.name = data.name;
         variableData.id = scope.alias(variableData.name);
-        variableData.type = data.type;
+        variableData.type = new type_1.TypeRef().create(data.type, scope, position).export;
         variableData.declaration = new accessor_1.Accessor().create(data.declaration, scope, position).export;
+        util_1.Util.debug(`Variable ${variableData.name} created`, variableData);
+        if (!type_1.Type.isCompatible(variableData.type, variableData.declaration.type)) {
+            type_1.Type.incompatible(variableData.type, variableData.declaration.type, position);
+        }
+        ;
         scope.set(`var.${variableData.id}`, variableData);
         return { scope, export: variableData };
     }
@@ -37,6 +48,7 @@ ${variable.toAssemblyText(variableData.declaration, scope)}
 /* Variable ${variableData.name} */
 ${definition}
 VAR ${variableData.id}, RDI, RDI
+SCOPE SET ${variableData.id}, RDI
 		`;
         return content;
     }

@@ -50,6 +50,7 @@ class Accessor extends feature_1.Feature.Feature {
         else if (data?.declaration?.string) {
             propertyData.is = PropertyType.STRING;
             propertyData.value.string = new literal_1.StringLiteral().create(data.declaration.string, scope, position).export;
+            propertyData.type = { name: 'byte', list: { size: propertyData.value.string.data.length } };
         }
         else if (data?.declaration?.reference) {
             propertyData.is = PropertyType.REF;

@@ -8,7 +8,7 @@ export type IdentifierData = {
 	path: string[]
 };
 
-export class Identifier extends Feature.Feature {
+export class Identifier extends Feature.Feature<IdentifierData> {
 	constructor() {
 		super([
 			{ 'part': { 'type': Parts.PartType.WORD }, 'export': 'base' },

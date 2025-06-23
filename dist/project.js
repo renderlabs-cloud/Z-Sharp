@@ -17,27 +17,28 @@ var Project;
         zod_1.default.array(zod_1.default.string()).min(1).max(3),
     ]);
     Project.ConfigurationSchema = zod_1.default.object({
-        'Project': zod_1.default.optional(zod_1.default.object({
-            'name': zod_1.default.optional(zod_1.default.string()),
-            'version': zod_1.default.optional(zod_1.default.tuple([
+        'Project': zod_1.default.object({
+            'name': zod_1.default.string().optional(),
+            'version': zod_1.default.tuple([
                 zod_1.default.number().int(),
                 zod_1.default.number().int(),
                 zod_1.default.number().int()
-            ])),
-            'description': zod_1.default.optional(zod_1.default.string()),
+            ]).optional(),
+            'description': zod_1.default.string().optional(),
             'Author': zod_1.default.object({
                 'name': name
             }).strict(),
             'Contributors': zod_1.default.object({
                 'names': zod_1.default.array(name).min(1)
             }),
-            'repository': zod_1.default.optional(zod_1.default.string()),
-            'license': zod_1.default.optional(zod_1.default.string()).default('MIT'),
-        }).strict()),
-        'Mods': zod_1.default.optional(zod_1.default.array(zod_1.default.object({
+            'repository': zod_1.default.string().optional(),
+            'license': zod_1.default.string().default('MIT'),
+        }).strict().optional(),
+        'Mods': zod_1.default.array(zod_1.default.object({
             source: zod_1.default.string(),
-            config: zod_1.default.optional(zod_1.default.string())
-        }).strict()))
+            config: zod_1.default.string().optional()
+        }).strict()).optional(),
+        'base': zod_1.default.string().optional()
     }).strict();
     /**
      * Convert a Zod error into a {@link Errors.Project.Invalid} error.
@@ -89,6 +90,7 @@ var Project;
         try {
             const data = toml_1.default.parse(fs_1.default.readFileSync(path_1.default.resolve(path + '/.zsharp.toml')).toString());
             const config = Project.create(data);
+            config.base = path;
             return config;
         }
         catch (err) {

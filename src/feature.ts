@@ -26,7 +26,7 @@ export namespace Feature {
 	};
 	export type Sequence = SequenceItem[];
 
-	export class Feature {
+	export class Feature<T> {
 		/**
 		 * Creates a new instance of the Feature class.
 		 * @param sequence The sequence of parts that make up the feature.
@@ -45,8 +45,8 @@ export namespace Feature {
 		 * @returns An object containing the updated scope and optionally the exported data.
 		 */
 
-		public create(data: any, scope: Scope, position: Errors.Position): { scope: Scope, export?: any } {
-			return { scope };
+		public create(data: any, scope: Scope, position: Errors.Position): Feature.Return<T> {
+			return { scope, export: null as T }; // Should never happen
 		};
 		/**
 		 * Converts the given feature data into assembly text.
@@ -73,12 +73,12 @@ export namespace Feature {
 		 * @param depth The current recursion depth. Used to prevent infinite recursion.
 		 * @returns An object containing the matched parts, the length of the matched parts, and any exported values.
 		 */
-		public match(parts: Parts.Part[], depth: number = 0) {
+		public match(parts: Parts.Part[], depth: number = 0): { parts: Parts.Part[], length: number, exports: Record<string, any> } | null {
 			let i = 0;
 			let p = 0;
 			let d = 0;
 
-			if (depth++ > 20) {
+			if (depth++ > 5) {
 				return null;
 			}
 
@@ -106,7 +106,7 @@ export namespace Feature {
 				// 2. Match sub-feature
 				else if (sequenceItem.feature) {
 					const subFeature = new sequenceItem.feature.type();
-					const result = subFeature.match(parts.slice(p), depth);
+					const result = subFeature.match(parts.slice(p), depth - 1);
 					if (result) {
 						matchedParts.push(...result.parts);
 						p += result.length;
@@ -207,6 +207,10 @@ export namespace Feature {
 			};
 			return null;
 		};
+	};
+	export type Return<T> = {
+		export: T,
+		scope: Feature.Scope
 	};
 	/**
 	 * Generate a unique identifier in the given scope.
@@ -312,7 +316,6 @@ export namespace Feature {
 		 * Generates a random numeric identifier.
 		 * @returns A string representation of a random numeric identifier.
 		 */
-
 		public generateRandomId() {
 			return String(Math.round(Math.random() * 10 ** 10));
 		};

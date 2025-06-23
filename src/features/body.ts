@@ -2,13 +2,13 @@ import { Feature } from '~/feature';
 import { Parts } from '~/parts';
 import { Errors } from '~/error';
 
-type BodyData = {
+export type BodyData = {
 	name: string,
 	scope: Feature.Scope,
 	id: string
 };
 
-export class Body extends Feature.Feature {
+export class Body extends Feature.Feature<BodyData> {
 	constructor() {
 		super([
 			{ 'part': { 'type': Parts.PartType.CURLY_BRACKET_OPEN } },

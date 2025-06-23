@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Assembler = void 0;
-const builtin_1 = require("~/builtin");
 const format_1 = require("~/format");
 var Assembler;
 (function (Assembler) {
@@ -27,7 +26,6 @@ var Assembler;
         let data = format_1.Format.section({
             type: '.data'
         });
-        scope = builtin_1.BuiltIn.inject(scope);
         for (const _data of syntaxData) {
             content += _data.feature.toAssemblyText(_data.export, _data.scope);
             data += _data.feature.toAssemblyData(_data.export, _data.scope);
@@ -36,12 +34,15 @@ var Assembler;
         // Util.debug(scope);
         content = data + content;
         return (scope.label == 'main' ? `
-#include <z.S>
-/*
+#pragma block ASM
+#include "z.S"
+/**
  * 🫎 Mooseworth is here!
  * ${format_1.Format.comment([`Author: ${config?.Project?.Author.name}`, `Contributors: ${config?.Project?.Contributors?.names.join('\t\n')}`])}
  */
-` : '') + content;
+` : '') + content.replace(/\n{1,2}(\s*)/gm, '\n$1') + (scope.label == 'main' ? `
+#pragma block end
+` : '');
     }
     Assembler.assemble = assemble;
     ;

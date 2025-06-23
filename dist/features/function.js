@@ -62,7 +62,7 @@ class Function extends feature_1.Feature.Feature {
             const type = type_1.Type.get(parameter.type, scope);
             parameter.id = functionData.scope.alias(parameter.name);
             content += `
-PARAM ${type.id}, ${parameter.id}
+PARAM ${type?.id}, ${parameter.id}
 			`;
         }
         ;

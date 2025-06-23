@@ -47,11 +47,12 @@ const error_1 = require("~/error");
 const header_1 = require("~/cli/header");
 const project_1 = require("~/project");
 let config = {};
+console.log(header_1.Header.header);
 commander_1.program
     .name('zs')
-    .description(ct.white(`${header_1.zs} compiler`));
+    .description(ct.white(`${header_1.Header.zs} compiler`));
 commander_1.program.command('build')
-    .description(`Build ${header_1.zs} code`)
+    .description(`Build ${header_1.Header.zs} code`)
     .option('--input, -I <path>')
     .option('--output, -O <path>')
     .option('--mode, -M <string>')
@@ -72,7 +73,7 @@ commander_1.program.command('build')
     fs_1.default.writeFileSync(options.output || options.input + '.iz', asm);
 });
 commander_1.program.command('emit')
-    .description(`Compile ${header_1.zs} intermediate assembly`)
+    .description(`Compile ${header_1.Header.zs} intermediate assembly`)
     .option('--input, -I <path>')
     .option('--output, -O <path>')
     .option('--target, -T <arch>')
@@ -94,4 +95,3 @@ commander_1.program.command('emit')
     fs_1.default.writeFileSync(_options.output, binary);
 });
 commander_1.program.parse();
-const options = commander_1.program.opts();

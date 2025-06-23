@@ -21,7 +21,7 @@ var Feature;
          * @returns An object containing the updated scope and optionally the exported data.
          */
         create(data, scope, position) {
-            return { scope };
+            return { scope, export: null }; // Should never happen
         }
         ;
         /**
@@ -54,7 +54,7 @@ var Feature;
             let i = 0;
             let p = 0;
             let d = 0;
-            if (depth++ > 20) {
+            if (depth++ > 5) {
                 return null;
             }
             const matchedParts = [];
@@ -80,7 +80,7 @@ var Feature;
                 // 2. Match sub-feature
                 else if (sequenceItem.feature) {
                     const subFeature = new sequenceItem.feature.type();
-                    const result = subFeature.match(parts.slice(p), depth);
+                    const result = subFeature.match(parts.slice(p), depth - 1);
                     if (result) {
                         matchedParts.push(...result.parts);
                         p += result.length;

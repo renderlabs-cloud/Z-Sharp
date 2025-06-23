@@ -52,7 +52,7 @@ var Errors;
         constructor(message, stack) {
             this.message = message;
             this.stack = stack;
-            this.message = (0, header_1.format)(this.message);
+            this.message = header_1.Header.format(this.message);
         }
         ;
         count = 0;

@@ -3,7 +3,7 @@ import { Parts } from '~/parts';
 import { Errors } from '~/error';
 import { Util } from '~/util';
 import { Identifier, IdentifierData } from '~/features/identifier';
-import { TypeRef } from '~/features/type';
+import { TypeRefData } from '~/features/type';
 import { ObjectLiteral, StringLiteral, ObjectLiteralData, StringLiteralData, } from '~/features/literal';
 import { FunctionCall, FunctionCallData } from '~/features/function';
 
@@ -17,7 +17,7 @@ export enum PropertyType {
 };
 
 export type PropertyData = {
-	type: TypeRef,
+	type: TypeRefData,
 	value: {
 		string?: StringLiteralData,
 
@@ -31,7 +31,7 @@ export type PropertyData = {
 	id: string
 };
 
-export class Accessor extends Feature.Feature {
+export class Accessor extends Feature.Feature<PropertyData> {
 	constructor() {
 		super([
 			{
@@ -55,7 +55,7 @@ export class Accessor extends Feature.Feature {
 		]);
 	};
 	public create = Accessor.create;
-	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
+	public static create(data: any, scope: Feature.Scope, position: Errors.Position): Feature.Return<PropertyData> {
 		let propertyData: PropertyData = {} as PropertyData;
 		propertyData.value = {} as any;
 
@@ -72,6 +72,7 @@ export class Accessor extends Feature.Feature {
 		else if (data?.declaration?.string) {
 			propertyData.is = PropertyType.STRING;
 			propertyData.value.string = new StringLiteral().create(data.declaration.string, scope, position).export;
+			propertyData.type = { name: 'byte', list: { size: propertyData.value.string.data.length } };
 		}
 
 		else if (data?.declaration?.reference) {

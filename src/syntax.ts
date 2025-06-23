@@ -7,7 +7,7 @@ export namespace Syntax {
 	export type SyntaxData = {
 		export: any,
 		scope: Feature.Scope,
-		feature: Feature.Feature
+		feature: Feature.Feature<any>
 	};
 
 	/**

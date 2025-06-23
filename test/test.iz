@@ -1,82 +1,36 @@
 
-#include <z.S>
-/*
+#pragma block ASM
+#include "z.S"
+/**
  * 🫎 Mooseworth is here!
  * Author: Brendan,Lucas
  * Contributors: Brendan,Lucas
  */
 
 .section .data
-
 		
-main_$5289112665$YqHwwLSwegXzjazBBf2CAO8LucwsSBrev0ytgQJ0UkuMK6nrIZ9J2l5JjicQ6krJ:
+main_$6275538362$b5ihTmXPDeiICSHQ2pLe1TRg5JOV8fmMJNw4aIlGrftSDc4oMWlHUAq5qiR8ti6N:
 	.asciz "Brendan Lucas"
 		
-// ???
-				
-// ???
-				
 .section .text
-
 #pragma section main
-
 		
-TYPE main_$Person$Vvuc4ybCWaYlmjsG1iSFw6f61WaLOj0W6YVqhDxvarP0nXinUXGELnkv7sIGAGaU
+TYPE main_$Person$DnOvNmkPd3kqGzZNtVZo4lncTkeutXISjeiYpmNJKqAq6jxfm2aWUFJBykVw4AtV
 		
 	TYPE_FIELD 
-			undefined, 
+			BYTE, 
 undefined, 
 			
 TYPE_END
 		
 /* Variable myName */
 
-
 /* Accessor */
 		
-MOV RDI, REF(main_$5289112665$YqHwwLSwegXzjazBBf2CAO8LucwsSBrev0ytgQJ0UkuMK6nrIZ9J2l5JjicQ6krJ)
+MOV RDI, REF(main_$6275538362$b5ihTmXPDeiICSHQ2pLe1TRg5JOV8fmMJNw4aIlGrftSDc4oMWlHUAq5qiR8ti6N)
 				
 		
-VAR main_$myName$e7pGrv8fZYHVCbFG3bQ80Mz1xes9MId3lguIN77oRuxo7TyS4KOMGDlJ9bMpHygg, RDI, RDI
+VAR main_$myName$BWZqxFqyNEjZaUn1tGTl6i4MRN5djjIhFlc96c8PhvQvb0sAI9eoqfpUpFjttDqV, RDI, RDI
+SCOPE SET main_$myName$BWZqxFqyNEjZaUn1tGTl6i4MRN5djjIhFlc96c8PhvQvb0sAI9eoqfpUpFjttDqV, RDI
 		
-/* Variable me */
-
-
-/* Accessor */
-		
-MOV RDI, REF(main_$5880277408$qZnUtDyjwXGJcnvgYupqQ4ld5S0AOYuuiZWhHKy7iLtgwkKTgkDKf9EgUwxHRDqL)
-				
-		
-VAR main_$me$rKOMzRJfWGyrQ2FFbOYihBP2bmOnKVr9PVWw2KLknmAnY7PQ5mcxupjg6GllbrdQ, RDI, RDI
-		
-/* Function greet */
-FUNC main_$greet$xJ05f1SnPbP52HGnfLSz67JKTylClAVUnLSxFv7RXUZlNJ6uaJBXI7E3GBjl2eBP, PARAMS
-		
-PARAM main_$Person$Vvuc4ybCWaYlmjsG1iSFw6f61WaLOj0W6YVqhDxvarP0nXinUXGELnkv7sIGAGaU, greet_main_$person$dFvQr5QmXM4Tz95QgkJVVkVD5NcFuJLt2AckTvejPjLIf7kfhS0lEZVOJksYhQoi
-			
-PARAMS_END
-		
-
-.section .data
-
-		
-.section .text
-
-#pragma section greet
-
-		
-RETURN greet_main_$7999440079$oN7427AS0s2hxTwqFqj9gmIgvo9MT9waQZUZiSxwO50m2IriIR35rRbo8IYy0huE
-		
-FUNC_END
-		
-/* Variable myGreeting */
-
-
-/* Accessor */
-		
-MOV R8, REF(main_$greet$xJ05f1SnPbP52HGnfLSz67JKTylClAVUnLSxFv7RXUZlNJ6uaJBXI7E3GBjl2eBP)
-MOV R7, REF(main_$3829858006$2VwYApY4dUjANThnQ3G4b7viMQQnRIdrGJ5sJ8KT7SKsOqBgpGpQbYpuOFlP3wSw)
-				
-		
-VAR main_$myGreeting$apm1SMqDl24uT2SRKKr9wsnOPQTD2uM8LfVQvUmTW6Z9zZs4gk8AhMuXZqPTlnHj, RDI, RDI
-		
+#pragma block end

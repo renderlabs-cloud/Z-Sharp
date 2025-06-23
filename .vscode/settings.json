@@ -1,8 +1,11 @@
 {
-    "workbench.editor.showTabs": "multiple",
-    "editor.stickyTabStops": true,
-    "editor.guides.highlightActiveIndentation": "always",
-    "editor.renderWhitespace": "all",
-    "editor.detectIndentation": false,
-    "editor.indentSize": "tabSize"
+	"workbench.editor.showTabs": "multiple",
+	"editor.stickyTabStops": true,
+	"editor.guides.highlightActiveIndentation": "always",
+	"editor.renderWhitespace": "all",
+	"editor.detectIndentation": false,
+	"editor.indentSize": "tabSize",
+	"files.associations": {
+		"*.iz": "asm"
+	}
 }

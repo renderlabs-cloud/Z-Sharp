@@ -19,7 +19,7 @@ class List extends feature_1.Feature.Feature {
     }
     ;
     static create(data, scope, position) {
-        let listData = { size: data.length };
+        let listData = { size: data.length || null };
         return { scope, export: listData };
     }
     ;

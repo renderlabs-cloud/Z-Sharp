@@ -1,6 +1,6 @@
 import * as ct from 'colorette';
 
-import { format } from '~/cli/header';
+import { Header } from '~/cli/header';
 
 
 export namespace Errors {
@@ -17,7 +17,7 @@ export namespace Errors {
 			public message: string,
 			public stack?: string
 		) {
-			this.message = format(this.message);
+			this.message = Header.format(this.message);
 		};
 		public count: number = 0;
 	};

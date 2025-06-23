@@ -1,4 +1,40 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Z = void 0;
 const parts_1 = require("~/parts");
@@ -6,70 +42,59 @@ const syntax_1 = require("~/syntax");
 const feature_1 = require("~/feature");
 const assembler_1 = require("~/assembler");
 const emit_1 = require("~/emit");
-const spinner_1 = require("~/cli/spinner");
 const header_1 = require("~/cli/header");
+const official_1 = require("~/official");
+const module_1 = require("~/module");
+const builtin_1 = require("~/builtin");
 const util_1 = require("~/util");
+const ora_1 = __importDefault(require("ora"));
+const ct = __importStar(require("colorette"));
 var Z;
 (function (Z) {
-    /**
-     * Starts the provided spinner.
-     *
-     * @param spinner The spinner instance to start.
-     */
-    function spin(spinner) {
-        spinner.start();
-    }
-    Z.spin = spin;
-    ;
     /**
      * Compiles Z# code to assembly.
      *
      * @param content the content of the Z# file to compile
      * @param importer the importer object, used to import Z# modules
      * @param path the path of the Z# file to compile, if any
-     * @returns the compiled assembly code
+     * @returns the compiled Z# intermediate assembly
      */
-    function toAssembly(content, importer, config, path) {
+    function toIZ(content, importer, config, path) {
         const start = Date.now();
-        let spinners = [];
         let assembly = '';
+        let spinner = null;
+        let message = '';
+        let features = official_1.official;
+        for (const mod of config.Mods || []) {
+            features.push(...(module_1.Module.get(mod.source, importer.base)?.implements?.features || []));
+        }
+        ;
         if (importer.cli) {
-            console.log(header_1.header);
-            spinners = Array.from({ length: 10 }, () => {
-                const spinner = new spinner_1.Spinner({ text: '', style: spinner_1.spinnerStyles['compile'] });
-                return spinner;
+            message = path ? `Compiling ${path}` : 'Compiling';
+            spinner = (0, ora_1.default)({
+                text: message,
+                color: 'blue',
+                spinner: 'dots',
             });
-            spinners[0].options.text = 'Parsing';
-            spinners[1].options.text = 'Applying syntax';
-            spinners[2].options.text = 'Compiling to assembly';
-            spinners[0].start();
+            spinner.start();
         }
         ;
         try {
             const parts = parts_1.Parts.toParts(content, path);
-            if (importer.cli) {
-                spinners[0].success();
-                spinners[1].start();
-            }
-            ;
-            const scope = new feature_1.Feature.Scope(importer, 'main');
+            let scope = new feature_1.Feature.Scope(importer, 'main');
+            scope = builtin_1.BuiltIn.inject(scope);
             const basePosition = {
                 content,
             };
-            const syntax = syntax_1.Syntax.toFeatures(parts, scope, basePosition, undefined, path);
-            if (importer.cli) {
-                spinners[1].success();
-                spinners[2].start();
-            }
-            ;
+            const syntax = syntax_1.Syntax.toFeatures(parts, scope, basePosition, features, path);
             assembly = assembler_1.Assembler.assemble(syntax, scope, config);
             if (importer.cli) {
-                spinners[2].success();
-            }
-            ;
-            if (importer.cli) {
                 const end = Date.now();
-                console.log((0, header_1.success)({
+                spinner?.stopAndPersist({
+                    text: message + ' - ' + header_1.Header.time(end - start),
+                    symbol: ct.green('⠿')
+                });
+                console.log(header_1.Header.success({
                     vulnerabilities: 0, // add later
                     time: end - start
                 }));
@@ -77,23 +102,30 @@ var Z;
             ;
         }
         catch (_err) {
+            if (importer.cli) {
+                spinner?.stopAndPersist({
+                    text: message,
+                    symbol: ct.red('⠿')
+                });
+            }
+            ;
             util_1.Util.error(_err);
         }
         ;
         return assembly;
     }
-    Z.toAssembly = toAssembly;
+    Z.toIZ = toIZ;
     ;
     /**
-     * Emit the given Z# assembly into a binary file.
+     * Emit the given Z# intermediate assembly into a binary file.
      *
-     * @param content The Z# assembly source code.
+     * @param content The Z# intermediate assembly source code.
      * @param output The output file path.
      *
      * @returns The compiled binary data.
      */
-    async function emit(content, output) {
-        const compiled = await emit_1.Emit.compileAssemblyToBinary(content, output);
+    async function emit(content) {
+        const compiled = await emit_1.Emit.compileIZToELF(content);
         return compiled;
     }
     Z.emit = emit;

@@ -2,8 +2,12 @@ import { Feature } from '~/feature';
 import { Parts } from '~/parts';
 import { Errors } from '~/error';
 import { Identifier } from '~/features/identifier';
-import { List } from '~/features/list';
+import { PropertyData } from '~/features/accessor';
+import { FunctionData } from '~/features/function';
+import { ListTypeData, List } from '~/features/list';
 import { Util } from '~/util';
+
+import lodash from 'lodash';
 
 type TypeField = {
 	name: string,
@@ -19,25 +23,28 @@ type TypeFields = {
 	// To be extended in the future
 };
 
-export type TypeData =
-	& TypeFields
-	& TypeRef
-	;
-
 type TypeRefBuildPart =
-	| TypeData
+	| TypeRefData
 	| '|'
 	| '&'
 	;
 
 export type TypeRefData = {
 	name?: string,
-	generic?: TypeData[],
-	build?: TypeRefBuildPart[]
+	generic?: TypeRefData[],
+	build?: TypeRefBuildPart[],
+	fields?: TypeFields,
+	list?: ListTypeData,
+	class?: {
+		extends: TypeRefData[],
+		implements: TypeRefData[],
+		properties: PropertyData[],
+		methods: FunctionData[],
+	},
 	id?: string;
 };
 
-export class Type extends Feature.Feature {
+export class Type extends Feature.Feature<TypeRefData> {
 	constructor() {
 		super([
 			{ 'part': { 'type': Parts.PartType.WORD, 'value': 'type' } },
@@ -65,47 +72,92 @@ export class Type extends Feature.Feature {
 		]);
 	};
 
-	public static get(data: any, scope: Feature.Scope) {
+	public static get(data: any, scope: Feature.Scope): TypeRefData | null {
 		if (data?.type?.alias) {
 			const alias = Identifier.create(data.type.alias, scope, {}).export;
 			const name = scope.flatten(alias.path);
-			return scope.get(`type.${scope.resolve(name)}`);
+			return scope.get(`type.${scope.resolve(name)}`) as TypeRefData || null;
 		};
+
+		return null;
+	};
+	public static toString(type: TypeRefData) {
+		let content = '';
+		content += type.name;
+		if (type?.generic?.length) {
+			content += '<';
+			content += type.generic.map((v: any) => {
+				return Type.toString(v);
+			}).join(', ');
+			content += '>';
+		};
+		if (type?.list) {
+			content += '[';
+			if (type.list.size) {
+				content += type.list.size;
+			};
+			content += ']';
+		};
+		/** TODO:
+		 * ...
+		 */
+		return content;
+	};
+	public static isCompatible(type1: TypeRefData, type2: TypeRefData): boolean {
+		delete (type1 as any).typeRef;
+		delete (type2 as any).typeRef;
+		if (type1 == type2) {
+			return true;
+		};
+		if (type1?.list && type2?.list && lodash.isEqual({ ...type1, list: null }, { ...type2, list: null })) {
+			return type1?.list?.size == undefined;
+		};
+
+		if (type1?.generic?.length == type2?.generic?.length) {
+			return type1?.generic?.every((v: any, i: number) => {
+				return Type.isCompatible(v, type2.generic?.[i] || {}); // This will return false next iteration
+			}) || false;
+		};
+
+		return false;
+	};
+	public static incompatible(type1: TypeRefData, type2: TypeRefData, position: Errors.Position): never {
+		throw new Errors.Syntax.Generic(`Type ${Type.toString(type2)} is incompatible with type ${Type.toString(type1)}`, position);
 	};
 	public create = Type.create;
-	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
-		const typeData: TypeData = {} as TypeData;
+	public static create(data: any, scope: Feature.Scope, position: Errors.Position): Feature.Return<TypeRefData> {
+		const typeData: TypeRefData = {};
 		typeData.name = data.name;
 		typeData.id = scope.alias(data.name);
 		if (data.type.fields) {
-			let fields: TypeField[] = [];
+			let typeFields: TypeFields = { fields: [], id: typeData.id, name: typeData.name };
 			for (const i in data.type.fields) {
 				const item = data.type.fields[i];
 				if (!item.comma && Number(i) < data.type.fields.length - 1) {
 					throw new Errors.Syntax.Generic(data.type.fields[String(Number(i) + 1)], position);
 				};
-				item.id = `type_field.${scope.alias(item.name)}`;
+				item.id = scope.alias(item.name);
 				// Check if type is defined
-				if (fields.map((v: any) => {
+				if (typeFields.fields?.map((v: TypeField) => {
 					return v?.name == item?.name && v && item;
 				}).includes(true)) {
 					throw new Errors.Syntax.Duplicate(item.name, position);
 				};
-				scope.set(item.id, item);
-				fields.push(item);
+				scope.set(`type_field.${item.id}`, item);
+				typeFields.fields?.push(item);
 			};
-			typeData.fields = fields;
+			typeData.fields = typeFields;
 		};
 		scope.set(`type.${typeData.id}`, typeData);
 
 		return { scope, export: typeData };
 	};
 
-	public toAssemblyText(typeData: TypeData, scope: Feature.Scope) {
+	public toAssemblyText(typeData: TypeRefData, scope: Feature.Scope) {
 		let content = `
 TYPE ${(typeData as any)?.id}
-		`; // ? should not be required here!
-		for (const _field of (typeData as TypeFields)?.fields || []) { // || should not be require here!
+		`;
+		for (const _field of typeData.fields?.fields || []) {
 			const field = _field as any;
 			content += `
 	TYPE_FIELD 
@@ -114,15 +166,10 @@ TYPE ${(typeData as any)?.id}
 			if (!fieldType) {
 				throw new Errors.Reference.Undefined(field.name, field.position as Errors.Position);
 			};
-			if (fieldType.typeRef.type?.alias.name == 'byte') {
+			if (fieldType.name == 'byte') {
 				content += 'BYTE, ';
 			} else {
-				if (fieldType.typeRef.type.alias) {
-					const alias = scope.get(`type.${scope.resolve(scope.flatten(fieldType.typeRef.type.alias.path))}`);
-					content += `${alias.id}, `;
-				} else {
-					// Add more cases
-				};
+
 			};
 
 			content += `
@@ -137,7 +184,7 @@ TYPE_END
 	};
 };
 
-export class TypeRef extends Feature.Feature {
+export class TypeRef extends Feature.Feature<TypeRefData> {
 	constructor() {
 		super([
 			{
@@ -145,22 +192,35 @@ export class TypeRef extends Feature.Feature {
 					[
 						{ 'feature': { 'type': Identifier }, 'export': 'alias' },
 					],
+					[
+						{ 'feature': { 'type': TypeRef }, 'export': 'typeRef' }
+					]
 				], 'export': 'type',
 			},
-			{
-				'repeat': [
-					{ 'feature': { 'type': List }, 'export': 'list' }
-				], 'export': 'lists', 'required': false
-			}
+			{ 'feature': { 'type': List }, 'export': 'list', 'required': false }
 		]);
 	};
-};
+	public create = TypeRef.create
+	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
+		let typeRef: TypeRefData = {};
 
-export namespace TypeValidation {
-	export function expects(type: TypeData, expected: TypeData) {
-		if (type !== expected) {
-			throw new Errors.Reference.TypeMismatch(type.name || '', {}); // TODO: position
+		Util.debug(`Data`, data);
+
+		if (data?.type?.alias) {
+			typeRef = Type.get(data, scope) || {};
+			Util.debug(`TypeRef from alias created`, typeRef);
 		};
-		return type === expected;
+		if (data?.list) {
+			const list = List.create(data.list, scope, position).export;
+			const subType: TypeRefData = {};
+			subType.list = subType.list?.type?.list;
+			list.type = subType;
+			typeRef.list = list;
+		};
+		/** TODO: 
+		 * ...
+		*/
+
+		return { scope, export: typeRef };
 	};
 };

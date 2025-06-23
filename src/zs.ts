@@ -6,26 +6,22 @@ import { Emit } from '~/emit';
 import { FileType } from '~/file';
 import { Errors } from '~/error';
 import { Project } from '~/project';
-import { Spinner, spinnerStyles } from '~/cli/spinner';
-import { header, success, failure, SuccessData, FailureData } from '~/cli/header';
+import { Header } from '~/cli/header';
 import { official } from '~/official';
+import { Module } from '~/module';
+import { BuiltIn } from '~/builtin';
 import { Util } from '~/util';
 
+import ora, { Ora } from 'ora';
+import * as ct from 'colorette';
+
 export namespace Z {
+	export type ImportFunction = (path: string) => string;
 	export type Importer = {
-		import: (path: string) => string,
+		import: ImportFunction[],
+		debug: boolean,
 		cli: boolean,
-		debug: boolean
-	};
-
-
-	/**
-	 * Starts the provided spinner.
-	 *
-	 * @param spinner The spinner instance to start.
-	 */
-	export function spin(spinner: Spinner) {
-		spinner.start();
+		base: string
 	};
 
 	/**
@@ -34,52 +30,57 @@ export namespace Z {
 	 * @param content the content of the Z# file to compile
 	 * @param importer the importer object, used to import Z# modules
 	 * @param path the path of the Z# file to compile, if any
-	 * @returns the compiled assembly code
+	 * @returns the compiled Z# intermediate assembly
 	 */
-	export function toAssembly(content: string, importer: Importer, config: Project.Configuration, path?: string) {
+	export function toIZ(content: string, importer: Importer, config: Project.Configuration, path?: string) {
 		const start = Date.now();
 
-		let spinners: Spinner[] = [];
 		let assembly: string = '';
+		let spinner: Ora | null = null;
+		let message: string = '';
+		let features: (typeof Feature.Feature<any>)[] = official;
+
+		for (const mod of config.Mods || []) {
+			features.push(...(Module.get(mod.source, importer.base)?.implements?.features || []));
+		};
+
 		if (importer.cli) {
-			console.log(header);
-			spinners = Array.from({ length: 10 }, () => {
-				const spinner = new Spinner({ text: '', style: spinnerStyles['compile'] });
-				return spinner;
+			message = path ? `Compiling ${path}` : 'Compiling';
+			spinner = ora({
+				text: message,
+				color: 'blue',
+				spinner: 'dots',
 			});
-			spinners[0].options.text = 'Parsing';
-			spinners[1].options.text = 'Applying syntax';
-			spinners[2].options.text = 'Compiling to assembly';
-			spinners[0].start();
+			spinner.start();
 		};
 		try {
 			const parts = Parts.toParts(content, path);
-			if (importer.cli) {
-				spinners[0].success();
-				spinners[1].start();
-			};
-			const scope = new Feature.Scope(importer, 'main');
+			let scope = new Feature.Scope(importer, 'main');
+			scope = BuiltIn.inject(scope);
 			const basePosition: Errors.Position = {
 				content,
 			};
-			const syntax = Syntax.toFeatures(parts, scope, basePosition, undefined, path);
-			if (importer.cli) {
-				spinners[1].success();
-				spinners[2].start();
-			};
+			const syntax = Syntax.toFeatures(parts, scope, basePosition, features, path);
 			assembly = Assembler.assemble(syntax, scope, config);
-			if (importer.cli) {
-				spinners[2].success();
-			};
 
 			if (importer.cli) {
 				const end = Date.now();
-				console.log(success({
+				spinner?.stopAndPersist({
+					text: message + ' - ' + Header.time(end - start),
+					symbol: ct.green('⠿')
+				});
+				console.log(Header.success({
 					vulnerabilities: 0, // add later
 					time: end - start
 				}));
 			};
 		} catch (_err) {
+			if (importer.cli) {
+				spinner?.stopAndPersist({
+					text: message,
+					symbol: ct.red('⠿')
+				});
+			};
 			Util.error(_err as Errors.MainError);
 		};
 
@@ -87,15 +88,15 @@ export namespace Z {
 	};
 
 	/**
-	 * Emit the given Z# assembly into a binary file.
+	 * Emit the given Z# intermediate assembly into a binary file.
 	 *
-	 * @param content The Z# assembly source code.
+	 * @param content The Z# intermediate assembly source code.
 	 * @param output The output file path.
 	 *
 	 * @returns The compiled binary data.
 	 */
-	export async function emit(content: string, output: string) {
-		const compiled = await Emit.compileAssemblyToBinary(content, output);
+	export async function emit(content: string) {
+		const compiled = await Emit.compileIZToELF(content);
 		return compiled;
 	};
 };
