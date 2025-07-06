@@ -17659,7 +17659,7 @@ var require_package = __commonJS({
     module2.exports = {
       name: "@zsharp/core",
       version: "0.0.0",
-      description: "An amazing programming language",
+      description: "An amazing low level programming language",
       main: "dist/zs.js",
       scripts: {
         test: "bash test.sh"
@@ -17682,7 +17682,7 @@ var require_package = __commonJS({
         commander: "^13.1.0",
         lodash: "^4.17.21",
         ora: "^8.2.0",
-        "ora-classic": "^5.4.2",
+        syncing: "^0.0.11",
         toml: "^3.0.0",
         zod: "^3.25.53"
       },
@@ -17692,7 +17692,7 @@ var require_package = __commonJS({
         esbuild: "^0.25.4",
         "module-alias": "^2.2.3",
         "tsc-alias": "^1.8.16",
-        typescript: "~5.8.3"
+        typescript: "latest"
       },
       bin: {
         zs: "./dist/bin/cmd.js"
@@ -17719,33 +17719,37 @@ var init_header = __esm({
     init_colorette();
     import_package = __toESM(require_package());
     ((Header2) => {
+      Header2.zs = red("Z#");
+      Header2.iz = `${white(".")}${blue("i")}${red("z")}`;
+      Header2.Zasm_error = `${red(bold("Z# intermediate Error"))}!`;
+      Header2.Z_bug = `${red(bold("This should not happen"))}!`;
+      Header2.Zasm_bug = hyperlink("Report", "https://github.com/renderlabs-cloud/Z-Sharp/issues/new?template=Zasm_bug.yml");
+      Header2.docs = "https://docs.zsharp.dev";
+      Header2.github = "https://github.com/renderlabs-cloud/Z-Sharp";
+      Header2.discord = "https://discord.gg/gGcbaBjtBS";
       function hyperlink(text, url, attrs) {
         return blue(`\x1B]8;${attrs || ""};${url || text}\x07${text}\x1B]8;;\x07`);
       }
       Header2.hyperlink = hyperlink;
       ;
       function bullets(data) {
-        return data.map((item) => `\u2022 ${item}`).join("\n");
+        return data.map((item) => `- ${item}`).join("\n");
       }
       Header2.bullets = bullets;
       ;
       Header2.header = white(
         `
-:===: ${red("Z#")} :===:
+:===: ${Header2.zs} :===:
 
 ${bullets([
-          hyperlink("Documentation", "https://docs.zsharp.dev"),
-          hyperlink("GitHub", "https://github.com/renderlabs-cloud/Z-Sharp"),
-          hyperlink("Discord", "https://discord.gg/gGcbaBjtBS"),
+          hyperlink("Documentation", Header2.docs),
+          hyperlink("GitHub", Header2.github),
+          hyperlink("Discord", Header2.discord),
           hyperlink("Version", `https://npmjs.com/package/@zsharp/core/v/${import_package.default.version}`)
           // ? Perhaps add a support page?
         ])}
 		`
       );
-      Header2.Zasm_error = `${red(bold("Z# intermediate Error"))}!`;
-      Header2.Z_bug = `${red(bold("This should not happen! :'("))}!`;
-      Header2.Zasm_bug = hyperlink("Report", "https://github.com/renderlabs-cloud/Z-Sharp/issues/new?template=Zasm_bug.yml");
-      Header2.zs = red("Z#");
       function time(time2) {
         let timeString = null;
         if (time2 < 1e3) {
@@ -17780,11 +17784,16 @@ ${bullets([
       Header2.failure = failure;
       ;
       const ansiRegex2 = /\x1b\[[0-9;]*m/g;
+      function quote(data) {
+        return green(`'${data}'`);
+      }
+      Header2.quote = quote;
+      ;
       function format(data) {
         let lastColor = "";
-        return data.replace(/(['"])([^'"]+)\1/g, (match, quote, content, offset) => {
+        return data.replace(/(['"])([^'"]+)\1/g, (match, quote2, content, offset) => {
           lastColor = findLastColorCode(data.slice(0, offset)) || lastColor;
-          return green(`${quote}${content}${quote}`) + lastColor;
+          return green(`${quote2}${content}${quote2}`) + lastColor;
         }).replace(/\b(0x[0-9a-fA-F]+|\d+)\b/g, (match, _2, offset) => {
           lastColor = findLastColorCode(data.slice(0, offset)) || lastColor;
           return cyan(match) + lastColor;
@@ -17797,7 +17806,119 @@ ${bullets([
         return matches.length ? matches[matches.length - 1][0] : null;
       }
       ;
+      const Mooseworth = ``;
     })(Header || (Header = {}));
+  }
+});
+
+// src/util.ts
+var util_exports = {};
+__export(util_exports, {
+  Util: () => Util
+});
+var import_node_util, import_os, import_worker_threads, Util;
+var init_util = __esm({
+  "src/util.ts"() {
+    "use strict";
+    import_node_util = __toESM(require("node:util"));
+    init_colorette();
+    import_os = __toESM(require("os"));
+    import_worker_threads = require("worker_threads");
+    init_header();
+    ((Util2) => {
+      function trimDepth(obj, maxDepth, currentDepth = 0) {
+        if (currentDepth >= maxDepth || obj === null || typeof obj !== "object") {
+          return null;
+        }
+        ;
+        const result = {};
+        for (const key in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            const trimmed = trimDepth(obj[key], maxDepth, currentDepth + 1);
+            if (trimmed !== null) {
+              result[key] = trimmed;
+            }
+            ;
+          }
+          ;
+        }
+        ;
+        return result;
+      }
+      Util2.trimDepth = trimDepth;
+      ;
+      function OSPath(path3) {
+        return path3.replace(/~/g, import_os.default.homedir());
+      }
+      Util2.OSPath = OSPath;
+      ;
+      function modPath(path3) {
+        return Util2.OSPath(
+          path3.replace(/\\/g, "/").replace(/\@/g, "~/.zsharp/modules/")
+        );
+      }
+      Util2.modPath = modPath;
+      ;
+      async function runInWorker(func, ...args) {
+        return new Promise((resolve, reject) => {
+          const worker = new import_worker_threads.Worker((() => {
+            const { parentPort } = require("worker_threads");
+            parentPort?.postMessage(func());
+          }).toString(), {
+            eval: true
+          });
+          worker.on("error", reject);
+          worker.on("message", (result) => {
+            resolve(result);
+          });
+        });
+      }
+      Util2.runInWorker = runInWorker;
+      ;
+      function sleep(ms) {
+        return new Promise((resolve) => {
+          setTimeout(resolve, ms);
+        });
+      }
+      Util2.sleep = sleep;
+      ;
+      function terminate() {
+        Util2.log("Exiting...");
+        process.exit(0);
+      }
+      Util2.terminate = terminate;
+      ;
+      function error(err, codeError = true) {
+        console.log("\n", err.message);
+        if (codeError) {
+          console.log(Header.failure({
+            errors: err.count || 1
+          }));
+        }
+        ;
+        process.exit(1);
+      }
+      Util2.error = error;
+      ;
+      function debug(...args) {
+        for (const arg of args) {
+          console.log("\n", `[${magenta("DEBUG")}:${new Error().stack?.split("\n")[2].replace("	", "")}]: ${import_node_util.default.inspect(arg, { colors: true, depth: Infinity })}`);
+        }
+        ;
+      }
+      Util2.debug = debug;
+      ;
+      function debugScope(scope) {
+        Util2.debug(scope._data);
+      }
+      Util2.debugScope = debugScope;
+      ;
+      function log(...args) {
+        console.log("\n", ...args);
+      }
+      Util2.log = log;
+      ;
+    })(Util || (Util = {}));
   }
 });
 
@@ -17812,6 +17933,7 @@ var init_error = __esm({
     "use strict";
     init_colorette();
     init_header();
+    init_util();
     ((Errors2) => {
       const colon = reset(":");
       const exclamation = reset("!");
@@ -17825,7 +17947,7 @@ var init_error = __esm({
         constructor(message, stack) {
           this.message = message;
           this.stack = stack;
-          this.message = Header.format(this.message);
+          this.message = this.message;
         }
         count = 0;
       }
@@ -17842,6 +17964,7 @@ var init_error = __esm({
             super(
               red(bold("A parsing error has occurred")) + exclamation + newline + message + newline + highlight(position, contents)
             );
+            Util.error(this);
           }
         }
         Parts3.PartError = PartError;
@@ -17866,6 +17989,7 @@ var init_error = __esm({
             super(
               red(bold("A syntax error has occurred")) + exclamation + newline + message + newline + highlight(position, contents)
             );
+            Util.error(this);
           }
         }
         Syntax3.SyntaxError = SyntaxError;
@@ -17936,8 +18060,7 @@ var init_error = __esm({
             super(
               red(bold("A project error has occurred")) + exclamation + newline + message
             );
-            console.log(this.message);
-            process.exit(1);
+            Util.error(this);
           }
         }
         Project3.ProjectError = ProjectError;
@@ -17959,8 +18082,7 @@ var init_error = __esm({
             super(
               red(bold("A command error has occurred")) + exclamation + newline + message
             );
-            console.log(this.message);
-            process.exit(1);
+            Util.error(this);
           }
         }
         Command2.CommandError = CommandError;
@@ -17993,6 +18115,28 @@ var init_error = __esm({
         ;
       })(Command = Errors2.Command || (Errors2.Command = {}));
       ;
+      let IZ;
+      ((IZ2) => {
+        class IZError extends MainError {
+          constructor(message) {
+            super(
+              red(bold(`A ${Header.iz} error has occurred`)) + exclamation + newline + message
+            );
+            Util.error(this);
+          }
+        }
+        IZ2.IZError = IZError;
+        ;
+        class Bug extends IZError {
+          constructor(message) {
+            super(
+              message + newline + Header.Z_bug + newline + Header.Zasm_bug
+            );
+          }
+        }
+        IZ2.Bug = Bug;
+      })(IZ = Errors2.IZ || (Errors2.IZ = {}));
+      ;
     })(Errors || (Errors = {}));
   }
 });
@@ -18003,10 +18147,11 @@ var init_parts = __esm({
   "src/parts.ts"() {
     "use strict";
     init_error();
+    init_util();
     ((Parts2) => {
       let PartType;
       ((PartType2) => {
-        PartType2["SINGLE_LINE_COMMENT"] = "/\\/\\/.*/g";
+        PartType2["SINGLE_LINE_COMMENT"] = "/\\/\\/[^\\n]*/g";
         PartType2["MULTI_LINE_COMMENT"] = "/\\/\\*[\\s\\S]*?\\*\\//gs";
         PartType2["MULTI_LINE_DEF_COMMENT"] = "/\\/\\*\\*[\\s\\S]*?\\*\\//gs";
         PartType2["WORD"] = "/([a-zA-Z$_][a-zA-Z0-9$_]*)/g";
@@ -18030,82 +18175,45 @@ var init_parts = __esm({
         PartType2["SEMICOLON"] = "/\\;/g";
         PartType2["EQUALS"] = "/\\=/g";
         PartType2["EXTRA_WHITESPACE"] = "/\\s+/g";
-        PartType2["UNKNOWN"] = "/\\0/g";
+        PartType2["UNKNOWN"] = "/^\0/g";
       })(PartType = Parts2.PartType || (Parts2.PartType = {}));
       ;
       function parseRegex(str) {
         const match = str.match(/^\/(.*)\/([a-z]*)$/i);
-        if (!match) return "/\\0/g" /* UNKNOWN */;
+        if (!match) return "/^\0/g" /* UNKNOWN */;
         const [, pattern, flags] = match;
         return new RegExp(pattern, flags);
       }
       Parts2.parseRegex = parseRegex;
       ;
-      function toPartsButSlow(content, path3) {
-        const parts = [];
-        const position = {};
-        const origin = content.split("\n");
-        let done = false;
-        position.path = path3;
-        while (!done) {
-          for (const partType of Object.values(PartType)) {
-            const match = content.match(parseRegex(partType));
-            if (partType == "/\\0/g" /* UNKNOWN */) {
-              throw new Errors.Parts.Unknown(content[0], position);
-            }
-            ;
-            if (!match) continue;
-            if (content.indexOf(match[0]) == 0) {
-              if (partType == "/\\s+/g" /* EXTRA_WHITESPACE */ || partType == "/\\/\\/.*/g" /* SINGLE_LINE_COMMENT */ || partType == "/\\/\\*[\\s\\S]*?\\*\\//gs" /* MULTI_LINE_COMMENT */) {
-                content = content.slice(match[0].length).trim();
-                if (content == "" || match[0] == content) {
-                  done = true;
-                }
-                ;
-                break;
-              }
-              ;
-              position.line = origin.indexOf(content.split("\n")[0]) + 1;
-              parts.push({ content: match[0] || content, type: partType, position });
-              content = content.slice(match[0].length).trim();
-              if (content == "" || match[0] == content) {
-                done = true;
-              }
-              ;
-              break;
-            }
-            ;
-          }
-          ;
-        }
-        ;
-        return parts;
-      }
-      Parts2.toPartsButSlow = toPartsButSlow;
-      ;
       function toParts(content, path3) {
         const parts = [];
         const position = { path: path3 };
         const origin = content.split("\n");
-        const patterns = Object.entries(PartType).filter(([key, value]) => key !== "UNKNOWN").map(([key, value]) => `(?<${key}>${value.slice(1, -2)})`);
+        const patterns = Object.entries(PartType).map(([key, value]) => `(?<${key}>${value.slice(1, -2)})`);
         const masterRegex = new RegExp(patterns.join("|"), "gs");
         let match;
+        let prev;
         while ((match = masterRegex.exec(content)) !== null) {
           const groups = match.groups;
           const type = Object.keys(groups).find((k) => groups[k] !== void 0);
-          if (!type || !(type in PartType)) {
-            throw new Errors.Parts.Unknown(match[0], position);
+          const line = content.slice(0, match.index).split("\n").length;
+          const column = match.index - (prev?.index ?? 0) - 1;
+          position.line = line;
+          position.column = column;
+          if (!type || type === "UNKNOWN") {
+            Util.error(new Errors.Parts.Unknown(origin[line - 1], position));
           }
           ;
           if (type === "EXTRA_WHITESPACE" || type === "SINGLE_LINE_COMMENT" || type === "MULTI_LINE_COMMENT") {
             continue;
           }
           ;
-          const line = content.slice(0, match.index).split("\n").length;
+          prev = match;
           parts.push({
             content: match[0],
             type: PartType[type],
-            position: { path: path3, line }
+            position
           });
         }
         ;
@@ -18385,7 +18493,7 @@ var init_feature = __esm({
          * @returns A string representation of a random numeric identifier.
          */
         generateRandomId() {
-          return String(Math.round(Math.random() * 10 ** 10));
+          return `s${String(Math.round(Math.random() * 10 ** 10))}`;
         }
         /**
          * Adds a value to the return stack of the scope.
@@ -18397,6 +18505,7 @@ var init_feature = __esm({
         _data;
         _alias;
         _return = [];
+        _asm_data = {};
         id;
       }
       _Feature.Scope = Scope;
@@ -18441,6 +18550,20 @@ var init_identifier = __esm({
 });
 
 // src/features/literal.ts
+function toPaddedBytes(data, tabs = 8, row = 8) {
+  let wrap = row;
+  return Array.from(data).map((c) => {
+    return `0x${c.charCodeAt(0).toString(16)}`;
+  }).map((v) => {
+    if (wrap++ >= row) {
+      wrap = 0;
+      return `\\
+${"	".repeat(tabs)}${v}`;
+    }
+    ;
+    return v;
+  }).join(", ");
+}
 var ObjectLiteral, StringLiteral;
 var init_literal = __esm({
   "src/features/literal.ts"() {
@@ -18448,6 +18571,7 @@ var init_literal = __esm({
     init_feature();
     init_parts();
     init_accessor();
+    init_util();
     ObjectLiteral = class _ObjectLiteral extends Feature.Feature {
       constructor() {
         super([
@@ -18461,7 +18585,6 @@ var init_literal = __esm({
             ],
             "export": "fields",
             "required": false
-            // Not like we are going to have a type with no fields though
           },
           { "part": { "type": Parts.PartType.CURLY_BRACKET_CLOSE } }
         ]);
@@ -18469,16 +18592,35 @@ var init_literal = __esm({
       create = _ObjectLiteral.create;
       static create(data, scope, position) {
         const objectData = { fields: [] };
-        for (const field of data.fields) {
+        for (const field of data.fields ?? []) {
+          const value = Accessor.create(field.value, scope, position).export;
           objectData.fields.push({
             name: field.name,
-            value: field.value
+            value
           });
         }
         ;
         objectData.id = scope.alias(scope.generateRandomId());
         scope.set(`literal.${objectData.id}`, objectData);
         return { scope, export: objectData };
+      }
+      toAssemblyData(objectData, scope) {
+        let content = "";
+        if (scope._asm_data[objectData.id]) {
+          return "";
+        }
+        ;
+        content += `
+/* Object Literal */
+${objectData.id}:
+	${objectData.fields.map((field) => {
+          Util.debug(field);
+          return `
+${new Accessor().toAssemblyData(field.value, scope)}
+		`;
+        }).join("")}
+		`;
+        return content;
       }
     };
     StringLiteral = class _StringLiteral extends Feature.Feature {
@@ -18510,9 +18652,14 @@ var init_literal = __esm({
         return { scope, export: stringData };
       }
       toAssemblyData(stringLiteralData, scope) {
+        if (scope._asm_data[stringLiteralData.id]) {
+          return "";
+        }
+        ;
         let content = `
 ${stringLiteralData.id}:
-	.asciz "${stringLiteralData.data}"
+	.4byte ${toPaddedBytes(stringLiteralData.data, 2, 16)}
+	${stringLiteralData.id}_len = . - ${stringLiteralData.id} 
 		`;
         return content;
       }
@@ -18531,17 +18678,36 @@ var init_format = __esm({
       }
       Format2.comment = comment;
       ;
-      function section(header) {
-        return `
+      let section;
+      ((section2) => {
+        function start(header) {
+          return `
 .section ${header.type}
 ${header.label ? `
-#pragma section ${header.label}
-` : ""}
-		`;
-      }
-      Format2.section = section;
+#pragma section ${header.label}` : ""}
+`;
+        }
+        section2.start = start;
+        ;
+        function end() {
+          return `
+#pragma section end
+`;
+        }
+        section2.end = end;
+        ;
+      })(section = Format2.section || (Format2.section = {}));
       ;
     })(Format || (Format = {}));
+  }
+});
+
+// src/asm/dist/z_S.ts
+var z_S_default;
+var init_z_S = __esm({
+  "src/asm/dist/z_S.ts"() {
+    "use strict";
+    z_S_default = '#pragma section legal\n/**\n * ! READ THIS !\n *\n * # Legal statements\n *\n * This code was generated by the Z# programming system. \u{1FACE} \u2764\uFE0F\n *\n * Z# is an open-source project licensed under the MIT License\n * with the following restriction:\n *\n * - You may use, copy, modify, merge, publish, distribute, and sublicense\n *   this software freely, **but you may NOT sell the original software\n *   or derivative works as standalone products.**\n *\n * - This software is provided "AS IS", without warranty of any kind.\n *\n * - The Z# organization, its developers, and contributors disclaim all liability\n *   for any damages arising from the use of this software.\n *\n * - Responsibility for malicious or harmful code lies solely with the author,\n *   not with Z# or its maintainers.\n *\n * Z# is not intended to generate malicious code, but like any tool,\n * it can be misused. Use at your own risk.\n *\n * If you find Z# useful, please consider supporting the project:\n * https://zsharp.dev/donate \u2764\uFE0F\n */\n#pragma section end\n\n#define EVAL(x) x\n\n#define CONCAT_2(a, b) CONCAT_IMPL(a, b)\n#define CONCAT_3(a, b, c) CONCAT_IMPL(a, CONCAT_IMPL(b, c))\n#define CONCAT_4(a, b, c, d) CONCAT_IMPL(CONCAT_IMPL(a, b), CONCAT_IMPL(c, d))\n\n#define CONCAT_IMPL(a, b) a##b\n\n/**\n * # Register usage\n *\n * Z0 - Z4  : Mnemonic control\n * Z5       : Scope\n * Z6       : Selector control\n * Z7       : Parameters\n * Z8       : Control flow\n * Z9       : Stack control\n * Z10 - Z13: Unallocated\n * Z14      : Debugger control\n * Z15      : Temporary\n */\n\n/* Architecture mapping */\n\n/* x86_64 (64-bit) */\n#if defined(__x86_64__) || defined(__amd64__)\n	# Registers\n	#define RAX rax\n	#define RBX rbx\n	#define RCX rcx\n	#define RDX rdx\n	#define RSI rsi\n	#define RDI rdi\n	#define RSP rsp\n	#define RBP rbp\n	#define R8  r8\n	#define R9  r9\n	#define R10 r10\n	#define R11 r11\n	#define R12 r12\n	#define R13 r13\n	#define R14 r14\n	#define R15 r15\n	#define RIP rip\n\n	# Mnemonics\n	#define SYSCALL syscall\n	#define MOV(x, y) mov x, y\n	#define LDR(x, y, z) mov x, [y + z]\n	#define LDL(x, y) mov x, y\n	#define LEA(x, y, z) lea x, [y + z]\n	#define XOR(x, y) xor x, y\n	#define ADD(x, y) add x, y\n	#define SUB(x, y) sub x, y\n	#define IMUL(x, y) imul x, y\n	#define IDIV(x) idiv x\n	#define INC(x) inc x\n	#define DEC(x) dec x\n	#define CMP(x, y) cmp x, y\n	#define TEST(x, y) test x, y\n	#define JMP(x) jmp x\n	#define JE(x) je x\n	#define JNE(x) jne x\n	#define JG(x) jg x\n	#define JL(x) jl x\n	#define JGE(x) jge x\n	#define JLE(x) jle x\n	#define CALL(x) call x\n	#define RET ret\n	#define PUSH(x) push x\n	#define POP(x) pop x\n	#define NOP nop\n	#define INT(x) int x\n\n	# Value\n	#define REF(x) $x\n\n/* ARM64 (AArch64) */\n#elif defined(__aarch64__)\n	# Registers\n	#define RAX x0\n	#define RBX x1\n	#define RCX x2\n	#define RDX x3\n	#define RSI x4\n	#define RDI x5\n	#define RSP sp\n	#define RBP x29\n	#define R8  x8\n	#define R9  x9\n	#define R10 x10\n	#define R11 x11\n	#define R12 x12\n	#define R13 x13\n	#define R14 x14\n	#define R15 x15\n	#define RIP pc\n\n	# Mnemonics\n	#define SYSCALL svc 0\n	#define MOV(x, y) mov x, y\n	#define LDR(x, y, z) ldr x, [y, z]\n	#define LDL(x, y) ldr x, =y\n	#define LEA(x, y, z) adr x, y\n	#define XOR(x, y) eor x, x, y\n	#define ADD(x, y) add x, x, y\n	#define SUB(x, y) sub x, x, y\n	#define IMUL(x, y) mul x, x, y\n	#define IDIV(x, y) sdiv x, x, y\n	#define INC(x) add x, x, #1\n	#define DEC(x) sub x, x, #1\n	#define CMP(x, y) cmp x, y\n	#define TEST(x, y) ands xzr, x, y\n	#define JMP(x) b x\n	#define JE(x) b.eq x\n	#define JNE(x) b.ne x\n	#define JG(x) b.gt x\n	#define JL(x) b.lt x\n	#define JGE(x) b.ge x\n	#define JLE(x) b.le x\n	#define CALL(x) bl x\n	#define RET ret\n	#define PUSH(x) str x, [sp, #-16]!\n	#define POP(x) ldr x, [sp], #16\n	#define NOP nop\n	#define INT(x) svc x\n\n	# Value\n	#define REF(x) #EVAL(x)\n\n#else\n	#error "Unsupported architecture for register mapping"\n#endif\n\n/* Z# Virtual registers */\n#define Z0  RAX\n#define Z1  RBX\n#define Z2  RCX\n#define Z3  RDX\n#define Z4  RSI\n#define Z5  RDI\n#define Z6  RBP\n#define Z7  R8\n#define Z8  R9\n#define Z9  R10\n#define Z10 R11\n#define Z11 R12\n#define Z12 R13\n#define Z13 R14\n#define Z14 R15\n\n.macro SAVE_R0_R4\n	PUSH (RAX)\n	PUSH (RBX)\n	PUSH (RCX)\n	PUSH (RDX)\n	PUSH (RSI)\n.endm\n\n.macro LOAD_R0_R4\n	POP (RSI)\n	POP (RDX)\n	POP (RCX)\n	POP (RBX)\n	POP (RAX)\n.endm\n\n.macro SAVE_ZASM\n	PUSH (RDI)\n	PUSH (RSP)\n	PUSH (RBP)\n	PUSH (R8)\n	PUSH (R9)\n	PUSH (R10)\n	PUSH (R11)\n	PUSH (R12)\n	PUSH (R13)\n	PUSH (R14)\n	PUSH (R15)\n.endm\n\n.macro LOAD_ZASM\n	POP (R15)\n	POP (R14)\n	POP (R13)\n	POP (R12)\n	POP (R11)\n	POP (R10)\n	POP (R9)\n	POP (R8)\n	POP (RBP)\n	POP (RSP)\n	POP (RDI)\n.endm\n\n.macro SAVE \n	SAVE_R0_R4\n	SAVE_ZASM\n.endm\n\n.macro LOAD\n	LOAD_ZASM\n	LOAD_R0_R4\n.endm\n\n#define WINDOWS_SYSCALL_EXIT 0\n#define WINDOWS_SYSCALL_WRITE 0\n#define WINDOWS_SYSCALL_READ 0\n#define WINDOWS_SYSCALL_OPEN 0\n#define WINDOWS_SYSCALL_CLOSE 0\n#define WINDOWS_SYSCALL_FORK 0\n#define WINDOWS_SYSCALL_EXECVE 0\n#define WINDOWS_SYSCALL_WAIT4 0\n#define WINDOWS_SYSCALL_GETPID 0\n#define WINDOWS_SYSCALL_GETUID 0\n#define WINDOWS_SYSCALL_GETGID 0\n#define WINDOWS_SYSCALL_BRK 0\n#define WINDOWS_SYSCALL_MMAP 0\n#define WINDOWS_SYSCALL_MUNMAP 0\n#define WINDOWS_SYSCALL_CLONE 0\n\n#define APPLE_SYSCALL_EXIT 0x2000001\n#define APPLE_SYSCALL_WRITE 0x2000004\n#define APPLE_SYSCALL_READ 0x2000003\n#define APPLE_SYSCALL_OPEN 0x2000005\n#define APPLE_SYSCALL_CLOSE 0x2000006\n#define APPLE_SYSCALL_FORK 0x2000002\n#define APPLE_SYSCALL_EXECVE 0x200003b\n#define APPLE_SYSCALL_WAIT4 0x2000007\n#define APPLE_SYSCALL_GETPID 0x2000014\n#define APPLE_SYSCALL_GETUID 0x2000018\n#define APPLE_SYSCALL_GETGID 0x200001a\n#define APPLE_SYSCALL_BRK 0x2000034\n#define APPLE_SYSCALL_MMAP 0x20000c5\n#define APPLE_SYSCALL_MUNMAP 0x2000049\n#define APPLE_SYSCALL_CLONE 0x20000fa\n\n#define UNIX_SYSCALL_EXIT 1\n#define UNIX_SYSCALL_WRITE 4\n#define UNIX_SYSCALL_READ 3\n#define UNIX_SYSCALL_OPEN 5\n#define UNIX_SYSCALL_CLOSE 6\n#define UNIX_SYSCALL_FORK 2\n#define UNIX_SYSCALL_EXECVE 11\n#define UNIX_SYSCALL_WAIT4 7\n#define UNIX_SYSCALL_GETPID 20\n#define UNIX_SYSCALL_GETUID 24\n#define UNIX_SYSCALL_GETGID 47\n#define UNIX_SYSCALL_BRK 17\n#define UNIX_SYSCALL_MMAP 90\n#define UNIX_SYSCALL_MUNMAP 91\n#define UNIX_SYSCALL_CLONE 120\n\n#define LINUX_SYSCALL_EXIT 60\n#define LINUX_SYSCALL_WRITE 1\n#define LINUX_SYSCALL_READ 0\n#define LINUX_SYSCALL_OPEN 2\n#define LINUX_SYSCALL_CLOSE 3\n#define LINUX_SYSCALL_FORK 57\n#define LINUX_SYSCALL_EXECVE 59\n#define LINUX_SYSCALL_WAIT4 61\n#define LINUX_SYSCALL_GETPID 39\n#define LINUX_SYSCALL_GETUID 102\n#define LINUX_SYSCALL_GETGID 104\n#define LINUX_SYSCALL_BRK 12\n#define LINUX_SYSCALL_MMAP 9\n#define LINUX_SYSCALL_MUNMAP 11\n#define LINUX_SYSCALL_CLONE 56\n\n#ifdef __WIN32\n	#define TARGET "MICROSOFT/WINDOWS"\n	#define SYS WINDOWS\n#elif TARGET_OS_MAC\n	#define TARGET "APPLE/MAC-OS"\n	#define SYS APPLE\n#elif TARGET_OS_IPHONE\n	#define TARGET "APPLE/IPHONE"\n	#define SYS APPLE\n#elif __linux__\n	#define TARGET "LINUX"\n	#define SYS LINUX\n#elif __ANDROID__\n	#define TARGET "ANDROID"\n	#define SYS LINUX\n#elif __unix__\n	#define TARGET "UNIX"\n	#define SYS UNIX\n#else\n	#define TARGET "UNKNOWN"\n	#define SYS LINUX\n#endif\n\n#define SYS_GET(x) CONCAT_2(EVAL(SYS), _##x)\n\n# Allocate N bytes \u2192 result in %rax\n.macro MALLOC size\n	SAVE_ZASM\n	MOV (RAX, REF(SYS_GET(SYSCALL_MMAP))) ;// syscall number: mmap (Linux AArch64)\n	MOV (RDI, REF(0))                     ;// addr = NULL\n	MOV (RSI, REF(\\size))                 ;// length = size\n	MOV (RDX, REF(3))                     ;// PROT_READ | PROT_WRITE\n	MOV (R10, REF(0x22))                  ;// MAP_ANONYMOUS | MAP_PRIVATE\n	MOV (R8, REF(-1))                     ;// fd = -1\n	MOV (REF(0), R9)                      ;// offset = 0\n	SYSCALL\n	LOAD_ZASM\n.endm\n\n# Read value at pointer \u2192 %reg\n#   ptr = register with pointer\n#   reg = output register\n.macro PTR_READ ptr, reg\n    MOV ([\\ptr], \\reg)\n.endm\n\n# Write value to pointer\n#   value = register with value\n#   ptr = pointer register\n.macro PTR_WRITE value, ptr\n    MOV (\\value, [\\ptr])\n.endm\n\n# Store value in memory, and return a pointer to it\n#   value = register with value\n#   out = output register with pointer\n.macro PTR_CREATE value, size, out\n    SAVE_R0_R4\n    MALLOC \\size               ;// allocate bytes\n    MOV (\\value, [RAX])        ;// store value at allocated address\n    MOV (RAX, \\out)            ;// return pointer\n    LOAD_R0_R4\n.endm\n\n.macro LEN ptr, out\n	SAVE_R0_R4\n	MOV (\\ptr, RCX)\n1:\n	MOV ([RCX], RDX)\n	CMP (RDX, REF(0))\n	JE (2f)\n	INC (RCX)\n	JMP (1b)\n2:\n	MOV (RCX, \\out)\n	LOAD_R0_R4\n.endm\n\n.macro FREE ptr, size\n	SAVE\n	MOV (REF(11), RAX)          ;// sys_munmap\n	MOV (\\ptr, RDI)             ;// pointer\n	MOV (REF(\\size), RSI)       ;// size in bytes\n	SYSCALL\n	LOAD\n.endm\n\n.macro DEBUG value\n	MOV (RCX, REF(\\value))\n	LEN \\value\n	SUB (RDX, RCX)\n.endm\n\n.section .text\n.global _start\n_start:\n	\n\n# Allocate the table itself once\n.macro LAZY_LIST_INIT name, slots\n    .lcomm \\name, \\slots * 8\n.endm\n\n# Get address of list[index] \u2192 in %rdi\n.macro LAZY_PTR_GET name, index, reg\n	SAVE\n	LEA (\\name, \\reg, RIP)\n	MOV (REF(\\index), RSI)\n	IMUL (REF(8), RSI)\n	ADD (RSI, \\reg)\n	LOAD\n.endm\n\n# Access item at index, allocate if null\n#   name = list name\n#   index = integer index\n#   size = allocation size\n#   reg = register for result address\n.macro LAZY_BLOCK_GET name, index, size, reg\n	SAVE\n	LAZY_PTR_GET \\name, \\index, \\reg\n	MOV ((\\reg), RSI)\n	JNE (REF(1f))\n	MALLOC \\size\n	MOV (RAX, \\reg)\n1:\n	LDR (\\reg, \\reg, 0)\n	LOAD\n.endm\n\n# Set value at a specific index in a lazy list\n#   name = list name\n#   index = integer index\n#   value = value to set (in register)\n.macro LAZY_BLOCK_SET name, index, value\n	SAVE\n	LAZY_PTR_GET \\name, \\index, RDI\n	MOV (REF(\\value), RDI)\n	LOAD\n.endm\n\n# Usage: \n# STRUCT name\n#   STRUCT_FIELD field_name, size\n# STRUCT_END\n\n.set STRUCT_OFFSET, 0\n\n.macro STRUCT name\n	.set \\name\\()_SIZE, 0\n	.pushsection .data\n\\name:\n.endm\n\n.macro STRUCT_FIELD name, size\n\\name:\n	.skip \\size\n	.set STRUCT_OFFSET, STRUCT_OFFSET + \\size\n.endm\n\n.macro STRUCT_END\n	.popsection\n	.set STRUCT_SIZE, STRUCT_OFFSET\n	.set STRUCT_OFFSET, 0\n.endm\n\n.macro ALIGN boundary\n	.balign \\boundary\n.endm\n\n.macro VAR id, value, out\n	;// TODO\n.endm\n\n.macro FUNC name, _\n	.section .text\n	.global \\name\n\\name:\n.endm\n\n.macro PARAM type, name\n	# Store param info\n	.quad 0x10\n	.asciz "\\name"\n	.quad \\type\n.endm\n\n.macro PARAMS_END\n	.quad 0x11\n.endm\n\n.macro FUNC_END\n	.quad 0xFF\n.endm\n\n.macro RETURN value\n	MOV (R8, \\value)\n.endm\n\n# Type initialization\n.macro TYPE name\n	STRUCT \\name\n.endm\n\n.macro TYPE_FIELD type, name\n	#if type == BYTE\n		STRUCT_FIELD \\name\n	#endif\n.endm\n\n.macro TYPE_END\n	STRUCT_END\n.endm\n\n.macro SCOPE name\n	\n.endm\n\n.macro SCOPE_SET name, value\n	\n.endm\n';
   }
 });
 
@@ -18551,29 +18717,34 @@ var init_assembler = __esm({
   "src/assembler.ts"() {
     "use strict";
     init_format();
+    init_z_S();
     ((Assembler2) => {
-      function assemble(syntaxData, scope, config2) {
-        let content = Format.section({
+      async function assemble(syntaxData, scope, config2) {
+        let text = Format.section.start({
           type: ".text",
           label: scope.label
         });
-        let data = Format.section({
-          type: ".data"
+        let data = Format.section.start({
+          type: ".data",
+          label: "data"
         });
         for (const _data of syntaxData) {
-          content += _data.feature.toAssemblyText(_data.export, _data.scope);
-          data += _data.feature.toAssemblyData(_data.export, _data.scope);
+          text += await _data.feature.toAssemblyText(_data.export, _data.scope);
+          data += await _data.feature.toAssemblyData(_data.export, _data.scope);
         }
         ;
-        content = data + content;
+        text = text + Format.section.end();
+        data = data + Format.section.end();
+        text = data + text;
         return (scope.label == "main" ? `
-#pragma block ASM
-#include "z.S"
+${z_S_default.slice(z_S_default.indexOf("#pragma section legal") + "#pragma section legal".length, z_S_default.indexOf("#pragma section end"))}
 /**
  * \u{1FACE} Mooseworth is here!
  * ${Format.comment([`Author: ${config2?.Project?.Author.name}`, `Contributors: ${config2?.Project?.Contributors?.names.join("	\n")}`])}
  */
-` : "") + content.replace(/\n{1,2}(\s*)/gm, "\n$1") + (scope.label == "main" ? `
+#pragma block ASM
+#include "z.S"
+` : "") + text.replace(/\n{1,2}(\s*)/gm, "\n$1") + (scope.label == "main" ? `
 #pragma block end
 ` : "");
       }
@@ -18609,97 +18780,6 @@ var init_list = __esm({
         return { scope, export: listData };
       }
     };
-  }
-});
-
-// src/util.ts
-var util_exports = {};
-__export(util_exports, {
-  Util: () => Util
-});
-var import_node_util, import_os, import_worker_threads, Util;
-var init_util = __esm({
-  "src/util.ts"() {
-    "use strict";
-    import_node_util = __toESM(require("node:util"));
-    init_colorette();
-    import_os = __toESM(require("os"));
-    import_worker_threads = require("worker_threads");
-    init_header();
-    ((Util2) => {
-      function trimDepth(obj, maxDepth, currentDepth = 0) {
-        if (currentDepth >= maxDepth || obj === null || typeof obj !== "object") {
-          return null;
-        }
-        ;
-        const result = {};
-        for (const key in obj) {
-          if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            const trimmed = trimDepth(obj[key], maxDepth, currentDepth + 1);
-            if (trimmed !== null) {
-              result[key] = trimmed;
-            }
-            ;
-          }
-          ;
-        }
-        ;
-        return result;
-      }
-      Util2.trimDepth = trimDepth;
-      ;
-      function OSPath(path3) {
-        return path3.replace(/~/g, import_os.default.homedir());
-      }
-      Util2.OSPath = OSPath;
-      ;
-      function modPath(path3) {
-        return Util2.OSPath(
-          path3.replace(/\\/g, "/").replace(/\@/g, "~/.zsharp/modules/")
-        );
-      }
-      Util2.modPath = modPath;
-      ;
-      async function runInWorker(func, ...args) {
-        return new Promise((resolve, reject) => {
-          const worker = new import_worker_threads.Worker((() => {
-            const { parentPort } = require("worker_threads");
-            parentPort?.postMessage(func());
-          }).toString(), {
-            eval: true
-          });
-          worker.on("error", reject);
-          worker.on("message", (result) => {
-            resolve(result);
-          });
-        });
-      }
-      Util2.runInWorker = runInWorker;
-      ;
-      function error(err) {
-        console.log(err.message, err.stack);
-        console.log(Header.failure({
-          errors: err.count || 1
-        }));
-        console.debug(err.stack);
-        process.exit(1);
-      }
-      Util2.error = error;
-      ;
-      function debug(...args) {
-        for (const arg of args) {
-          console.log(`[${magenta("DEBUG")}:${new Error().stack?.split("\n")[2].replace("	", "")}]: ${import_node_util.default.inspect(arg, { colors: true, depth: Infinity })}`);
-        }
-        ;
-      }
-      Util2.debug = debug;
-      ;
-      function log(...args) {
-        console.log(...args);
-      }
-      Util2.log = log;
-      ;
-    })(Util || (Util = {}));
   }
 });
 
@@ -24224,9 +24304,9 @@ var init_type = __esm({
           }
         ]);
       }
-      static get(data, scope) {
+      static get(data, scope, position) {
         if (data?.type?.alias) {
-          const alias = Identifier.create(data.type.alias, scope, {}).export;
+          const alias = Identifier.create(data.type.alias, scope, position).export;
           const name = scope.flatten(alias.path);
           return scope.get(`type.${scope.resolve(name)}`) || null;
         }
@@ -24242,6 +24322,15 @@ var init_type = __esm({
             return _Type.toString(v);
           }).join(", ");
           content += ">";
+        }
+        ;
+        if (type?.object) {
+          content += "{";
+          content += type.object.fields.map((v) => {
+            Util.debug(v);
+            return `${v.name}: ${_Type.toString(v)}`;
+          }).join(", ");
+          content += "}";
         }
         ;
         if (type?.list) {
@@ -24275,7 +24364,7 @@ var init_type = __esm({
         return false;
       }
       static incompatible(type1, type2, position) {
-        throw new Errors.Syntax.Generic(`Type ${_Type.toString(type2)} is incompatible with type ${_Type.toString(type1)}`, position);
+        Util.error(new Errors.Syntax.Generic(`Type ${_Type.toString(type2)} is incompatible with type ${_Type.toString(type1)}`, position));
       }
       create = _Type.create;
       static create(data, scope, position) {
@@ -24287,17 +24376,23 @@ var init_type = __esm({
           for (const i in data.type.fields) {
             const item = data.type.fields[i];
             if (!item.comma && Number(i) < data.type.fields.length - 1) {
-              throw new Errors.Syntax.Generic(data.type.fields[String(Number(i) + 1)], position);
+              Util.error(new Errors.Syntax.Generic(data.type.fields[String(Number(i) + 1)], position));
             }
             ;
             item.id = scope.alias(item.name);
+            let _type = _Type.get(item.typeRef, scope, position);
+            if (!_type) {
+              Util.error(new Errors.Reference.Undefined(item.typeRef, position));
+            }
+            ;
+            item.type = _type;
             if (typeFields.fields?.map((v) => {
               return v?.name == item?.name && v && item;
             }).includes(true)) {
-              throw new Errors.Syntax.Duplicate(item.name, position);
+              Util.error(new Errors.Syntax.Duplicate(item.name, position));
             }
             ;
-            scope.set(`type_field.${item.id}`, item);
+            scope.set(`type_field.${item.id}`, _type);
             typeFields.fields?.push(item);
           }
           ;
@@ -24307,33 +24402,22 @@ var init_type = __esm({
         scope.set(`type.${typeData.id}`, typeData);
         return { scope, export: typeData };
       }
-      toAssemblyText(typeData, scope) {
-        let content = `
-TYPE ${typeData?.id}
-		`;
-        for (const _field of typeData.fields?.fields || []) {
-          const field = _field;
-          content += `
-	TYPE_FIELD 
-			`;
-          const fieldType = _Type.get(field.typeRef, scope);
-          if (!fieldType) {
-            throw new Errors.Reference.Undefined(field.name, field.position);
-          }
-          ;
-          if (fieldType.name == "byte") {
-            content += "BYTE, ";
+      toAssemblyData(typeData, scope) {
+        let content = `TYPE ${typeData?.id}
+`;
+        for (const field of typeData.fields?.fields || []) {
+          content += "	TYPE_FIELD ";
+          if (field.type.name == "byte") {
+            content += `BYTE, ${field.name}, ${field.type.list?.size || ""}
+`;
           } else {
           }
           ;
-          content += `
-${fieldType.id}, 
-			`;
+          content += `// ??? 
+`;
         }
         ;
-        content += `
-TYPE_END
-		`;
+        content += "TYPE_END\n";
         return content;
       }
     };
@@ -24357,10 +24441,8 @@ TYPE_END
       create = _TypeRef.create;
       static create(data, scope, position) {
         let typeRef = {};
-        Util.debug(`Data`, data);
         if (data?.type?.alias) {
-          typeRef = Type.get(data, scope) || {};
-          Util.debug(`TypeRef from alias created`, typeRef);
+          typeRef = Type.get(data, scope, position) ?? {};
         }
         ;
         if (data?.list) {
@@ -24410,6 +24492,80 @@ var init_body = __esm({
   }
 });
 
+// src/features/variable.ts
+var Variable;
+var init_variable = __esm({
+  "src/features/variable.ts"() {
+    "use strict";
+    init_feature();
+    init_parts();
+    init_error();
+    init_identifier();
+    init_type();
+    init_accessor();
+    init_header();
+    init_util();
+    Variable = class _Variable extends Feature.Feature {
+      constructor() {
+        super([
+          { "part": { "type": Parts.PartType.WORD, "value": "let" } },
+          { "part": { "type": Parts.PartType.WORD }, "export": "name" },
+          { "part": { "type": Parts.PartType.COLON } },
+          { "feature": { "type": TypeRef }, "export": "type" },
+          { "part": { "type": Parts.PartType.EQUALS }, "export": "equals", required: false },
+          { "feature": { "type": Accessor }, "export": "declaration" }
+        ]);
+      }
+      static get(data, scope, position, safe) {
+        if (data.accessor) {
+          const identifier = Identifier.create(data.accessor.declaration.reference, scope, position).export;
+          let id = scope.resolve(scope.flatten(identifier.path));
+          let _variable = scope.get(`var.${id}`);
+          if (!_variable && !safe) {
+            Util.error(new Errors.Syntax.Generic(`Variable ${Header.quote(scope.flatten(identifier.path))} not defined`, position));
+          }
+          ;
+          return _variable;
+        }
+        ;
+      }
+      create = _Variable.create;
+      static create(data, scope, position) {
+        if (scope.get(`var.${data.id}`)) {
+          Util.error(new Errors.Syntax.Duplicate(data.name, position));
+        }
+        ;
+        let variableData = {};
+        variableData.name = data.name;
+        variableData.id = scope.alias(variableData.name);
+        variableData.type = new TypeRef().create(data.type, scope, position).export;
+        variableData.declaration = new Accessor().create(data.declaration, scope, position).export;
+        scope.set(`var.${variableData.id}`, variableData);
+        return { scope, export: variableData };
+      }
+      toAssemblyText(variableData, scope) {
+        let content = `
+/* Variable ${variableData.name} */
+${new Accessor().toAssemblyText(variableData.declaration, scope)}
+VAR ${variableData.id}, Z8, Z8
+SCOPE_SET ${variableData.id}, Z8
+		`;
+        return content;
+      }
+      toAssemblyData(variableData, scope) {
+        let content = ``;
+        if (scope._asm_data[variableData.declaration.relid]) {
+          return "";
+        }
+        ;
+        content += new Accessor().toAssemblyData(variableData.declaration, scope);
+        scope._asm_data[variableData.declaration.relid] = true;
+        return content;
+      }
+    };
+  }
+});
+
 // src/features/function.ts
 var Function2, FunctionCall, Return;
 var init_function = __esm({
@@ -24419,10 +24575,13 @@ var init_function = __esm({
     init_parts();
     init_syntax();
     init_assembler();
+    init_util();
+    init_error();
     init_type();
     init_accessor();
     init_body();
     init_identifier();
+    init_variable();
     Function2 = class _Function extends Feature.Feature {
       constructor() {
         super([
@@ -24447,8 +24606,12 @@ var init_function = __esm({
       }
       static get(data, scope, position) {
         if (data.function) {
-          const functionData = Identifier.create(data.function.declaration.reference, scope, position).export;
-          const _function = scope.get(`function.${scope.resolve(scope.flatten(functionData.path))}`);
+          const identifier = Identifier.create(data.function.declaration.reference, scope, position).export;
+          const _function = scope.get(`function.${scope.resolve(scope.flatten(identifier.path))}`);
+          if (!_function) {
+            Util.error(new Errors.Syntax.Generic(`Function ${scope.flatten(identifier.path)} not defined`, position));
+          }
+          ;
           return _function;
         }
         ;
@@ -24459,23 +24622,28 @@ var init_function = __esm({
         functionData.name = data.name;
         functionData.id = scope.alias(functionData.name);
         functionData.scope = new Feature.Scope(scope.importer, functionData.name, scope);
-        functionData.type = data.type;
-        functionData.parameters = data.parameters;
+        functionData.type = Type.get(data.type, scope, position) ?? {};
+        functionData.parameters = [];
+        for (const parameter of data.parameters) {
+          const type = Type.get(parameter.type, scope, position);
+          parameter.id = functionData.scope.alias(parameter.name);
+          functionData.parameters.push({ name: parameter.name, type: type ?? {}, id: parameter.id });
+        }
+        ;
         const features = Syntax.toFeatures(data.body.parts, functionData.scope, position);
         functionData.body = features;
         scope.set(`function.${functionData.id}`, functionData);
         return { scope, export: functionData };
       }
-      toAssemblyText(functionData, scope) {
+      async toAssemblyText(functionData, scope) {
         let content = `
 /* Function ${functionData.name} */
 FUNC ${functionData.id}, PARAMS
 		`;
         for (const parameter of functionData.parameters) {
-          const type = Type.get(parameter.type, scope);
           parameter.id = functionData.scope.alias(parameter.name);
           content += `
-PARAM ${type?.id}, ${parameter.id}
+PARAM ${parameter.type.id}, ${parameter.id}
 			`;
         }
         ;
@@ -24483,7 +24651,7 @@ PARAM ${type?.id}, ${parameter.id}
 PARAMS_END
 		`;
         content += `
-${Assembler.assemble(functionData.body, functionData.scope, {})}
+${await Assembler.assemble(functionData.body, functionData.scope, {})}
 FUNC_END
 		`;
         return content;
@@ -24509,24 +24677,37 @@ FUNC_END
       create = _FunctionCall.create;
       static create(data, scope, position) {
         const callData = { parameters: {} };
-        const _function = Function2.get(data, scope, position);
+        const _function = Function2.get(data, scope, position) || {};
         callData.function = _function;
-        callData.parameters.value = data.parameters;
+        callData.parameters.value = [];
         callData.id = scope.alias(scope.generateRandomId());
+        let i = 0;
+        for (const parameter of data.parameters) {
+          const _variable = Variable.get(parameter, scope, position) ?? {};
+          const accessor = _variable.declaration;
+          callData.parameters.value.push({ value: accessor });
+          if (!Type.isCompatible(_function.parameters[i].type, accessor.type)) {
+            Util.error(new Errors.Syntax.Generic(`Parameter ${i + 1} of type ${Type.toString(accessor.type)} is not compatible with type ${Type.toString(_function.parameters[i].type)}`, position));
+          }
+          ;
+          i++;
+        }
+        ;
         scope.set(`function_call_parameters.${callData.id}`, callData);
         return { scope, export: callData };
       }
       toAssemblyText(callData, scope) {
         let content = `
-MOV R8, ${callData.function.id}
-MOV R7, ${callData.id}
-CALL R8
+/* Function call ${callData.function.name} */
+MOV (Z7, ${callData.id})
+MOV (Z8, ${callData.function.id})
+CALL (Z8)
 		`;
         return content;
       }
       toAssemblyData(callData, scope) {
         let content = `
-		${callData.id}:
+${callData.id}:
 		`;
         for (const parameter of callData.parameters.value) {
           content += `
@@ -24568,6 +24749,7 @@ var init_accessor = __esm({
     init_identifier();
     init_literal();
     init_function();
+    init_variable();
     Accessor = class _Accessor extends Feature.Feature {
       constructor() {
         super([
@@ -24598,16 +24780,31 @@ var init_accessor = __esm({
         if (data?.declaration?.call) {
           propertyData.is = 2 /* CALL */;
           propertyData.value.call = new FunctionCall().create(data.declaration.call, scope, position).export;
+          propertyData.type = propertyData.value.call.function.type;
+          propertyData.relid = propertyData.value.call.id;
         } else if (data?.declaration?.object) {
           propertyData.is = 1 /* OBJECT */;
           propertyData.value.object = new ObjectLiteral().create(data.declaration.object, scope, position).export;
+          propertyData.type = { object: { fields: propertyData.value.object.fields } };
+          propertyData.relid = propertyData.value.object.id;
         } else if (data?.declaration?.string) {
           propertyData.is = 0 /* STRING */;
           propertyData.value.string = new StringLiteral().create(data.declaration.string, scope, position).export;
-          propertyData.type = { name: "byte", list: { size: propertyData.value.string.data.length } };
+          propertyData.type = { name: "byte", list: { size: propertyData.value.string.data.length - 1 } };
+          propertyData.relid = propertyData.value.string.id;
         } else if (data?.declaration?.reference) {
-          propertyData.is = 3 /* REF */;
-          propertyData.value.reference = new Identifier().create(data.declaration.reference, scope, position).export;
+          propertyData.is = 3 /* REFERENCE */;
+          let _variable = Variable.get({ accessor: data }, scope, position, true);
+          if (_variable) {
+            propertyData.type = _variable.type;
+            propertyData.value.reference = _variable.declaration;
+            propertyData.relid = propertyData.value.reference.id;
+          } else {
+            propertyData.value.reference = new _Accessor().create(data.declaration.reference, scope, position).export;
+            propertyData.type = propertyData.value.reference.type;
+            propertyData.relid = propertyData.value.reference.relid;
+          }
+          ;
         } else {
           propertyData.value = {};
         }
@@ -24624,7 +24821,7 @@ var init_accessor = __esm({
           case 0 /* STRING */:
             {
               content += `
-MOV RDI, REF(${propertyData.value.string?.id})
+MOV (Z8, REF(${propertyData.value.string?.id}))
 				`;
               break;
             }
@@ -24632,7 +24829,7 @@ MOV RDI, REF(${propertyData.value.string?.id})
           case 1 /* OBJECT */:
             {
               content += `
-MOV RDI, REF(${propertyData.value.object?.id})
+MOV (Z8, REF(${propertyData.value.object?.id}))
 				`;
               break;
             }
@@ -24640,9 +24837,14 @@ MOV RDI, REF(${propertyData.value.object?.id})
           case 2 /* CALL */:
             {
               content += `
-MOV R8, REF(${propertyData.value.call?.function.id})
-MOV R7, REF(${propertyData.value.call?.id})
+${new FunctionCall().toAssemblyText(propertyData.value.call, scope)}
 				`;
+              break;
+            }
+            ;
+          case 3 /* REFERENCE */:
+            {
+              content += `${new _Accessor().toAssemblyText(propertyData.value.reference, scope)}`;
               break;
             }
             ;
@@ -24651,6 +24853,7 @@ MOV R7, REF(${propertyData.value.call?.id})
               content += `
 // ??? 
 				`;
+              break;
             }
             ;
         }
@@ -24666,78 +24869,32 @@ MOV R7, REF(${propertyData.value.call?.id})
               break;
             }
             ;
+          case 1 /* OBJECT */:
+            {
+              content += `${new ObjectLiteral().toAssemblyData(propertyData.value.object, scope)}`;
+              break;
+            }
+            ;
+          case 2 /* CALL */:
+            {
+              content += `${new FunctionCall().toAssemblyData(propertyData.value.call, scope)}`;
+              break;
+            }
+            ;
+          case 3 /* REFERENCE */:
+            {
+              content += `${new _Accessor().toAssemblyData(propertyData.value.reference, scope)}`;
+              break;
+            }
+            ;
           default:
             {
-              content += `
-// ???
-				`;
+              content += "// ???\n";
+              break;
             }
             ;
         }
         ;
-        return content;
-      }
-    };
-  }
-});
-
-// src/features/variable.ts
-var Variable;
-var init_variable = __esm({
-  "src/features/variable.ts"() {
-    "use strict";
-    init_feature();
-    init_parts();
-    init_error();
-    init_type();
-    init_accessor();
-    init_util();
-    Variable = class _Variable extends Feature.Feature {
-      constructor() {
-        super([
-          { "part": { "type": Parts.PartType.WORD, "value": "let" } },
-          { "part": { "type": Parts.PartType.WORD }, "export": "name" },
-          { "part": { "type": Parts.PartType.COLON } },
-          { "feature": { "type": TypeRef }, "export": "type" },
-          { "part": { "type": Parts.PartType.EQUALS }, "export": "equals", required: false },
-          { "feature": { "type": Accessor }, "export": "declaration" }
-        ]);
-      }
-      create = _Variable.create;
-      static create(data, scope, position) {
-        if (scope.get(`var.${data.name}`)) {
-          throw new Errors.Syntax.Duplicate(data.name, position);
-        }
-        ;
-        let variableData = {};
-        variableData.name = data.name;
-        variableData.id = scope.alias(variableData.name);
-        variableData.type = new TypeRef().create(data.type, scope, position).export;
-        variableData.declaration = new Accessor().create(data.declaration, scope, position).export;
-        Util.debug(`Variable ${variableData.name} created`, variableData);
-        if (!Type.isCompatible(variableData.type, variableData.declaration.type)) {
-          Type.incompatible(variableData.type, variableData.declaration.type, position);
-        }
-        ;
-        scope.set(`var.${variableData.id}`, variableData);
-        return { scope, export: variableData };
-      }
-      toAssemblyText(variableData, scope) {
-        let variable = new Accessor();
-        let definition = `
-${variable.toAssemblyText(variableData.declaration, scope)}
-		`;
-        let content = `
-/* Variable ${variableData.name} */
-${definition}
-VAR ${variableData.id}, RDI, RDI
-SCOPE SET ${variableData.id}, RDI
-		`;
-        return content;
-      }
-      toAssemblyData(variableData, scope) {
-        let content = ``;
-        content += new Accessor().toAssemblyData(variableData.declaration, scope);
         return content;
       }
     };
@@ -24793,6 +24950,7 @@ var init_syntax = __esm({
     "use strict";
     init_error();
     init_official();
+    init_util();
     ((Syntax2) => {
       function toFeatures(parts, scope, position, _features = official, path3) {
         const features = _features.map((v) => {
@@ -24812,7 +24970,7 @@ var init_syntax = __esm({
           for (const feature of features) {
             const match = feature.match(parts);
             if (match) {
-              const data = feature.create?.(match.exports, scope, position);
+              const data = feature.create?.(match.exports, scope, parts[i]?.position || position);
               syntax.push({ export: data.export, scope: data.scope, feature });
               parts = parts.slice(match.length);
               foundMatch = true;
@@ -24823,7 +24981,7 @@ var init_syntax = __esm({
           }
           ;
           if (!foundMatch) {
-            throw new Errors.Syntax.Generic(contents, position);
+            Util.error(new Errors.Syntax.Generic(contents, position));
           }
           ;
           foundMatch = false;
@@ -24834,15 +24992,6 @@ var init_syntax = __esm({
       Syntax2.toFeatures = toFeatures;
       ;
     })(Syntax || (Syntax = {}));
-  }
-});
-
-// src/asm/dist/z_S.ts
-var z_S_default;
-var init_z_S = __esm({
-  "src/asm/dist/z_S.ts"() {
-    "use strict";
-    z_S_default = '\n/*\n * This code was generated by the Z# programming system. \u{1FACE} \u2764\uFE0F\n *\n * Z# is an open-source project licensed under the MIT License\n * with the following restriction:\n *\n * - You may use, copy, modify, merge, publish, distribute, and sublicense\n *   this software freely, **but you may NOT sell the original software\n *   or derivative works as standalone products.**\n *\n * - This software is provided "AS IS", without warranty of any kind.\n *\n * - The Z# organization, its developers, and contributors disclaim all liability\n *   for any damages arising from the use of this software.\n *\n * - Responsibility for malicious or harmful code lies solely with the author,\n *   not with Z# or its maintainers.\n *\n * Z# is not intended to generate malicious code, but like any tool,\n * it can be misused. Use at your own risk.\n *\n * If you find Z# useful, please consider supporting the project:\n * https://zsharp.dev/donate \u2764\uFE0F\n */\n\n#define EVAL(x) x\n\n#define CONCAT_2(a, b) CONCAT_IMPL(a, b)\n#define CONCAT_3(a, b, c) CONCAT_IMPL(a, CONCAT_IMPL(b, c))\n#define CONCAT_4(a, b, c, d) CONCAT_IMPL(CONCAT_IMPL(a, b), CONCAT_IMPL(c, d))\n\n#define CONCAT_IMPL(a, b) a##b\n\n/**\n * # Register usage\n *\n * R0 - R4  : Mnemonic control\n * R5       : Scope\n * R6       : Selector control\n * R7       : Parameters\n * R8       : Call control\n * R9       : Stack control\n * R10 - R13: Unallocated\n * R14      : Debugger control\n * R15      : Temporary\n */\n\n# Architecture mapping\n\n/* x86_64 (64-bit) */\n#if defined(__x86_64__) || defined(__amd64__)\n	# Registers\n	#define RAX rax\n	#define RBX rbx\n	#define RCX rcx\n	#define RDX rdx\n	#define RSI rsi\n	#define RDI rdi\n	#define RSP rsp\n	#define RBP rbp\n	#define R8  r8\n	#define R9  r9\n	#define R10 r10\n	#define R11 r11\n	#define R12 r12\n	#define R13 r13\n	#define R14 r14\n	#define R15 r15\n	#define RIP rip\n\n	# Mnemonics\n	#define SYSCALL syscall\n	#define MOV(x, y) mov x, y\n	#define LDR(x, y, z) mov x, [y + z]\n	#define LDL(x, y) mov x, y\n	#define LEA(x, y, z) lea x, [y + z]\n	#define XOR(x, y) xor x, y\n	#define ADD(x, y) add x, y\n	#define SUB(x, y) sub x, y\n	#define IMUL(x, y) imul x, y\n	#define IDIV(x) idiv x\n	#define INC(x) inc x\n	#define DEC(x) dec x\n	#define CMP(x, y) cmp x, y\n	#define TEST(x, y) test x, y\n	#define JMP(x) jmp x\n	#define JE(x) je x\n	#define JNE(x) jne x\n	#define JG(x) jg x\n	#define JL(x) jl x\n	#define JGE(x) jge x\n	#define JLE(x) jle x\n	#define CALL(x) call x\n	#define RET ret\n	#define PUSH(x) push x\n	#define POP(x) pop x\n	#define NOP nop\n	#define INT(x) int x\n\n	# Value\n	#define REF(x) $x\n\n/* ARM64 (AArch64) */\n#elif defined(__aarch64__)\n	# Registers\n	#define RAX x0\n	#define RBX x1\n	#define RCX x2\n	#define RDX x3\n	#define RSI x4\n	#define RDI x5\n	#define RSP sp\n	#define RBP x29\n	#define R8  x8\n	#define R9  x9\n	#define R10 x10\n	#define R11 x11\n	#define R12 x12\n	#define R13 x13\n	#define R14 x14\n	#define R15 x15\n	#define RIP pc\n\n	# Mnemonics\n	#define SYSCALL svc 0\n	#define MOV(x, y) mov x, y\n	#define LDR(x, y, z) ldr x, [y, z]\n	#define LDL(x, y) ldr x, =y\n	#define LEA(x, y, z) adr x, y\n	#define XOR(x, y) eor x, x, y\n	#define ADD(x, y) add x, x, y\n	#define SUB(x, y) sub x, x, y\n	#define IMUL(x, y) mul x, x, y\n	#define IDIV(x, y) sdiv x, x, y\n	#define INC(x) add x, x, #1\n	#define DEC(x) sub x, x, #1\n	#define CMP(x, y) cmp x, y\n	#define TEST(x, y) ands xzr, x, y\n	#define JMP(x) b x\n	#define JE(x) b.eq x\n	#define JNE(x) b.ne x\n	#define JG(x) b.gt x\n	#define JL(x) b.lt x\n	#define JGE(x) b.ge x\n	#define JLE(x) b.le x\n	#define CALL(x) bl x\n	#define RET ret\n	#define PUSH(x) str x, [sp, #-16]!\n	#define POP(x) ldr x, [sp], #16\n	#define NOP nop\n	#define INT(x) svc x\n\n	# Value\n	#define REF(x) #EVAL(x)\n\n#else\n	#error "Unsupported architecture for register mapping"\n#endif\n\n.macro SAVE_R0_R4\n	PUSH (RAX)\n	PUSH (RBX)\n	PUSH (RCX)\n	PUSH (RDX)\n	PUSH (RSI)\n.endm\n\n.macro LOAD_R0_R4\n	POP (RSI)\n	POP (RDX)\n	POP (RCX)\n	POP (RBX)\n	POP (RAX)\n.endm\n\n.macro SAVE_ZASM\n	PUSH (RDI)\n	PUSH (RSP)\n	PUSH (RBP)\n	PUSH (R8)\n	PUSH (R9)\n	PUSH (R10)\n	PUSH (R11)\n	PUSH (R12)\n	PUSH (R13)\n	PUSH (R14)\n	PUSH (R15)\n.endm\n\n.macro LOAD_ZASM\n	POP (R15)\n	POP (R14)\n	POP (R13)\n	POP (R12)\n	POP (R11)\n	POP (R10)\n	POP (R9)\n	POP (R8)\n	POP (RBP)\n	POP (RSP)\n	POP (RDI)\n.endm\n\n.macro SAVE \n	SAVE_R0_R4\n	SAVE_ZASM\n.endm\n\n.macro LOAD\n	LOAD_ZASM\n	LOAD_R0_R4\n.endm\n\n#define WINDOWS_SYSCALL_EXIT 0\n#define WINDOWS_SYSCALL_WRITE 0\n#define WINDOWS_SYSCALL_READ 0\n#define WINDOWS_SYSCALL_OPEN 0\n#define WINDOWS_SYSCALL_CLOSE 0\n#define WINDOWS_SYSCALL_FORK 0\n#define WINDOWS_SYSCALL_EXECVE 0\n#define WINDOWS_SYSCALL_WAIT4 0\n#define WINDOWS_SYSCALL_GETPID 0\n#define WINDOWS_SYSCALL_GETUID 0\n#define WINDOWS_SYSCALL_GETGID 0\n#define WINDOWS_SYSCALL_BRK 0\n#define WINDOWS_SYSCALL_MMAP 0\n#define WINDOWS_SYSCALL_MUNMAP 0\n#define WINDOWS_SYSCALL_CLONE 0\n\n#define APPLE_SYSCALL_EXIT 0x2000001\n#define APPLE_SYSCALL_WRITE 0x2000004\n#define APPLE_SYSCALL_READ 0x2000003\n#define APPLE_SYSCALL_OPEN 0x2000005\n#define APPLE_SYSCALL_CLOSE 0x2000006\n#define APPLE_SYSCALL_FORK 0x2000002\n#define APPLE_SYSCALL_EXECVE 0x200003b\n#define APPLE_SYSCALL_WAIT4 0x2000007\n#define APPLE_SYSCALL_GETPID 0x2000014\n#define APPLE_SYSCALL_GETUID 0x2000018\n#define APPLE_SYSCALL_GETGID 0x200001a\n#define APPLE_SYSCALL_BRK 0x2000034\n#define APPLE_SYSCALL_MMAP 0x20000c5\n#define APPLE_SYSCALL_MUNMAP 0x2000049\n#define APPLE_SYSCALL_CLONE 0x20000fa\n\n#define UNIX_SYSCALL_EXIT 1\n#define UNIX_SYSCALL_WRITE 4\n#define UNIX_SYSCALL_READ 3\n#define UNIX_SYSCALL_OPEN 5\n#define UNIX_SYSCALL_CLOSE 6\n#define UNIX_SYSCALL_FORK 2\n#define UNIX_SYSCALL_EXECVE 11\n#define UNIX_SYSCALL_WAIT4 7\n#define UNIX_SYSCALL_GETPID 20\n#define UNIX_SYSCALL_GETUID 24\n#define UNIX_SYSCALL_GETGID 47\n#define UNIX_SYSCALL_BRK 17\n#define UNIX_SYSCALL_MMAP 90\n#define UNIX_SYSCALL_MUNMAP 91\n#define UNIX_SYSCALL_CLONE 120\n\n#define LINUX_SYSCALL_EXIT 60\n#define LINUX_SYSCALL_WRITE 1\n#define LINUX_SYSCALL_READ 0\n#define LINUX_SYSCALL_OPEN 2\n#define LINUX_SYSCALL_CLOSE 3\n#define LINUX_SYSCALL_FORK 57\n#define LINUX_SYSCALL_EXECVE 59\n#define LINUX_SYSCALL_WAIT4 61\n#define LINUX_SYSCALL_GETPID 39\n#define LINUX_SYSCALL_GETUID 102\n#define LINUX_SYSCALL_GETGID 104\n#define LINUX_SYSCALL_BRK 12\n#define LINUX_SYSCALL_MMAP 9\n#define LINUX_SYSCALL_MUNMAP 11\n#define LINUX_SYSCALL_CLONE 56\n\n#ifdef __WIN32\n	#define TARGET "MICROSOFT/WINDOWS"\n	#define SYS WINDOWS\n#elif TARGET_OS_MAC\n	#define TARGET "APPLE/MAC-OS"\n	#define SYS APPLE\n#elif TARGET_OS_IPHONE\n	#define TARGET "APPLE/IPHONE"\n	#define SYS APPLE\n#elif __linux__\n	#define TARGET "LINUX"\n	#define SYS LINUX\n#elif __ANDROID__\n	#define TARGET "ANDROID"\n	#define SYS LINUX\n#elif __unix__\n	#define TARGET "UNIX"\n	#define SYS UNIX\n#else\n	#define TARGET "UNKNOWN"\n	#define SYS LINUX\n#endif\n\n#define SYS_GET(x) CONCAT_2(EVAL(SYS), _##x)\n\n# Allocate N bytes \u2192 result in %rax\n.macro MALLOC size\n	SAVE_ZASM\n	MOV (RAX, REF(SYS_GET(SYSCALL_MMAP))) ;// syscall number: mmap (Linux AArch64)\n	MOV (RDI, REF(0))                     ;// addr = NULL\n	MOV (RSI, REF(\\size))                 ;// length = size\n	MOV (RDX, REF(3))                     ;// PROT_READ | PROT_WRITE\n	MOV (R10, REF(0x22))                  ;// MAP_ANONYMOUS | MAP_PRIVATE\n	MOV (R8, REF(-1))                     ;// fd = -1\n	MOV (REF(0), R9)                      ;// offset = 0\n	SYSCALL\n	LOAD_ZASM\n.endm\n\n# Read value at pointer \u2192 %reg\n#   ptr = register with pointer\n#   reg = output register\n.macro PTR_READ ptr, reg\n    MOV ([\\ptr], \\reg)\n.endm\n\n# Write value to pointer\n#   value = register with value\n#   ptr = pointer register\n.macro PTR_WRITE value, ptr\n    MOV (\\value, [\\ptr])\n.endm\n\n# Store value in memory, and return a pointer to it\n#   value = register with value\n#   out = output register with pointer\n.macro PTR_CREATE value, size, out\n    SAVE_R0_R4\n    MALLOC \\size               ;// allocate bytes\n    MOV (\\value, [RAX])        ;// store value at allocated address\n    MOV (RAX, \\out)            ;// return pointer\n    LOAD_R0_R4\n.endm\n\n.macro LEN ptr, out\n	SAVE_R0_R4\n	MOV (\\ptr, RCX)\n1:\n	MOV ([RCX], RDX)\n	CMP (RDX, REF(0))\n	JE (2f)\n	INC (RCX)\n	JMP (1b)\n2:\n	MOV (RCX, \\out)\n	LOAD_R0_R4\n.endm\n\n.macro FREE ptr, size\n	SAVE\n	MOV (REF(11), RAX)          ;// sys_munmap\n	MOV (\\ptr, RDI)             ;// pointer\n	MOV (REF(\\size), RSI)       ;// size in bytes\n	SYSCALL\n	LOAD\n.endm\n\n.macro DEBUG value\n	MOV (RCX, REF(\\value))\n	LEN \\value\n	SUB (RDX, RCX)\n.endm\n\n.section .data\ndebug_msg:\n	.asciz "Hello, Debug!"\n\n.section .text\n.global _start\n_start:\n	DEBUG debug_msg\n\n# Allocate the table itself once\n.macro LAZY_LIST_INIT name, slots\n    .lcomm \\name, \\slots * 8\n.endm\n\n# Get address of list[index] \u2192 in %rdi\n.macro LAZY_PTR_GET name, index, reg\n	SAVE\n	LEA (\\name, \\reg, RIP)\n	MOV (REF(\\index), RSI)\n	IMUL (REF(8), RSI)\n	ADD (RSI, \\reg)\n	LOAD\n.endm\n\n# Access item at index, allocate if null\n#   name = list name\n#   index = integer index\n#   size = allocation size\n#   reg = register for result address\n.macro LAZY_BLOCK_GET name, index, size, reg\n	SAVE\n	LAZY_PTR_GET \\name, \\index, \\reg\n	MOV ((\\reg), RSI)\n	JNE (REF(1f))\n	MALLOC \\size\n	MOV (RAX, \\reg)\n1:\n	LDR (\\reg, \\reg, 0)\n	LOAD\n.endm\n\n# Set value at a specific index in a lazy list\n#   name = list name\n#   index = integer index\n#   value = value to set (in register)\n.macro LAZY_BLOCK_SET name, index, value\n	SAVE\n	LAZY_PTR_GET \\name, \\index, RDI\n	MOV (REF(\\value), RDI)\n	LOAD\n.endm\n\n# Usage: \n# STRUCT name\n#   STRUCT_FIELD field_name, size\n# STRUCT_END\n\n.set STRUCT_OFFSET, 0\n\n.macro STRUCT name\n	.set \\name\\()_SIZE, 0\n	.pushsection .data\n\\name:\n.endm\n\n.macro STRUCT_FIELD name, size\n\\name:\n	.skip \\size\n	.set STRUCT_OFFSET, STRUCT_OFFSET + \\size\n.endm\n\n.macro STRUCT_END\n	.popsection\n	.set STRUCT_SIZE, STRUCT_OFFSET\n	.set STRUCT_OFFSET, 0\n.endm\n\n.macro ALIGN boundary\n	.balign \\boundary\n.endm\n\n.macro VAR id, value, out\n	;// TODO\n.endm\n.macro FUNC name, _\n	.section .text\n	.global \\name\n\\name:\n.endm\n\n.macro PARAM type, name\n	# Store param info\n	.quad 0x10\n	.asciz "\\name"\n	.quad \\type\n.endm\n\n.macro PARAMS_END\n	.quad 0x11\n.endm\n\n.macro FUNC_END\n	.quad 0xFF\n.endm\n\n# Type initialization\n.macro TYPE name\n	STRUCT \\name\n.endm\n\n.macro TYPE_FIELD type, name, size\n	#if type == BYTE\n		STRUCT_FIELD \\name, \\size\n	#endif\n.endm\n\n.macro TYPE_END\n	STRUCT_END\n.endm\n\n';
   }
 });
 
@@ -24857,7 +25006,7 @@ var init_emit = __esm({
     os2 = __toESM(require("os"));
     init_util();
     init_z_S();
-    init_header();
+    init_error();
     ((Emit2) => {
       async function parseIZFile(source) {
         const lines = source.split("\n");
@@ -24881,16 +25030,20 @@ var init_emit = __esm({
       ;
       async function runCommand(command, args) {
         return new Promise((resolve, reject) => {
-          const proc = (0, import_child_process.spawn)(command, args, { stdio: "inherit" });
+          const proc = (0, import_child_process.spawn)(command, args);
+          let stderr = "";
+          let handled = false;
           proc.on("close", (code) => {
+            if (handled) return;
+            handled = true;
             if (code === 0) resolve();
-            else reject(new Error(`Command "${command} ${args.join(" ")}" failed with exit code ${code}`));
+            else reject(`
+GCC exited with exit code: ${code}
+${stderr}
+`);
           });
-          proc.on("error", (err) => {
-            Util.log(`
-${Header.Z_bug} ${Header.Zasm_bug}:
-${err.message}
-					 `);
+          proc.stderr?.on("data", (chunk) => {
+            stderr += chunk.toString();
           });
         });
       }
@@ -24902,17 +25055,15 @@ ${err.message}
         const cFile = path.join(tempDir, "temp.c");
         const asmFile = path.join(tempDir, "temp.S");
         const cOut = path.join(tempDir, "temp_c.s");
-        const asmOut = path.join(tempDir, "temp_asm.s");
         const elfFile = path.join(tempDir, "output.elf");
         await fs.writeFile(SFile, z_S_default);
         await fs.writeFile(cFile, cSource);
         await fs.writeFile(asmFile, asmSource);
         try {
           await runCommand("gcc", ["-S", cFile, "-o", cOut]);
-          await runCommand("gcc", ["-S", asmFile, "-o", asmOut]);
-          Util.debug(await fs.readFile(asmOut));
-          await runCommand("gcc", [cOut, asmOut, "-o", elfFile]);
+          await runCommand("gcc", [cOut, SFile, asmFile, "-o", elfFile]);
         } catch (err) {
+          Util.error(new Errors.IZ.Bug(err), false);
         }
         ;
         const elfBuffer = await fs.readFile(elfFile);
@@ -40310,12 +40461,172 @@ var init_ora = __esm({
   }
 });
 
+// node_modules/syncing/dist/min/index.js
+var require_min = __commonJS({
+  "node_modules/syncing/dist/min/index.js"(exports2) {
+    "use strict";
+    var R = Object.create;
+    var v = Object.defineProperty;
+    var z = Object.getOwnPropertyDescriptor;
+    var D = Object.getOwnPropertyNames;
+    var H = Object.getPrototypeOf;
+    var B = Object.prototype.hasOwnProperty;
+    var I = (e, r) => () => (e && (r = e(e = 0)), r);
+    var x = (e, r) => () => (r || e((r = { exports: {} }).exports, r), r.exports);
+    var S = (e, r) => {
+      for (var n in r) v(e, n, { get: r[n], enumerable: true });
+    };
+    var _2 = (e, r, n, i) => {
+      if (r && typeof r == "object" || typeof r == "function") for (let t of D(r)) !B.call(e, t) && t !== n && v(e, t, { get: () => r[t], enumerable: !(i = z(r, t)) || i.enumerable });
+      return e;
+    };
+    var U = (e, r, n) => (n = e != null ? R(H(e)) : {}, _2(r || !e || !e.__esModule ? v(n, "default", { value: e, enumerable: true }) : n, e));
+    var $ = (e) => _2(v({}, "__esModule", { value: true }), e);
+    var E = x((V, s) => {
+      "use strict";
+      var C = require("module"), h = s.constructor.length > 1 ? s.constructor : C, c = require("path"), f = [], u = {}, d = [], G = h._nodeModulePaths;
+      h._nodeModulePaths = function(e) {
+        var r = G.call(this, e);
+        return e.indexOf("node_modules") === -1 && (r = f.concat(r)), r;
+      };
+      var J = h._resolveFilename;
+      h._resolveFilename = function(e, r, n, i) {
+        for (var t = d.length; t-- > 0; ) {
+          var o = d[t];
+          if (g(e, o)) {
+            var a = u[o];
+            if (typeof u[o] == "function") {
+              var l = r.filename;
+              if (a = u[o](l, e, o), !a || typeof a != "string") throw new Error("[module-alias] Expecting custom handler function to return path.");
+            }
+            e = c.join(a, e.substr(o.length));
+            break;
+          }
+        }
+        return J.call(this, e, r, n, i);
+      };
+      function g(e, r) {
+        return e.indexOf(r) === 0 && (e.length === r.length || e[r.length] === "/");
+      }
+      function b(e, r) {
+        e = c.normalize(e), r && r.indexOf(e) === -1 && r.unshift(e);
+      }
+      function j(e, r) {
+        if (r) {
+          var n = r.indexOf(e);
+          n !== -1 && r.splice(n, 1);
+        }
+      }
+      function w(e) {
+        var r;
+        if (e = c.normalize(e), f.indexOf(e) === -1) {
+          f.push(e);
+          var n = k();
+          for (n && b(e, n.paths), r = s.parent; r && r !== n; ) b(e, r.paths), r = r.parent;
+        }
+      }
+      function y(e) {
+        for (var r in e) O(r, e[r]);
+      }
+      function O(e, r) {
+        u[e] = r, d = Object.keys(u), d.sort();
+      }
+      function K() {
+        var e = k();
+        f.forEach(function(r) {
+          e && j(r, e.paths), Object.getOwnPropertyNames(require.cache).forEach(function(i) {
+            i.indexOf(r) !== -1 && delete require.cache[i];
+          });
+          for (var n = s.parent; n && n !== e; ) j(r, n.paths), n = n.parent;
+        }), f = [], u = {}, d = [];
+      }
+      function L(e) {
+        typeof e == "string" && (e = { base: e }), e = e || {};
+        var r;
+        e.base ? r = [c.resolve(e.base.replace(/\/package\.json$/, ""))] : r = [c.join(__dirname, "../.."), process.cwd()];
+        var n, i;
+        for (var t in r) try {
+          i = r[t], n = require(c.join(i, "package.json"));
+          break;
+        } catch {
+        }
+        if (typeof n != "object") {
+          var o = r.join(`,
+`);
+          throw new Error(`Unable to find package.json in any of:
+[` + o + "]");
+        }
+        var a = n._moduleAliases || {};
+        for (var l in a) a[l][0] !== "/" && (a[l] = c.join(i, a[l]));
+        y(a), n._moduleDirectories instanceof Array && n._moduleDirectories.forEach(function(m) {
+          if (m !== "node_modules") {
+            var N = c.join(i, m);
+            w(N);
+          }
+        });
+      }
+      function k() {
+        return require.main._simulateRepl ? void 0 : require.main;
+      }
+      s.exports = L;
+      s.exports.addPath = w;
+      s.exports.addAlias = O;
+      s.exports.addAliases = y;
+      s.exports.isPathMatchesAlias = g;
+      s.exports.reset = K;
+    });
+    var M = x(() => {
+      E()();
+    });
+    var q = {};
+    S(q, { Slave: () => p });
+    var A;
+    var p;
+    var F = I(() => {
+      "use strict";
+      A = U(require("events")), p = class extends A.default {
+        constructor(n) {
+          super();
+          this.promise = n;
+          let i = 0, t = () => this.generator().next().then((o) => {
+            o.value instanceof Promise ? t() : this.emit("ready", o.value);
+          });
+          t();
+        }
+        async *generator() {
+          let n = 0;
+          for (; ; ) n++, yield this.promise;
+        }
+      };
+    });
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.Sync = void 0;
+    M();
+    var Q = (F(), $(q));
+    var P = class {
+      promise;
+      constructor(r) {
+        this.promise = r, this.slave = new Q.Slave(this.promise);
+      }
+      get() {
+        return new Promise((r) => {
+          this.slave.on("ready", (n) => {
+            r(n);
+          });
+        });
+      }
+      slave;
+    };
+    exports2.Sync = P;
+  }
+});
+
 // src/zs.ts
 var zs_exports = {};
 __export(zs_exports, {
   Z: () => Z
 });
-var Z;
+var import_syncing, Z;
 var init_zs = __esm({
   "src/zs.ts"() {
     "use strict";
@@ -40330,9 +40641,10 @@ var init_zs = __esm({
     init_builtin();
     init_util();
     init_ora();
+    import_syncing = __toESM(require_min());
     init_colorette();
     ((Z2) => {
-      function toIZ(content, importer, config2, path3) {
+      async function toIZ(content, importer, config2, path3) {
         const start = Date.now();
         let assembly = "";
         let spinner = null;
@@ -40353,27 +40665,32 @@ var init_zs = __esm({
         }
         ;
         try {
-          const parts = Parts.toParts(content, path3);
           let scope = new Feature.Scope(importer, "main");
           scope = BuiltIn.inject(scope);
           const basePosition = {
             content
           };
-          const syntax = Syntax.toFeatures(parts, scope, basePosition, features, path3);
-          assembly = Assembler.assemble(syntax, scope, config2);
+          const compilation = new Promise(async (resolve, reject) => {
+            const parts = Parts.toParts(content, path3);
+            const syntax = Syntax.toFeatures(parts, scope, basePosition, features, path3);
+            assembly = await Assembler.assemble(syntax, scope, config2);
+            resolve(assembly);
+          });
+          assembly = await new import_syncing.Sync(compilation).get();
           if (importer.cli) {
             const end = Date.now();
             spinner?.stopAndPersist({
               text: message + " - " + Header.time(end - start),
               symbol: green("\u283F")
             });
-            console.log(Header.success({
+            Util.log(Header.success({
               vulnerabilities: 0,
               // add later
               time: end - start
             }));
           }
           ;
+          return assembly;
         } catch (_err) {
           if (importer.cli) {
             spinner?.stopAndPersist({
@@ -40382,10 +40699,9 @@ var init_zs = __esm({
             });
           }
           ;
-          Util.error(_err);
+          Util.error(_err, false);
         }
         ;
-        return assembly;
       }
       Z2.toIZ = toIZ;
       ;
@@ -40442,8 +40758,9 @@ var __importDefault = exports && exports.__importDefault || function(mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 require_register();
-var commander_1 = require_commander();
 var fs_1 = __importDefault(require("fs"));
+var process_1 = __importDefault(require("process"));
+var commander_1 = require_commander();
 var ct = __importStar(require_colorette());
 var prompts_1 = require_commonjs13();
 var zs_1 = (init_zs(), __toCommonJS(zs_exports));
@@ -40452,16 +40769,29 @@ var header_1 = (init_header(), __toCommonJS(header_exports));
 var project_1 = (init_project(), __toCommonJS(project_exports));
 var util_1 = (init_util(), __toCommonJS(util_exports));
 var package_json_1 = __importDefault(require_package());
+process_1.default.addListener("SIGINT", util_1.Util.terminate);
+process_1.default.addListener("SIGTERM", util_1.Util.terminate);
 var config = {};
-commander_1.program.name("zs").description(ct.white(`${header_1.Header.zs} compiler`)).version(package_json_1.default.version);
-commander_1.program.command("build").description(`Build ${header_1.Header.zs} code`).option("--input, -I <path>").option("--output, -O <path>").option("--mode, -M <string>").option("--debug, -D").action((options) => {
+commander_1.program.addHelpText("after", `
+THIS SOFTWARE IS FREE AND MAY NOT BE SOLD UNDER ANY CIRCUMSTANCES.
+
+If you paid for this software, you were scammed \u2014 demand a full refund immediately.
+If the seller refuses, you are encouraged to pursue legal action.
+
+Any attempt to sell this software, or modified versions of it, is strictly prohibited
+and may result in prosecution.
+
+"We are always watching" \u{1FACE}
+	`);
+commander_1.program.name("zs").description(ct.white(`${header_1.Header.zs} compiler`)).version(package_json_1.default.version).usage("<command> [options]");
+commander_1.program.command("build").description(`Build ${header_1.Header.zs} code`).option("--input, -I <path>").option("--output, -O <path>").option("--mode, -M <string>").option("--debug, -D").action(async (options) => {
   if (!options.input) {
     throw new error_1.Errors.Command.Missing.Parameters(["input"]);
   }
   ;
   util_1.Util.log(header_1.Header.header);
   config = project_1.Project.get(options.input.split("/").slice(0, -1).join("/"));
-  const asm = zs_1.Z.toIZ(fs_1.default.readFileSync(options.input).toString(), {
+  const asm = await zs_1.Z.toIZ(fs_1.default.readFileSync(options.input).toString(), {
     import: [(path3) => {
       return fs_1.default.readFileSync(path3).toString();
     }],
@@ -40477,10 +40807,18 @@ commander_1.program.command("emit").description(`Compile ${header_1.Header.zs} i
   }
   ;
   if (!_options.agree) {
-    await (0, prompts_1.confirm)({
-      message: "Before emitting the code, please read the Intermediate Z# file (.iz) and accept the terms.",
-      default: false
+    const termsAgreement = await (0, prompts_1.select)({
+      choices: [
+        "I agree",
+        "I disagree"
+      ],
+      message: `Please read the Intermediate ${header_1.Header.zs} file (${header_1.Header.iz}) and accept the terms.`,
+      default: "I disagree"
     });
+    if (termsAgreement == "I disagree") {
+      util_1.Util.terminate();
+    }
+    ;
   }
   ;
   const asm = fs_1.default.readFileSync(_options.input).toString();

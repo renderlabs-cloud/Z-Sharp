@@ -1,8 +1,9 @@
-	import { Errors } from '~/error';
+import { Errors } from '~/error';
+import { Util } from '~/util';
 
 export namespace Parts {
 	export enum PartType {
-		SINGLE_LINE_COMMENT = "/\\/\\/.*/g",
+		SINGLE_LINE_COMMENT = "/\\/\\/[^\\n]*/g",
 		MULTI_LINE_COMMENT = "/\\/\\*[\\s\\S]*?\\*\\//gs",
 		MULTI_LINE_DEF_COMMENT = "/\\/\\*\\*[\\s\\S]*?\\*\\//gs",
 
@@ -29,7 +30,7 @@ export namespace Parts {
 
 		EXTRA_WHITESPACE = "/\\s+/g",
 
-		UNKNOWN = "/\\0/g",
+		UNKNOWN = "/^\0/g",
 	};
 
 	export type Part = {
@@ -64,79 +65,50 @@ export namespace Parts {
 	 * content, type, and position information.
 	 * @throws {Errors.Parts.Unknown} Throws an error if an unknown token is detected.
 	 */
-	/* Awaiting removal */
-	export function toPartsButSlow(content: string, path?: string) {
-		const parts: Array<Part> = [];
-		const position: Errors.Position = {};
-		const origin: string[] = content.split('\n');
-		let done = false;
-		position.path = path;
-		while (!done) {
-			for (const partType of Object.values(PartType)) {
-				const match: any = content.match(parseRegex(partType));
-				if (partType == PartType.UNKNOWN) {
-					throw new Errors.Parts.Unknown(content[0], position);
-				};
-				if (!match) continue;
-				if (content.indexOf(match[0]) == 0) {
-					if (partType == PartType.EXTRA_WHITESPACE || partType == PartType.SINGLE_LINE_COMMENT || partType == PartType.MULTI_LINE_COMMENT) {
-						content = content.slice(match[0].length).trim();
-						if (content == '' || match[0] == content) {
-							done = true;
-						};
-						break;
-					};
-					position.line = origin.indexOf(content.split('\n')[0]) + 1;
-					// position.column = origin[(position.line || 1) - 1].length;
-					parts.push({ content: match[0] || content, type: partType, position });
-					content = content.slice(match[0].length).trim();
-					if (content == '' || match[0] == content) {
-						done = true;
-					};
-					break;
-				};
-			};
-		};
-		return parts;
-	};
+	// * O(n)
 	export function toParts(content: string, path?: string) {
-	    const parts: Array<Part> = [];
-	    const position: Errors.Position = { path };
-	    const origin: string[] = content.split('\n');
-	
-	    // Build master regex using PartType
-	    const patterns = Object.entries(PartType)
-	        .filter(([key, value]) => key !== 'UNKNOWN') // skip UNKNOWN on purpose
-	        .map(([key, value]) => `(?<${key}>${value.slice(1, -2)})`); // Remove the leading and trailing "/" in regex string
-	
-	    const masterRegex = new RegExp(patterns.join('|'), 'gs');
-	
-	    let match;
-	    while ((match = masterRegex.exec(content)) !== null) {
-	        const groups = match.groups!;
-	        const type = Object.keys(groups).find(k => groups[k] !== undefined);
-	
-	        if (!type || !(type in PartType)) {
-	            throw new Errors.Parts.Unknown(match[0], position);
-	        };
-	
-	        // Calculate line number
-	        
-	        if (type === 'EXTRA_WHITESPACE' || 
-	            type === 'SINGLE_LINE_COMMENT' || 
-	            type === 'MULTI_LINE_COMMENT') {
-	            continue; // skip this part
-	        };
+		const parts: Array<Part> = [];
+		const position: Errors.Position = { path };
+		const origin: string[] = content.split('\n');
+
+		// Build master regex using PartType
+		const patterns = Object.entries(PartType)
+			// .filter(([key, value]) => key !== 'UNKNOWN') // skip UNKNOWN on purpose
+			.map(([key, value]) => `(?<${key}>${value.slice(1, -2)})`); // Remove the leading and trailing "/" in regex string
+
+		const masterRegex = new RegExp(patterns.join('|'), 'gs');
+
+		let match;
+		let prev;
+		while ((match = masterRegex.exec(content)) !== null) {
+			const groups = match.groups!;
+			const type = Object.keys(groups).find(k => groups[k] !== undefined);
 
 			// Calculate line number
-	        const line = content.slice(0, match.index).split('\n').length;
+			const line = content.slice(0, match.index).split('\n').length;
+			const column = match.index - (prev?.index ?? 0) - 1;
 
-	        parts.push({
-	            content: match[0],
-	            type: PartType[type as keyof typeof PartType],
-	            position: { path, line }
-	        });
-	    };
-	    return parts;
+			position.line = line;
+			position.column = column;
+
+			if (!type || type === 'UNKNOWN') {
+				Util.error(new Errors.Parts.Unknown(origin[line - 1], position));
+			};
+
+			if (type === 'EXTRA_WHITESPACE' ||
+				type === 'SINGLE_LINE_COMMENT' ||
+				type === 'MULTI_LINE_COMMENT') {
+				continue; // skip this part
+			};
+
+			prev = match;
+
+			parts.push({
+				content: match[0],
+				type: PartType[type as keyof typeof PartType],
+				position
+			});
+		};
+		return parts;
 	};
 };

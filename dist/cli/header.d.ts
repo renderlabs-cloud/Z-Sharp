@@ -1,4 +1,12 @@
 export declare namespace Header {
+    const zs: string;
+    const iz: string;
+    const Zasm_error: string;
+    const Z_bug: string;
+    const Zasm_bug: string;
+    const docs = "https://docs.zsharp.dev";
+    const github = "https://github.com/renderlabs-cloud/Z-Sharp";
+    const discord = "https://discord.gg/gGcbaBjtBS";
     type SuccessData = {
         vulnerabilities: number;
         time: number;
@@ -9,10 +17,6 @@ export declare namespace Header {
     function hyperlink(text: string, url: string, attrs?: string[]): string;
     function bullets(data: string[]): string;
     const header: string;
-    const Zasm_error: string;
-    const Z_bug: string;
-    const Zasm_bug: string;
-    const zs: string;
     /**
      * Format a time in ms as a green string.
      * @param time The time in ms.
@@ -31,6 +35,12 @@ export declare namespace Header {
      * @returns The message.
      */
     function failure(data: FailureData): string;
+    /**
+     * Formats a string as a green, double quoted string.
+     * @param data The string to format.
+     * @returns The formatted string.
+     */
+    function quote(data: string): string;
     /**
      * Format a string with color.
      * @param data The string to format.

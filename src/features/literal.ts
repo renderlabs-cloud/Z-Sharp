@@ -2,6 +2,8 @@ import { Feature } from '~/feature';
 import { Parts } from '~/parts';
 import { Errors } from '~/error';
 import { Accessor, PropertyData } from '~/features/accessor';
+import { TypeRef, TypeRefData, Type } from '~/features/type';
+import { Util } from '~/util';
 
 export type ObjectLiteralFieldData = {
 	name: string,
@@ -19,6 +21,19 @@ export type StringLiteralData = {
 	interpolated: boolean
 };
 
+export function toPaddedBytes(data: string, tabs: number = 8, row: number = 8) {
+	let wrap = row;
+	return Array.from(data).map(c => {
+		return `0x${c.charCodeAt(0).toString(16)}`;
+	}).map((v) => {
+		if (wrap++ >= row) {
+			wrap = 0;
+			return `\\\n${('\t').repeat(tabs)}${v}`;
+		};
+		return v;
+	}).join(', ');
+};
+
 export class ObjectLiteral extends Feature.Feature<ObjectLiteralData> {
 	constructor() {
 		super([
@@ -29,7 +44,7 @@ export class ObjectLiteral extends Feature.Feature<ObjectLiteralData> {
 					{ 'part': { 'type': Parts.PartType.COLON } },
 					{ 'feature': { 'type': Accessor }, 'export': 'value' },
 					{ 'part': { 'type': Parts.PartType.COMMA }, 'export': 'comma', 'required': false },
-				], 'export': 'fields', 'required': false // Not like we are going to have a type with no fields though
+				], 'export': 'fields', 'required': false
 			},
 			{ 'part': { 'type': Parts.PartType.CURLY_BRACKET_CLOSE } }
 		]);
@@ -37,10 +52,11 @@ export class ObjectLiteral extends Feature.Feature<ObjectLiteralData> {
 	public create = ObjectLiteral.create;
 	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
 		const objectData: ObjectLiteralData = { fields: [] as any } as ObjectLiteralData;
-		for (const field of data.fields) {
+		for (const field of data.fields ?? []) {
+			const value = Accessor.create(field.value, scope, position).export;
 			objectData.fields.push({
 				name: field.name,
-				value: field.value
+				value: value,
 			});
 		};
 
@@ -48,6 +64,27 @@ export class ObjectLiteral extends Feature.Feature<ObjectLiteralData> {
 		scope.set(`literal.${objectData.id}`, objectData);
 
 		return { scope: scope, export: objectData };
+	};
+
+	public toAssemblyData(objectData: ObjectLiteralData, scope: Feature.Scope) {
+		let content = '';
+
+		if (scope._asm_data[objectData.id]) {
+			return '';
+		};
+
+		content += `
+/* Object Literal */
+${objectData.id}:
+	${objectData.fields.map((field) => {
+			Util.debug(field);
+			return `
+${(new Accessor).toAssemblyData(field.value, scope)}
+		`;
+		}).join('')}
+		`;
+
+		return content;
 	};
 };
 
@@ -80,9 +117,13 @@ export class StringLiteral extends Feature.Feature<StringLiteralData> {
 	};
 
 	public toAssemblyData(stringLiteralData: StringLiteralData, scope: Feature.Scope) {
+		if (scope._asm_data[stringLiteralData.id]) {
+			return '';
+		};
 		let content = `
 ${stringLiteralData.id}:
-	.asciz "${stringLiteralData.data}"
+	.4byte ${toPaddedBytes(stringLiteralData.data, 2, 16)}
+	${stringLiteralData.id}_len = . - ${stringLiteralData.id} 
 		`;
 
 		return content;

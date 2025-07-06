@@ -42,14 +42,14 @@ export declare namespace Feature {
          * @param scope The scope in which the feature is being converted.
          * @returns The assembly text representation of the feature.
          */
-        toAssemblyText(data: any, scope: Scope): string;
+        toAssemblyText(data: any, scope: Scope): string | Promise<string>;
         /**
          * Converts the given feature data into assembly data.
          * @param data The data to be converted into assembly data.
          * @param scope The scope in which the feature is being converted.
          * @returns The assembly data representation of the feature.
          */
-        toAssemblyData(data: any, scope: Scope): string;
+        toAssemblyData(data: any, scope: Scope): string | Promise<string>;
         /**
          * Attempts to match the given parts against the feature sequence.
          * @param parts The parts to be matched against the feature sequence.
@@ -137,6 +137,7 @@ export declare namespace Feature {
         _data: any;
         _alias: any;
         _return: any;
+        _asm_data: Record<string, boolean>;
         id: string;
     }
 }

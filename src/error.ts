@@ -1,6 +1,7 @@
 import * as ct from 'colorette';
 
 import { Header } from '~/cli/header';
+import { Util } from '~/util';
 
 
 export namespace Errors {
@@ -17,7 +18,7 @@ export namespace Errors {
 			public message: string,
 			public stack?: string
 		) {
-			this.message = Header.format(this.message);
+			this.message = (this.message);
 		};
 		public count: number = 0;
 	};
@@ -45,6 +46,8 @@ export namespace Errors {
 					message + newline +
 					highlight(position, contents)
 				);
+
+				Util.error(this);
 			};
 		};
 		export class Unknown extends PartError {
@@ -65,6 +68,8 @@ export namespace Errors {
 					message + newline +
 					highlight(position, contents)
 				);
+
+				Util.error(this);
 			};
 		};
 		export class Generic extends SyntaxError {
@@ -124,8 +129,7 @@ export namespace Errors {
 					ct.red(ct.bold('A project error has occurred')) + exclamation + newline +
 					message
 				);
-				console.log(this.message);
-				process.exit(1);
+				Util.error(this);
 			};
 		};
 		export class Invalid extends ProjectError {
@@ -143,8 +147,7 @@ export namespace Errors {
 					ct.red(ct.bold('A command error has occurred')) + exclamation + newline +
 					message
 				);
-				console.log(this.message);
-				process.exit(1);
+				Util.error(this);
 			};
 		};
 		export namespace Missing {
@@ -167,5 +170,25 @@ export namespace Errors {
 				};
 			};
 		};
+	};
+	export namespace IZ {
+		export class IZError extends MainError {
+			constructor(message: string) {
+				super(
+					ct.red(ct.bold(`A ${Header.iz} error has occurred`)) + exclamation + newline +
+					message
+				);
+				Util.error(this);
+			};
+		};
+		export class Bug extends IZError {
+			constructor(message: string) {
+				super(
+					message + newline +
+					Header.Z_bug + newline +
+					Header.Zasm_bug
+				);
+			};
+		}
 	};
 };

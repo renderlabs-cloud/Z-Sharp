@@ -48,6 +48,7 @@ const module_1 = require("~/module");
 const builtin_1 = require("~/builtin");
 const util_1 = require("~/util");
 const ora_1 = __importDefault(require("ora"));
+const syncing_1 = require("syncing");
 const ct = __importStar(require("colorette"));
 var Z;
 (function (Z) {
@@ -59,7 +60,7 @@ var Z;
      * @param path the path of the Z# file to compile, if any
      * @returns the compiled Z# intermediate assembly
      */
-    function toIZ(content, importer, config, path) {
+    async function toIZ(content, importer, config, path) {
         const start = Date.now();
         let assembly = '';
         let spinner = null;
@@ -80,26 +81,31 @@ var Z;
         }
         ;
         try {
-            const parts = parts_1.Parts.toParts(content, path);
             let scope = new feature_1.Feature.Scope(importer, 'main');
             scope = builtin_1.BuiltIn.inject(scope);
             const basePosition = {
                 content,
             };
-            const syntax = syntax_1.Syntax.toFeatures(parts, scope, basePosition, features, path);
-            assembly = assembler_1.Assembler.assemble(syntax, scope, config);
+            const compilation = new Promise(async (resolve, reject) => {
+                const parts = parts_1.Parts.toParts(content, path);
+                const syntax = syntax_1.Syntax.toFeatures(parts, scope, basePosition, features, path);
+                assembly = await assembler_1.Assembler.assemble(syntax, scope, config);
+                resolve(assembly);
+            });
+            assembly = await new syncing_1.Sync(compilation).get();
             if (importer.cli) {
                 const end = Date.now();
                 spinner?.stopAndPersist({
                     text: message + ' - ' + header_1.Header.time(end - start),
                     symbol: ct.green('⠿')
                 });
-                console.log(header_1.Header.success({
+                util_1.Util.log(header_1.Header.success({
                     vulnerabilities: 0, // add later
                     time: end - start
                 }));
             }
             ;
+            return assembly;
         }
         catch (_err) {
             if (importer.cli) {
@@ -109,10 +115,9 @@ var Z;
                 });
             }
             ;
-            util_1.Util.error(_err);
+            util_1.Util.error(_err, false);
         }
         ;
-        return assembly;
     }
     Z.toIZ = toIZ;
     ;

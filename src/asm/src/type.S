@@ -9,9 +9,9 @@
 	STRUCT \name
 .endm
 
-.macro TYPE_FIELD type, name, size
+.macro TYPE_FIELD type, name
 	#if type == BYTE
-		STRUCT_FIELD \name, \size
+		STRUCT_FIELD \name
 	#endif
 .endm
 

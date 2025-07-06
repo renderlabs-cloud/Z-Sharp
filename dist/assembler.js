@@ -1,7 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Assembler = void 0;
 const format_1 = require("~/format");
+const z_S_1 = __importDefault(require("~/asm/dist/z_S"));
 var Assembler;
 (function (Assembler) {
     /**
@@ -18,29 +22,32 @@ var Assembler;
      *
      * @returns A string of Z# assembly code.
      */
-    function assemble(syntaxData, scope, config) {
-        let content = format_1.Format.section({
+    async function assemble(syntaxData, scope, config) {
+        let text = format_1.Format.section.start({
             type: '.text',
             label: scope.label
         });
-        let data = format_1.Format.section({
-            type: '.data'
+        let data = format_1.Format.section.start({
+            type: '.data',
+            label: 'data'
         });
         for (const _data of syntaxData) {
-            content += _data.feature.toAssemblyText(_data.export, _data.scope);
-            data += _data.feature.toAssemblyData(_data.export, _data.scope);
+            text += await _data.feature.toAssemblyText(_data.export, _data.scope);
+            data += await _data.feature.toAssemblyData(_data.export, _data.scope);
         }
         ;
-        // Util.debug(scope);
-        content = data + content;
+        text = text + format_1.Format.section.end();
+        data = data + format_1.Format.section.end();
+        text = data + text;
         return (scope.label == 'main' ? `
-#pragma block ASM
-#include "z.S"
+${z_S_1.default.slice(z_S_1.default.indexOf('#pragma section legal') + '#pragma section legal'.length, z_S_1.default.indexOf('#pragma section end'))}
 /**
  * 🫎 Mooseworth is here!
  * ${format_1.Format.comment([`Author: ${config?.Project?.Author.name}`, `Contributors: ${config?.Project?.Contributors?.names.join('\t\n')}`])}
  */
-` : '') + content.replace(/\n{1,2}(\s*)/gm, '\n$1') + (scope.label == 'main' ? `
+#pragma block ASM
+#include "z.S"
+` : '') + text.replace(/\n{1,2}(\s*)/gm, '\n$1') + (scope.label == 'main' ? `
 #pragma block end
 ` : '');
     }

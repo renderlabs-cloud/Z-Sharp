@@ -41,31 +41,38 @@ const ct = __importStar(require("colorette"));
 const package_json_1 = __importDefault(require("package.json"));
 var Header;
 (function (Header) {
+    // Symbols
+    Header.zs = ct.red('Z#');
+    Header.iz = `${ct.white('.')}${ct.blue('i')}${ct.red('z')}`;
+    // Messages
+    Header.Zasm_error = `${ct.red(ct.bold('Z# intermediate Error'))}!`;
+    Header.Z_bug = `${ct.red(ct.bold('This should not happen'))}!`;
+    Header.Zasm_bug = hyperlink('Report', 'https://github.com/renderlabs-cloud/Z-Sharp/issues/new?template=Zasm_bug.yml');
+    // URLs
+    Header.docs = 'https://docs.zsharp.dev';
+    Header.github = 'https://github.com/renderlabs-cloud/Z-Sharp';
+    Header.discord = 'https://discord.gg/gGcbaBjtBS';
     function hyperlink(text, url, attrs) {
         return ct.blue(`\u001b]8;${attrs || ''};${url || text}\u0007${text}\u001b]8;;\u0007`);
     }
     Header.hyperlink = hyperlink;
     ;
     function bullets(data) {
-        return data.map((item) => `• ${item}`).join('\n');
+        return data.map((item) => `- ${item}`).join('\n');
     }
     Header.bullets = bullets;
     ;
     Header.header = ct.white(`
-:===: ${ct.red('Z#')} :===:
+:===: ${Header.zs} :===:
 
 ${bullets([
-        hyperlink('Documentation', 'https://docs.zsharp.dev'),
-        hyperlink('GitHub', 'https://github.com/renderlabs-cloud/Z-Sharp'),
-        hyperlink('Discord', 'https://discord.gg/gGcbaBjtBS'),
+        hyperlink('Documentation', Header.docs),
+        hyperlink('GitHub', Header.github),
+        hyperlink('Discord', Header.discord),
         hyperlink('Version', `https://npmjs.com/package/@zsharp/core/v/${package_json_1.default.version}`)
         // ? Perhaps add a support page?
     ])}
 		`);
-    Header.Zasm_error = `${ct.red(ct.bold('Z# intermediate Error'))}!`;
-    Header.Z_bug = `${ct.red(ct.bold('This should not happen! :\'('))}!`;
-    Header.Zasm_bug = hyperlink('Report', 'https://github.com/renderlabs-cloud/Z-Sharp/issues/new?template=Zasm_bug.yml');
-    Header.zs = ct.red('Z#');
     /**
      * Format a time in ms as a green string.
      * @param time The time in ms.
@@ -115,6 +122,16 @@ ${bullets([
     ;
     const ansiRegex = /\x1b\[[0-9;]*m/g;
     /**
+     * Formats a string as a green, double quoted string.
+     * @param data The string to format.
+     * @returns The formatted string.
+     */
+    function quote(data) {
+        return ct.green(`'${data}'`);
+    }
+    Header.quote = quote;
+    ;
+    /**
      * Format a string with color.
      * @param data The string to format.
      * @returns The formatted string.
@@ -137,5 +154,8 @@ ${bullets([
         return matches.length ? matches[matches.length - 1][0] : null;
     }
     ;
+    // Auto generated
+    // !! DO NOT EDIT
+    const Mooseworth = ``;
 })(Header || (exports.Header = Header = {}));
 ;

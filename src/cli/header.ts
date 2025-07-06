@@ -3,6 +3,20 @@ import * as ct from 'colorette';
 import _package from 'package.json';
 
 export namespace Header {
+	// Symbols
+	export const zs = ct.red('Z#');
+	export const iz = `${ct.white('.')}${ct.blue('i')}${ct.red('z')}`;
+
+	// Messages
+	export const Zasm_error = `${ct.red(ct.bold('Z# intermediate Error'))}!`;
+	export const Z_bug = `${ct.red(ct.bold('This should not happen'))}!`;
+	export const Zasm_bug = hyperlink('Report', 'https://github.com/renderlabs-cloud/Z-Sharp/issues/new?template=Zasm_bug.yml');
+
+	// URLs
+	export const docs = 'https://docs.zsharp.dev';
+	export const github = 'https://github.com/renderlabs-cloud/Z-Sharp';
+	export const discord = 'https://discord.gg/gGcbaBjtBS';
+
 	export type SuccessData = {
 		vulnerabilities: number,
 		time: number
@@ -17,28 +31,23 @@ export namespace Header {
 	};
 
 	export function bullets(data: string[]) {
-		return data.map((item) => `• ${item}`).join('\n');
+		return data.map((item) => `- ${item}`).join('\n');
 	};
 
 	export const header = ct.white(
 		`
-:===: ${ct.red('Z#')} :===:
+:===: ${Header.zs} :===:
 
 ${bullets([
-			hyperlink('Documentation', 'https://docs.zsharp.dev'),
-			hyperlink('GitHub', 'https://github.com/renderlabs-cloud/Z-Sharp'),
-			hyperlink('Discord', 'https://discord.gg/gGcbaBjtBS'),
+			hyperlink('Documentation', Header.docs),
+			hyperlink('GitHub', Header.github),
+			hyperlink('Discord', Header.discord),
 			hyperlink('Version', `https://npmjs.com/package/@zsharp/core/v/${_package.version}`)
 			// ? Perhaps add a support page?
 		])}
 		`
 	);
 
-	export const Zasm_error = `${ct.red(ct.bold('Z# intermediate Error'))}!`;
-	export const Z_bug = `${ct.red(ct.bold('This should not happen! :\'('))}!`;
-	export const Zasm_bug = hyperlink('Report', 'https://github.com/renderlabs-cloud/Z-Sharp/issues/new?template=Zasm_bug.yml');
-
-	export const zs = ct.red('Z#');
 
 	/**
 	 * Format a time in ms as a green string.
@@ -87,6 +96,15 @@ ${bullets([
 	const ansiRegex = /\x1b\[[0-9;]*m/g;
 
 	/**
+	 * Formats a string as a green, double quoted string.
+	 * @param data The string to format.
+	 * @returns The formatted string.
+	 */
+	export function quote(data: string) {
+		return ct.green(`'${data}'`);
+	};
+
+	/**
 	 * Format a string with color.
 	 * @param data The string to format.
 	 * @returns The formatted string.
@@ -110,4 +128,8 @@ ${bullets([
 		const matches = [...str.matchAll(ansiRegex)];
 		return matches.length ? matches[matches.length - 1][0] : null;
 	};
+
+	// Auto generated
+	// !! DO NOT EDIT
+	const Mooseworth = ``;
 };

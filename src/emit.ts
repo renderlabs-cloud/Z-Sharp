@@ -5,7 +5,8 @@ import * as os from 'os';
 
 import { Util } from '~/util';
 import iz_ASM from '~/asm/dist/z_S';
-import { Header } from './cli/header';
+import { Header } from '~/cli/header';
+import { Errors } from '~/error';
 
 export namespace Emit {
 
@@ -34,16 +35,20 @@ export namespace Emit {
 
 	async function runCommand(command: string, args: string[]): Promise<void> {
 		return new Promise((resolve, reject) => {
-			const proc = spawn(command, args, { stdio: 'inherit' });
+			const proc = spawn(command, args);
+			let stderr = '';
+			let handled = false;
 			proc.on('close', (code) => {
+				if (handled) return;
+				handled = true;
 				if (code === 0) resolve();
-				else reject(new Error(`Command "${command} ${args.join(' ')}" failed with exit code ${code}`));
+				else reject(`
+GCC exited with exit code: ${code}
+${stderr}
+`);
 			});
-			proc.on('error', (err) => {
-				Util.log(`
-${Header.Z_bug} ${Header.Zasm_bug}:
-${err.message}
-					 `);
+			proc.stderr?.on('data', (chunk) => {
+				stderr += chunk.toString();
 			});
 		});
 	};
@@ -63,10 +68,8 @@ ${err.message}
 		const cFile = path.join(tempDir, 'temp.c');
 		const asmFile = path.join(tempDir, 'temp.S');
 		const cOut = path.join(tempDir, 'temp_c.s');
-		const asmOut = path.join(tempDir, 'temp_asm.s');
 		const elfFile = path.join(tempDir, 'output.elf');
 
-		// Write C and ASM temp files
 		await fs.writeFile(SFile, iz_ASM);
 		await fs.writeFile(cFile, cSource);
 		await fs.writeFile(asmFile, asmSource);
@@ -74,13 +77,11 @@ ${err.message}
 		// Compile to object files
 		try {
 			await runCommand('gcc', ['-S', cFile, '-o', cOut]);
-			await runCommand('gcc', ['-S', asmFile, '-o', asmOut]);
-			Util.debug(await fs.readFile(asmOut));
 
 			// Link to ELF
-			await runCommand('gcc', [cOut, asmOut, '-o', elfFile]);
+			await runCommand('gcc', [cOut, SFile, asmFile, '-o', elfFile]);
 		} catch (err) {
-			// Util.error(err.message);
+			Util.error(new Errors.IZ.Bug(err as string), false);
 		};
 		// Read ELF binary buffer
 		const elfBuffer = await fs.readFile(elfFile);

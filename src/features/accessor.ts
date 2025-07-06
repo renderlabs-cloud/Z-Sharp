@@ -6,6 +6,7 @@ import { Identifier, IdentifierData } from '~/features/identifier';
 import { TypeRefData } from '~/features/type';
 import { ObjectLiteral, StringLiteral, ObjectLiteralData, StringLiteralData, } from '~/features/literal';
 import { FunctionCall, FunctionCallData } from '~/features/function';
+import { Variable, VariableData } from '~/features/variable';
 
 export enum PropertyType {
 	STRING,
@@ -13,7 +14,7 @@ export enum PropertyType {
 
 	CALL,
 
-	REF
+	REFERENCE
 };
 
 export type PropertyData = {
@@ -25,11 +26,14 @@ export type PropertyData = {
 
 		call?: FunctionCallData,
 
-		reference?: IdentifierData
+		reference?: PropertyData
 	},
 	is: PropertyType,
-	id: string
+	id: string,
+	relid: string
 };
+
+export type PropertyTypeData = NonNullable<PropertyData['value'][keyof PropertyData['value']]>;
 
 export class Accessor extends Feature.Feature<PropertyData> {
 	constructor() {
@@ -62,22 +66,36 @@ export class Accessor extends Feature.Feature<PropertyData> {
 		if (data?.declaration?.call) {
 			propertyData.is = PropertyType.CALL;
 			propertyData.value.call = new FunctionCall().create(data.declaration.call, scope, position).export;
+			propertyData.type = propertyData.value.call.function.type;
+			propertyData.relid = propertyData.value.call.id;
 		}
 
 		else if (data?.declaration?.object) {
 			propertyData.is = PropertyType.OBJECT;
 			propertyData.value.object = new ObjectLiteral().create(data.declaration.object, scope, position).export;
+			propertyData.type = { object: { fields: propertyData.value.object.fields } };
+			propertyData.relid = propertyData.value.object.id;
 		}
 
 		else if (data?.declaration?.string) {
 			propertyData.is = PropertyType.STRING;
 			propertyData.value.string = new StringLiteral().create(data.declaration.string, scope, position).export;
-			propertyData.type = { name: 'byte', list: { size: propertyData.value.string.data.length } };
+			propertyData.type = { name: 'byte', list: { size: propertyData.value.string.data.length - 1 } };
+			propertyData.relid = propertyData.value.string.id;
 		}
 
 		else if (data?.declaration?.reference) {
-			propertyData.is = PropertyType.REF;
-			propertyData.value.reference = new Identifier().create(data.declaration.reference, scope, position).export;
+			propertyData.is = PropertyType.REFERENCE;
+			let _variable = Variable.get({ accessor: data }, scope, position, true);
+			if (_variable) {
+				propertyData.type = _variable.type;
+				propertyData.value.reference = _variable.declaration;
+				propertyData.relid = propertyData.value.reference.id;
+			} else {
+				propertyData.value.reference = new Accessor().create(data.declaration.reference, scope, position).export;
+				propertyData.type = propertyData.value.reference.type;
+				propertyData.relid = propertyData.value.reference.relid;
+			};
 		}
 
 		else {
@@ -98,27 +116,31 @@ export class Accessor extends Feature.Feature<PropertyData> {
 		switch (propertyData.is) {
 			case PropertyType.STRING: {
 				content += `
-MOV RDI, REF(${propertyData.value.string?.id})
+MOV (Z8, REF(${propertyData.value.string?.id}))
 				`;
 				break;
 			};
 			case PropertyType.OBJECT: {
 				content += `
-MOV RDI, REF(${propertyData.value.object?.id})
+MOV (Z8, REF(${propertyData.value.object?.id}))
 				`;
 				break;
 			};
 			case PropertyType.CALL: {
 				content += `
-MOV R8, REF(${propertyData.value.call?.function.id})
-MOV R7, REF(${propertyData.value.call?.id})
+${(new FunctionCall).toAssemblyText(propertyData.value.call as FunctionCallData, scope)}
 				`;
+				break;
+			};
+			case PropertyType.REFERENCE: {
+				content += `${(new Accessor).toAssemblyText(propertyData.value.reference as PropertyData, scope)}`;
 				break;
 			};
 			default: {
 				content += `
 // ??? 
 				`;
+				break;
 			};
 		};
 
@@ -129,13 +151,24 @@ MOV R7, REF(${propertyData.value.call?.id})
 		let content = '';
 		switch (propertyData.is) {
 			case PropertyType.STRING: {
-				content += `${new StringLiteral().toAssemblyData(propertyData.value.string as StringLiteralData, scope)}`;
+				content += `${(new StringLiteral).toAssemblyData(propertyData.value.string as StringLiteralData, scope)}`;
+				break;
+			};
+			case PropertyType.OBJECT: {
+				content += `${(new ObjectLiteral).toAssemblyData(propertyData.value.object as ObjectLiteralData, scope)}`;
+				break;
+			};
+			case PropertyType.CALL: {
+				content += `${(new FunctionCall).toAssemblyData(propertyData.value.call as FunctionCallData, scope)}`;
+				break;
+			};
+			case PropertyType.REFERENCE: {
+				content += `${(new Accessor).toAssemblyData(propertyData.value.reference as PropertyData, scope)}`;
 				break;
 			};
 			default: {
-				content += `
-// ???
-				`;
+				content += '// ???\n';
+				break;
 			};
 		};
 		return content;

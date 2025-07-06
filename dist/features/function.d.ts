@@ -1,17 +1,17 @@
 import { Feature } from '~/feature';
 import { Syntax } from '~/syntax';
 import { Errors } from '~/error';
-import { TypeRef } from '~/features/type';
+import { TypeRefData } from '~/features/type';
 import { PropertyData } from '~/features/accessor';
 export type FunctionParameter = {
     name: string;
-    type: TypeRef;
+    type: TypeRefData;
     id: string;
 };
 export type FunctionData = {
     name: string;
     parameters: FunctionParameter[];
-    type: TypeRef;
+    type: TypeRefData;
     scope: Feature.Scope;
     body: Syntax.SyntaxData[];
     id: string;
@@ -29,13 +29,13 @@ export type FunctionCallData = {
 };
 export declare class Function extends Feature.Feature<FunctionData> {
     constructor();
-    static get(data: any, scope: Feature.Scope, position: Errors.Position): any;
+    static get(data: any, scope: Feature.Scope, position: Errors.Position): FunctionData | undefined | never;
     create: typeof Function.create;
     static create(data: any, scope: Feature.Scope, position: Errors.Position): {
         scope: Feature.Scope;
         export: FunctionData;
     };
-    toAssemblyText(functionData: FunctionData, scope: Feature.Scope): string;
+    toAssemblyText(functionData: FunctionData, scope: Feature.Scope): Promise<string>;
 }
 export declare class FunctionCall extends Feature.Feature<FunctionCallData> {
     constructor();

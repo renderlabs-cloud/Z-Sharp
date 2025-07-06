@@ -1,6 +1,10 @@
 #pragma once
-#include "pointer.S"
+#include "architecture.S"
 
 .macro SCOPE name
+	
+.endm
+
+.macro SCOPE_SET name, value
 	
 .endm

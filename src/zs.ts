@@ -13,6 +13,7 @@ import { BuiltIn } from '~/builtin';
 import { Util } from '~/util';
 
 import ora, { Ora } from 'ora';
+import { Sync } from 'syncing';
 import * as ct from 'colorette';
 
 export namespace Z {
@@ -32,7 +33,7 @@ export namespace Z {
 	 * @param path the path of the Z# file to compile, if any
 	 * @returns the compiled Z# intermediate assembly
 	 */
-	export function toIZ(content: string, importer: Importer, config: Project.Configuration, path?: string) {
+	export async function toIZ(content: string, importer: Importer, config: Project.Configuration, path?: string) {
 		const start = Date.now();
 
 		let assembly: string = '';
@@ -54,26 +55,31 @@ export namespace Z {
 			spinner.start();
 		};
 		try {
-			const parts = Parts.toParts(content, path);
 			let scope = new Feature.Scope(importer, 'main');
 			scope = BuiltIn.inject(scope);
 			const basePosition: Errors.Position = {
 				content,
 			};
-			const syntax = Syntax.toFeatures(parts, scope, basePosition, features, path);
-			assembly = Assembler.assemble(syntax, scope, config);
+			const compilation = new Promise<string>(async (resolve, reject) => {
+				const parts = Parts.toParts(content, path);
+				const syntax = Syntax.toFeatures(parts, scope, basePosition, features, path);
+				assembly = await Assembler.assemble(syntax, scope, config);
+				resolve(assembly);
+			});
 
+			assembly = await new Sync<string>(compilation).get() as string;
 			if (importer.cli) {
 				const end = Date.now();
 				spinner?.stopAndPersist({
 					text: message + ' - ' + Header.time(end - start),
 					symbol: ct.green('⠿')
 				});
-				console.log(Header.success({
+				Util.log(Header.success({
 					vulnerabilities: 0, // add later
 					time: end - start
 				}));
 			};
+			return assembly;
 		} catch (_err) {
 			if (importer.cli) {
 				spinner?.stopAndPersist({
@@ -81,10 +87,8 @@ export namespace Z {
 					symbol: ct.red('⠿')
 				});
 			};
-			Util.error(_err as Errors.MainError);
+			Util.error(_err as Errors.MainError, false);
 		};
-
-		return assembly;
 	};
 
 	/**

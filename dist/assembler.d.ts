@@ -16,5 +16,5 @@ export declare namespace Assembler {
      *
      * @returns A string of Z# assembly code.
      */
-    function assemble(syntaxData: Syntax.SyntaxData[], scope: Feature.Scope, config: Project.Configuration): string;
+    function assemble(syntaxData: Syntax.SyntaxData[], scope: Feature.Scope, config: Project.Configuration): Promise<string>;
 }

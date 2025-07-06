@@ -4,6 +4,7 @@ import { official } from '~/official';
 import { Project } from '~/project';
 import { Util } from '~/util';
 import { Format } from '~/format';
+import iz_ASM from '~/asm/dist/z_S';
 
 export namespace Assembler {
 	/**
@@ -20,29 +21,32 @@ export namespace Assembler {
 	 *
 	 * @returns A string of Z# assembly code.
 	 */
-	export function assemble(syntaxData: Syntax.SyntaxData[], scope: Feature.Scope, config: Project.Configuration) {
-		let content = Format.section({
+	export async function assemble(syntaxData: Syntax.SyntaxData[], scope: Feature.Scope, config: Project.Configuration) {
+		let text = Format.section.start({
 			type: '.text',
 			label: scope.label
 		});
-		let data = Format.section({
-			type: '.data'
+		let data = Format.section.start({
+			type: '.data',
+			label: 'data'
 		});
 
 		for (const _data of syntaxData) {
-			content += _data.feature.toAssemblyText(_data.export, _data.scope);
-			data += _data.feature.toAssemblyData(_data.export, _data.scope)
+			text += await _data.feature.toAssemblyText(_data.export, _data.scope);
+			data += await _data.feature.toAssemblyData(_data.export, _data.scope);
 		};
-		// Util.debug(scope);
-		content = data + content;
+		text = text + Format.section.end();
+		data = data + Format.section.end();
+		text = data + text;
 		return (scope.label == 'main' ? `
-#pragma block ASM
-#include "z.S"
+${iz_ASM.slice(iz_ASM.indexOf('#pragma section legal') + '#pragma section legal'.length, iz_ASM.indexOf('#pragma section end'))}
 /**
  * 🫎 Mooseworth is here!
  * ${Format.comment([`Author: ${config?.Project?.Author.name}`, `Contributors: ${config?.Project?.Contributors?.names.join('\t\n')}`])}
  */
-` : '') + content.replace(/\n{1,2}(\s*)/gm, '\n$1') + (scope.label == 'main' ? `
+#pragma block ASM
+#include "z.S"
+` : '') + text.replace(/\n{1,2}(\s*)/gm, '\n$1') + (scope.label == 'main' ? `
 #pragma block end
 ` : '');
 	};

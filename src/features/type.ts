@@ -5,13 +5,15 @@ import { Identifier } from '~/features/identifier';
 import { PropertyData } from '~/features/accessor';
 import { FunctionData } from '~/features/function';
 import { ListTypeData, List } from '~/features/list';
+import { ObjectTypeData } from '~/features/object';
+import { Accessor } from '~/features/accessor';
 import { Util } from '~/util';
 
 import lodash from 'lodash';
 
 type TypeField = {
 	name: string,
-	type: TypeRef,
+	type: TypeRefData,
 	comma: boolean
 	id: string;
 };
@@ -35,6 +37,7 @@ export type TypeRefData = {
 	build?: TypeRefBuildPart[],
 	fields?: TypeFields,
 	list?: ListTypeData,
+	object?: ObjectTypeData,
 	class?: {
 		extends: TypeRefData[],
 		implements: TypeRefData[],
@@ -72,24 +75,33 @@ export class Type extends Feature.Feature<TypeRefData> {
 		]);
 	};
 
-	public static get(data: any, scope: Feature.Scope): TypeRefData | null {
+	public static get(data: any, scope: Feature.Scope, position: Errors.Position): TypeRefData | null {
 		if (data?.type?.alias) {
-			const alias = Identifier.create(data.type.alias, scope, {}).export;
+			const alias = Identifier.create(data.type.alias, scope, position).export;
 			const name = scope.flatten(alias.path);
 			return scope.get(`type.${scope.resolve(name)}`) as TypeRefData || null;
 		};
 
 		return null;
 	};
+
 	public static toString(type: TypeRefData) {
 		let content = '';
-		content += type.name;
+		content += type.name ?? '';
 		if (type?.generic?.length) {
 			content += '<';
 			content += type.generic.map((v: any) => {
 				return Type.toString(v);
 			}).join(', ');
 			content += '>';
+		};
+		if (type?.object) {
+			content += '{';
+			content += type.object.fields.map((v: TypeRefData) => {
+				Util.debug(v);
+				return `${v.name}: ${Type.toString(v)}`;
+			}).join(', ');
+			content += '}';
 		};
 		if (type?.list) {
 			content += '[';
@@ -122,7 +134,7 @@ export class Type extends Feature.Feature<TypeRefData> {
 		return false;
 	};
 	public static incompatible(type1: TypeRefData, type2: TypeRefData, position: Errors.Position): never {
-		throw new Errors.Syntax.Generic(`Type ${Type.toString(type2)} is incompatible with type ${Type.toString(type1)}`, position);
+		Util.error(new Errors.Syntax.Generic(`Type ${Type.toString(type2)} is incompatible with type ${Type.toString(type1)}`, position));
 	};
 	public create = Type.create;
 	public static create(data: any, scope: Feature.Scope, position: Errors.Position): Feature.Return<TypeRefData> {
@@ -134,16 +146,22 @@ export class Type extends Feature.Feature<TypeRefData> {
 			for (const i in data.type.fields) {
 				const item = data.type.fields[i];
 				if (!item.comma && Number(i) < data.type.fields.length - 1) {
-					throw new Errors.Syntax.Generic(data.type.fields[String(Number(i) + 1)], position);
+					Util.error(new Errors.Syntax.Generic(data.type.fields[String(Number(i) + 1)], position));
 				};
 				item.id = scope.alias(item.name);
+				let _type = Type.get(item.typeRef, scope, position);
+				if (!_type) {
+					Util.error(new Errors.Reference.Undefined(item.typeRef, position));
+				};
+				item.type = _type;
+
 				// Check if type is defined
 				if (typeFields.fields?.map((v: TypeField) => {
 					return v?.name == item?.name && v && item;
 				}).includes(true)) {
-					throw new Errors.Syntax.Duplicate(item.name, position);
+					Util.error(new Errors.Syntax.Duplicate(item.name, position));
 				};
-				scope.set(`type_field.${item.id}`, item);
+				scope.set(`type_field.${item.id}`, _type);
 				typeFields.fields?.push(item);
 			};
 			typeData.fields = typeFields;
@@ -153,33 +171,19 @@ export class Type extends Feature.Feature<TypeRefData> {
 		return { scope, export: typeData };
 	};
 
-	public toAssemblyText(typeData: TypeRefData, scope: Feature.Scope) {
-		let content = `
-TYPE ${(typeData as any)?.id}
-		`;
-		for (const _field of typeData.fields?.fields || []) {
-			const field = _field as any;
-			content += `
-	TYPE_FIELD 
-			`;
-			const fieldType = Type.get(field.typeRef, scope);
-			if (!fieldType) {
-				throw new Errors.Reference.Undefined(field.name, field.position as Errors.Position);
-			};
-			if (fieldType.name == 'byte') {
-				content += 'BYTE, ';
+	public toAssemblyData(typeData: TypeRefData, scope: Feature.Scope) {
+		let content = `TYPE ${(typeData as any)?.id}\n`;
+		for (const field of typeData.fields?.fields || []) {
+			content += '\tTYPE_FIELD ';
+			if (field.type.name == 'byte') {
+				content += `BYTE, ${field.name}, ${field.type.list?.size || ''}\n`;
 			} else {
 
 			};
 
-			content += `
-${fieldType.id}, 
-			`;
-
+			content += `// ??? \n`;
 		};
-		content += `
-TYPE_END
-		`;
+		content += 'TYPE_END\n';
 		return content;
 	};
 };
@@ -204,11 +208,8 @@ export class TypeRef extends Feature.Feature<TypeRefData> {
 	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
 		let typeRef: TypeRefData = {};
 
-		Util.debug(`Data`, data);
-
 		if (data?.type?.alias) {
-			typeRef = Type.get(data, scope) || {};
-			Util.debug(`TypeRef from alias created`, typeRef);
+			typeRef = Type.get(data, scope, position) ?? {};
 		};
 		if (data?.list) {
 			const list = List.create(data.list, scope, position).export;

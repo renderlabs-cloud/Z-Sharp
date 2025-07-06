@@ -4,5 +4,8 @@ export declare namespace Format {
         label?: string;
     };
     function comment(content: string[]): string;
-    function section(header: SectionHeader): string;
+    namespace section {
+        function start(header: SectionHeader): string;
+        function end(): string;
+    }
 }

@@ -54,7 +54,7 @@ export namespace Feature {
 		 * @param scope The scope in which the feature is being converted.
 		 * @returns The assembly text representation of the feature.
 		 */
-		public toAssemblyText(data: any, scope: Scope): string {
+		public toAssemblyText(data: any, scope: Scope): string | Promise<string> {
 			return '';
 		};
 		/**
@@ -64,7 +64,7 @@ export namespace Feature {
 		 * @returns The assembly data representation of the feature.
 		 */
 
-		public toAssemblyData(data: any, scope: Scope): string {
+		public toAssemblyData(data: any, scope: Scope): string | Promise<string> {
 			return '';
 		};
 		/**
@@ -317,7 +317,7 @@ export namespace Feature {
 		 * @returns A string representation of a random numeric identifier.
 		 */
 		public generateRandomId() {
-			return String(Math.round(Math.random() * 10 ** 10));
+			return `s${String(Math.round(Math.random() * 10 ** 10))}`;
 		};
 
 		/**
@@ -331,6 +331,7 @@ export namespace Feature {
 		public _data: any;
 		public _alias: any;
 		public _return: any = [];
+		public _asm_data: Record<string, boolean> = {};
 		public id: string;
 	};
 };

@@ -5,7 +5,7 @@ import { TypeRef, TypeRefData } from '~/features/type';
 import { Util } from '~/util';
 
 export type ListTypeData = {
-	size: number,
+	size?: number,
 	type?: TypeRefData
 };
 

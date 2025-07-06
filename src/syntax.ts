@@ -2,6 +2,7 @@ import { Feature } from '~/feature';
 import { Parts } from '~/parts';
 import { Errors } from '~/error';
 import { official } from '~/official';
+import { Util } from '~/util';
 
 export namespace Syntax {
 	export type SyntaxData = {
@@ -38,7 +39,7 @@ export namespace Syntax {
 			for (const feature of features) {
 				const match = feature.match(parts);
 				if (match) {
-					const data = feature.create?.(match.exports, scope, position);
+					const data = feature.create?.(match.exports, scope, parts[i]?.position || position);
 					syntax.push({ export: data.export, scope: data.scope, feature: feature });
 					parts = parts.slice(match.length);
 					foundMatch = true;
@@ -47,7 +48,7 @@ export namespace Syntax {
 				i++;
 			};
 			if (!foundMatch) {
-				throw new Errors.Syntax.Generic(contents, position);
+				Util.error(new Errors.Syntax.Generic(contents, position));
 			};
 			foundMatch = false;
 		};

@@ -14,3 +14,5 @@
 #include "variable.S"
 #include "function.S"
 #include "type.S"
+
+#include "scope.S"

@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Syntax = void 0;
 const error_1 = require("~/error");
 const official_1 = require("~/official");
+const util_1 = require("~/util");
 var Syntax;
 (function (Syntax) {
     /**
@@ -33,7 +34,7 @@ var Syntax;
             for (const feature of features) {
                 const match = feature.match(parts);
                 if (match) {
-                    const data = feature.create?.(match.exports, scope, position);
+                    const data = feature.create?.(match.exports, scope, parts[i]?.position || position);
                     syntax.push({ export: data.export, scope: data.scope, feature: feature });
                     parts = parts.slice(match.length);
                     foundMatch = true;
@@ -44,7 +45,7 @@ var Syntax;
             }
             ;
             if (!foundMatch) {
-                throw new error_1.Errors.Syntax.Generic(contents, position);
+                util_1.Util.error(new error_1.Errors.Syntax.Generic(contents, position));
             }
             ;
             foundMatch = false;

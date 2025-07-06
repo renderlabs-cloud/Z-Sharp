@@ -15,7 +15,7 @@ export declare namespace Z {
      * @param path the path of the Z# file to compile, if any
      * @returns the compiled Z# intermediate assembly
      */
-    function toIZ(content: string, importer: Importer, config: Project.Configuration, path?: string): string;
+    function toIZ(content: string, importer: Importer, config: Project.Configuration, path?: string): Promise<string>;
     /**
      * Emit the given Z# intermediate assembly into a binary file.
      *

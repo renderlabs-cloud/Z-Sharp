@@ -1,6 +1,5 @@
 import { Feature } from '~/feature';
 import { Errors } from '~/error';
-import { IdentifierData } from '~/features/identifier';
 import { TypeRefData } from '~/features/type';
 import { ObjectLiteralData, StringLiteralData } from '~/features/literal';
 import { FunctionCallData } from '~/features/function';
@@ -8,7 +7,7 @@ export declare enum PropertyType {
     STRING = 0,
     OBJECT = 1,
     CALL = 2,
-    REF = 3
+    REFERENCE = 3
 }
 export type PropertyData = {
     type: TypeRefData;
@@ -16,11 +15,13 @@ export type PropertyData = {
         string?: StringLiteralData;
         object?: ObjectLiteralData;
         call?: FunctionCallData;
-        reference?: IdentifierData;
+        reference?: PropertyData;
     };
     is: PropertyType;
     id: string;
+    relid: string;
 };
+export type PropertyTypeData = NonNullable<PropertyData['value'][keyof PropertyData['value']]>;
 export declare class Accessor extends Feature.Feature<PropertyData> {
     constructor();
     create: typeof Accessor.create;

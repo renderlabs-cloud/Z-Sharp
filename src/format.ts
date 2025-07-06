@@ -1,6 +1,6 @@
 export namespace Format {
 	export type SectionHeader = {
-		type: 
+		type:
 		| '.text'
 		| '.data'
 		| '.bss'
@@ -9,13 +9,18 @@ export namespace Format {
 	export function comment(content: string[]) {
 		return content.join('\n * ');
 	};
-	export function section(header: SectionHeader) {
-		return `
+	export namespace section {
+		export function start(header: SectionHeader) {
+			return `
 .section ${header.type}
 ${header.label ? `
-#pragma section ${header.label}
-`: ''}
-		`;
+#pragma section ${header.label}` : ''}
+`;
+		};
+		export function end() {
+			return `
+#pragma section end
+`;
+		};
 	};
-	// Add compiler readable comments
 };

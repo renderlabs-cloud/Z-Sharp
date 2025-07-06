@@ -2,7 +2,7 @@ import { Feature } from '~/feature';
 import { Errors } from '~/error';
 import { TypeRefData } from '~/features/type';
 export type ListTypeData = {
-    size: number;
+    size?: number;
     type?: TypeRefData;
 };
 export declare class List extends Feature.Feature<ListTypeData> {

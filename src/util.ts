@@ -2,9 +2,11 @@ import util from 'node:util';
 import * as ct from 'colorette';
 import os from 'os';
 import { Worker } from 'worker_threads';
+import ora, { Ora } from 'ora';
 
 import { Errors } from '~/error';
 import { Header } from '~/cli/header';
+import { Feature } from '~/feature';
 
 export namespace Util {
 	/**
@@ -75,17 +77,35 @@ export namespace Util {
 		});
 	};
 
+	export function sleep(ms: number) {
+		return new Promise((resolve) => {
+			setTimeout(resolve, ms);
+		});
+	};
+
+	/**
+	 * Exits the process cleanly.
+	 *
+	 * This function is intended to be attached to process events like `SIGINT` and `SIGTERM`.
+	 */
+	export function terminate() {
+		Util.log('Exiting...');
+		process.exit(0);
+	};
+
 	/**
 	 * Logs the error message, stack trace, and failure details, then exits the process.
 	 *
 	 * @param err An instance of `Errors.MainError` containing the error details to be logged.
 	 */
-	export function error(err: Errors.MainError): never {
-		console.log(err.message, err.stack);
-		console.log(Header.failure({
-			errors: err.count || 1
-		}));
-		console.debug(err.stack);
+	export function error(err: Errors.MainError, codeError: boolean = true): never {
+		console.log('\n', err.message);
+		if (codeError) {
+			console.log(Header.failure({
+				errors: err.count || 1
+			}));
+		};
+
 		process.exit(1);
 	};
 
@@ -97,8 +117,12 @@ export namespace Util {
 
 	export function debug(...args: any[]) {
 		for (const arg of args) {
-			console.log(`[${ct.magenta('DEBUG')}:${new Error().stack?.split('\n')[2].replace('\t', '')}]: ${util.inspect(arg, { colors: true, depth: Infinity })}`);
+			console.log('\n', `[${ct.magenta('DEBUG')}:${new Error().stack?.split('\n')[2].replace('\t', '')}]: ${util.inspect(arg, { colors: true, depth: Infinity })}`);
 		};
+	};
+
+	export function debugScope(scope: Feature.Scope) {
+		Util.debug(scope._data);
 	};
 
 	/**
@@ -107,6 +131,6 @@ export namespace Util {
 	 * @param args A list of arguments to be logged.
 	 */
 	export function log(...args: any[]) {
-		console.log(...args);
+		console.log('\n', ...args);
 	};
 };

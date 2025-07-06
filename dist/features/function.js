@@ -5,10 +5,13 @@ const feature_1 = require("~/feature");
 const parts_1 = require("~/parts");
 const syntax_1 = require("~/syntax");
 const assembler_1 = require("~/assembler");
+const util_1 = require("~/util");
+const error_1 = require("~/error");
 const type_1 = require("~/features/type");
 const accessor_1 = require("~/features/accessor");
 const body_1 = require("~/features/body");
 const identifier_1 = require("~/features/identifier");
+const variable_1 = require("~/features/variable");
 class Function extends feature_1.Feature.Feature {
     constructor() {
         super([
@@ -32,9 +35,12 @@ class Function extends feature_1.Feature.Feature {
     ;
     static get(data, scope, position) {
         if (data.function) {
-            // Update !!!
-            const functionData = identifier_1.Identifier.create(data.function.declaration.reference, scope, position).export;
-            const _function = scope.get(`function.${scope.resolve(scope.flatten(functionData.path))}`);
+            const identifier = identifier_1.Identifier.create(data.function.declaration.reference, scope, position).export;
+            const _function = scope.get(`function.${scope.resolve(scope.flatten(identifier.path))}`);
+            if (!_function) {
+                util_1.Util.error(new error_1.Errors.Syntax.Generic(`Function ${scope.flatten(identifier.path)} not defined`, position));
+            }
+            ;
             return _function;
         }
         ;
@@ -46,23 +52,28 @@ class Function extends feature_1.Feature.Feature {
         functionData.name = data.name;
         functionData.id = scope.alias(functionData.name);
         functionData.scope = new feature_1.Feature.Scope(scope.importer, functionData.name, scope);
-        functionData.type = data.type;
-        functionData.parameters = data.parameters;
+        functionData.type = type_1.Type.get(data.type, scope, position) ?? {};
+        functionData.parameters = [];
+        for (const parameter of data.parameters) {
+            const type = type_1.Type.get(parameter.type, scope, position);
+            parameter.id = functionData.scope.alias(parameter.name);
+            functionData.parameters.push({ name: parameter.name, type: type ?? {}, id: parameter.id });
+        }
+        ;
         const features = syntax_1.Syntax.toFeatures(data.body.parts, functionData.scope, position);
         functionData.body = features;
         scope.set(`function.${functionData.id}`, functionData);
         return { scope, export: functionData };
     }
     ;
-    toAssemblyText(functionData, scope) {
+    async toAssemblyText(functionData, scope) {
         let content = `
 /* Function ${functionData.name} */\nFUNC ${functionData.id}, PARAMS
 		`;
         for (const parameter of functionData.parameters) {
-            const type = type_1.Type.get(parameter.type, scope);
             parameter.id = functionData.scope.alias(parameter.name);
             content += `
-PARAM ${type?.id}, ${parameter.id}
+PARAM ${parameter.type.id}, ${parameter.id}
 			`;
         }
         ;
@@ -70,7 +81,7 @@ PARAM ${type?.id}, ${parameter.id}
 PARAMS_END
 		`;
         content += `
-${assembler_1.Assembler.assemble(functionData.body, functionData.scope, {})}
+${await assembler_1.Assembler.assemble(functionData.body, functionData.scope, {})}
 FUNC_END
 		`;
         return content;
@@ -98,26 +109,39 @@ class FunctionCall extends feature_1.Feature.Feature {
     create = FunctionCall.create;
     static create(data, scope, position) {
         const callData = { parameters: {} };
-        const _function = Function.get(data, scope, position);
+        const _function = Function.get(data, scope, position) || {};
         callData.function = _function;
-        callData.parameters.value = data.parameters;
+        callData.parameters.value = [];
         callData.id = scope.alias(scope.generateRandomId());
+        let i = 0;
+        for (const parameter of data.parameters) {
+            const _variable = variable_1.Variable.get(parameter, scope, position) ?? {};
+            const accessor = _variable.declaration;
+            callData.parameters.value.push({ value: accessor });
+            if (!type_1.Type.isCompatible(_function.parameters[i].type, accessor.type)) {
+                util_1.Util.error(new error_1.Errors.Syntax.Generic(`Parameter ${i + 1} of type ${type_1.Type.toString(accessor.type)} is not compatible with type ${type_1.Type.toString(_function.parameters[i].type)}`, position));
+            }
+            ;
+            i++;
+        }
+        ;
         scope.set(`function_call_parameters.${callData.id}`, callData);
         return { scope: scope, export: callData };
     }
     ;
     toAssemblyText(callData, scope) {
         let content = `
-MOV R8, ${callData.function.id}
-MOV R7, ${callData.id}
-CALL R8
+/* Function call ${callData.function.name} */
+MOV (Z7, ${callData.id})
+MOV (Z8, ${callData.function.id})
+CALL (Z8)
 		`;
         return content;
     }
     ;
     toAssemblyData(callData, scope) {
         let content = `
-		${callData.id}:
+${callData.id}:
 		`;
         for (const parameter of callData.parameters.value) {
             content += `

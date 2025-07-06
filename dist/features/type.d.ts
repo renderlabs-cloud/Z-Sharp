@@ -3,9 +3,10 @@ import { Errors } from '~/error';
 import { PropertyData } from '~/features/accessor';
 import { FunctionData } from '~/features/function';
 import { ListTypeData } from '~/features/list';
+import { ObjectTypeData } from '~/features/object';
 type TypeField = {
     name: string;
-    type: TypeRef;
+    type: TypeRefData;
     comma: boolean;
     id: string;
 };
@@ -21,6 +22,7 @@ export type TypeRefData = {
     build?: TypeRefBuildPart[];
     fields?: TypeFields;
     list?: ListTypeData;
+    object?: ObjectTypeData;
     class?: {
         extends: TypeRefData[];
         implements: TypeRefData[];
@@ -31,13 +33,13 @@ export type TypeRefData = {
 };
 export declare class Type extends Feature.Feature<TypeRefData> {
     constructor();
-    static get(data: any, scope: Feature.Scope): TypeRefData | null;
+    static get(data: any, scope: Feature.Scope, position: Errors.Position): TypeRefData | null;
     static toString(type: TypeRefData): string;
     static isCompatible(type1: TypeRefData, type2: TypeRefData): boolean;
     static incompatible(type1: TypeRefData, type2: TypeRefData, position: Errors.Position): never;
     create: typeof Type.create;
     static create(data: any, scope: Feature.Scope, position: Errors.Position): Feature.Return<TypeRefData>;
-    toAssemblyText(typeData: TypeRefData, scope: Feature.Scope): string;
+    toAssemblyData(typeData: TypeRefData, scope: Feature.Scope): string;
 }
 export declare class TypeRef extends Feature.Feature<TypeRefData> {
     constructor();

@@ -1,9 +1,25 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StringLiteral = exports.ObjectLiteral = void 0;
+exports.toPaddedBytes = toPaddedBytes;
 const feature_1 = require("~/feature");
 const parts_1 = require("~/parts");
 const accessor_1 = require("~/features/accessor");
+const util_1 = require("~/util");
+function toPaddedBytes(data, tabs = 8, row = 8) {
+    let wrap = row;
+    return Array.from(data).map(c => {
+        return `0x${c.charCodeAt(0).toString(16)}`;
+    }).map((v) => {
+        if (wrap++ >= row) {
+            wrap = 0;
+            return `\\\n${('\t').repeat(tabs)}${v}`;
+        }
+        ;
+        return v;
+    }).join(', ');
+}
+;
 class ObjectLiteral extends feature_1.Feature.Feature {
     constructor() {
         super([
@@ -14,7 +30,7 @@ class ObjectLiteral extends feature_1.Feature.Feature {
                     { 'part': { 'type': parts_1.Parts.PartType.COLON } },
                     { 'feature': { 'type': accessor_1.Accessor }, 'export': 'value' },
                     { 'part': { 'type': parts_1.Parts.PartType.COMMA }, 'export': 'comma', 'required': false },
-                ], 'export': 'fields', 'required': false // Not like we are going to have a type with no fields though
+                ], 'export': 'fields', 'required': false
             },
             { 'part': { 'type': parts_1.Parts.PartType.CURLY_BRACKET_CLOSE } }
         ]);
@@ -23,16 +39,36 @@ class ObjectLiteral extends feature_1.Feature.Feature {
     create = ObjectLiteral.create;
     static create(data, scope, position) {
         const objectData = { fields: [] };
-        for (const field of data.fields) {
+        for (const field of data.fields ?? []) {
+            const value = accessor_1.Accessor.create(field.value, scope, position).export;
             objectData.fields.push({
                 name: field.name,
-                value: field.value
+                value: value,
             });
         }
         ;
         objectData.id = scope.alias(scope.generateRandomId());
         scope.set(`literal.${objectData.id}`, objectData);
         return { scope: scope, export: objectData };
+    }
+    ;
+    toAssemblyData(objectData, scope) {
+        let content = '';
+        if (scope._asm_data[objectData.id]) {
+            return '';
+        }
+        ;
+        content += `
+/* Object Literal */
+${objectData.id}:
+	${objectData.fields.map((field) => {
+            util_1.Util.debug(field);
+            return `
+${(new accessor_1.Accessor).toAssemblyData(field.value, scope)}
+		`;
+        }).join('')}
+		`;
+        return content;
     }
     ;
 }
@@ -67,9 +103,14 @@ class StringLiteral extends feature_1.Feature.Feature {
     }
     ;
     toAssemblyData(stringLiteralData, scope) {
+        if (scope._asm_data[stringLiteralData.id]) {
+            return '';
+        }
+        ;
         let content = `
 ${stringLiteralData.id}:
-	.asciz "${stringLiteralData.data}"
+	.4byte ${toPaddedBytes(stringLiteralData.data, 2, 16)}
+	${stringLiteralData.id}_len = . - ${stringLiteralData.id} 
 		`;
         return content;
     }

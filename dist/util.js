@@ -119,17 +119,37 @@ var Util;
     }
     Util.runInWorker = runInWorker;
     ;
+    function sleep(ms) {
+        return new Promise((resolve) => {
+            setTimeout(resolve, ms);
+        });
+    }
+    Util.sleep = sleep;
+    ;
+    /**
+     * Exits the process cleanly.
+     *
+     * This function is intended to be attached to process events like `SIGINT` and `SIGTERM`.
+     */
+    function terminate() {
+        Util.log('Exiting...');
+        process.exit(0);
+    }
+    Util.terminate = terminate;
+    ;
     /**
      * Logs the error message, stack trace, and failure details, then exits the process.
      *
      * @param err An instance of `Errors.MainError` containing the error details to be logged.
      */
-    function error(err) {
-        console.log(err.message, err.stack);
-        console.log(header_1.Header.failure({
-            errors: err.count || 1
-        }));
-        console.debug(err.stack);
+    function error(err, codeError = true) {
+        console.log('\n', err.message);
+        if (codeError) {
+            console.log(header_1.Header.failure({
+                errors: err.count || 1
+            }));
+        }
+        ;
         process.exit(1);
     }
     Util.error = error;
@@ -141,11 +161,16 @@ var Util;
      */
     function debug(...args) {
         for (const arg of args) {
-            console.log(`[${ct.magenta('DEBUG')}:${new Error().stack?.split('\n')[2].replace('\t', '')}]: ${node_util_1.default.inspect(arg, { colors: true, depth: Infinity })}`);
+            console.log('\n', `[${ct.magenta('DEBUG')}:${new Error().stack?.split('\n')[2].replace('\t', '')}]: ${node_util_1.default.inspect(arg, { colors: true, depth: Infinity })}`);
         }
         ;
     }
     Util.debug = debug;
+    ;
+    function debugScope(scope) {
+        Util.debug(scope._data);
+    }
+    Util.debugScope = debugScope;
     ;
     /**
      * Logs the provided arguments.
@@ -153,7 +178,7 @@ var Util;
      * @param args A list of arguments to be logged.
      */
     function log(...args) {
-        console.log(...args);
+        console.log('\n', ...args);
     }
     Util.log = log;
     ;

@@ -8,16 +8,25 @@ var Format;
     }
     Format.comment = comment;
     ;
-    function section(header) {
-        return `
+    let section;
+    (function (section) {
+        function start(header) {
+            return `
 .section ${header.type}
 ${header.label ? `
-#pragma section ${header.label}
-` : ''}
-		`;
-    }
-    Format.section = section;
+#pragma section ${header.label}` : ''}
+`;
+        }
+        section.start = start;
+        ;
+        function end() {
+            return `
+#pragma section end
+`;
+        }
+        section.end = end;
+        ;
+    })(section = Format.section || (Format.section = {}));
     ;
-    // Add compiler readable comments
 })(Format || (exports.Format = Format = {}));
 ;

@@ -39,9 +39,9 @@ class Type extends feature_1.Feature.Feature {
         ]);
     }
     ;
-    static get(data, scope) {
+    static get(data, scope, position) {
         if (data?.type?.alias) {
-            const alias = identifier_1.Identifier.create(data.type.alias, scope, {}).export;
+            const alias = identifier_1.Identifier.create(data.type.alias, scope, position).export;
             const name = scope.flatten(alias.path);
             return scope.get(`type.${scope.resolve(name)}`) || null;
         }
@@ -58,6 +58,15 @@ class Type extends feature_1.Feature.Feature {
                 return Type.toString(v);
             }).join(', ');
             content += '>';
+        }
+        ;
+        if (type?.object) {
+            content += '{';
+            content += type.object.fields.map((v) => {
+                util_1.Util.debug(v);
+                return `${v.name}: ${Type.toString(v)}`;
+            }).join(', ');
+            content += '}';
         }
         ;
         if (type?.list) {
@@ -96,7 +105,7 @@ class Type extends feature_1.Feature.Feature {
     }
     ;
     static incompatible(type1, type2, position) {
-        throw new error_1.Errors.Syntax.Generic(`Type ${Type.toString(type2)} is incompatible with type ${Type.toString(type1)}`, position);
+        util_1.Util.error(new error_1.Errors.Syntax.Generic(`Type ${Type.toString(type2)} is incompatible with type ${Type.toString(type1)}`, position));
     }
     ;
     create = Type.create;
@@ -109,18 +118,24 @@ class Type extends feature_1.Feature.Feature {
             for (const i in data.type.fields) {
                 const item = data.type.fields[i];
                 if (!item.comma && Number(i) < data.type.fields.length - 1) {
-                    throw new error_1.Errors.Syntax.Generic(data.type.fields[String(Number(i) + 1)], position);
+                    util_1.Util.error(new error_1.Errors.Syntax.Generic(data.type.fields[String(Number(i) + 1)], position));
                 }
                 ;
                 item.id = scope.alias(item.name);
+                let _type = Type.get(item.typeRef, scope, position);
+                if (!_type) {
+                    util_1.Util.error(new error_1.Errors.Reference.Undefined(item.typeRef, position));
+                }
+                ;
+                item.type = _type;
                 // Check if type is defined
                 if (typeFields.fields?.map((v) => {
                     return v?.name == item?.name && v && item;
                 }).includes(true)) {
-                    throw new error_1.Errors.Syntax.Duplicate(item.name, position);
+                    util_1.Util.error(new error_1.Errors.Syntax.Duplicate(item.name, position));
                 }
                 ;
-                scope.set(`type_field.${item.id}`, item);
+                scope.set(`type_field.${item.id}`, _type);
                 typeFields.fields?.push(item);
             }
             ;
@@ -131,34 +146,20 @@ class Type extends feature_1.Feature.Feature {
         return { scope, export: typeData };
     }
     ;
-    toAssemblyText(typeData, scope) {
-        let content = `
-TYPE ${typeData?.id}
-		`;
-        for (const _field of typeData.fields?.fields || []) {
-            const field = _field;
-            content += `
-	TYPE_FIELD 
-			`;
-            const fieldType = Type.get(field.typeRef, scope);
-            if (!fieldType) {
-                throw new error_1.Errors.Reference.Undefined(field.name, field.position);
-            }
-            ;
-            if (fieldType.name == 'byte') {
-                content += 'BYTE, ';
+    toAssemblyData(typeData, scope) {
+        let content = `TYPE ${typeData?.id}\n`;
+        for (const field of typeData.fields?.fields || []) {
+            content += '\tTYPE_FIELD ';
+            if (field.type.name == 'byte') {
+                content += `BYTE, ${field.name}, ${field.type.list?.size || ''}\n`;
             }
             else {
             }
             ;
-            content += `
-${fieldType.id}, 
-			`;
+            content += `// ??? \n`;
         }
         ;
-        content += `
-TYPE_END
-		`;
+        content += 'TYPE_END\n';
         return content;
     }
     ;
@@ -185,10 +186,8 @@ class TypeRef extends feature_1.Feature.Feature {
     create = TypeRef.create;
     static create(data, scope, position) {
         let typeRef = {};
-        util_1.Util.debug(`Data`, data);
         if (data?.type?.alias) {
-            typeRef = Type.get(data, scope) || {};
-            util_1.Util.debug(`TypeRef from alias created`, typeRef);
+            typeRef = Type.get(data, scope, position) ?? {};
         }
         ;
         if (data?.list) {

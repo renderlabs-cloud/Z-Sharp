@@ -5,18 +5,18 @@
 /**
  * # Register usage
  *
- * R0 - R4  : Mnemonic control
- * R5       : Scope
- * R6       : Selector control
- * R7       : Parameters
- * R8       : Call control
- * R9       : Stack control
- * R10 - R13: Unallocated
- * R14      : Debugger control
- * R15      : Temporary
+ * Z0 - Z4  : Mnemonic control
+ * Z5       : Scope
+ * Z6       : Selector control
+ * Z7       : Parameters
+ * Z8       : Control flow
+ * Z9       : Stack control
+ * Z10 - Z13: Unallocated
+ * Z14      : Debugger control
+ * Z15      : Temporary
  */
 
-# Architecture mapping
+/* Architecture mapping */
 
 /* x86_64 (64-bit) */
 #if defined(__x86_64__) || defined(__amd64__)
@@ -127,6 +127,23 @@
 #else
 	#error "Unsupported architecture for register mapping"
 #endif
+
+/* Z# Virtual registers */
+#define Z0  RAX
+#define Z1  RBX
+#define Z2  RCX
+#define Z3  RDX
+#define Z4  RSI
+#define Z5  RDI
+#define Z6  RBP
+#define Z7  R8
+#define Z8  R9
+#define Z9  R10
+#define Z10 R11
+#define Z11 R12
+#define Z12 R13
+#define Z13 R14
+#define Z14 R15
 
 .macro SAVE_R0_R4
 	PUSH (RAX)

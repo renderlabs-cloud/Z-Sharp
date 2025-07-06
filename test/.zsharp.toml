@@ -1,15 +1,15 @@
 [Project]
-name = 'test'
-version = [0, 0, 0]
-description = 'Test project for Z#'
+	name = 'test'
+	version = [0, 0, 0]
+	description = 'Test project for Z#'
 
 [Project.Author]
-name = ['Brendan', 'Lucas']
+	name = ['Brendan', 'Lucas']
 
 [Project.Contributors]
-names = [['Brendan', 'Lucas']]
+	names = [['Brendan', 'Lucas']]
 
 
 [[Mods]]
-source = '@zap/zap.mod.toml'
-config = '.zap.toml'
+	source = '@zap/zap.mod.toml'
+	config = '.zap.toml'

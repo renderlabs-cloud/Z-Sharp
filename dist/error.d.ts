@@ -68,4 +68,12 @@ export declare namespace Errors {
             }
         }
     }
+    namespace IZ {
+        class IZError extends MainError {
+            constructor(message: string);
+        }
+        class Bug extends IZError {
+            constructor(message: string);
+        }
+    }
 }

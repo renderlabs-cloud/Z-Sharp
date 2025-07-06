@@ -14,6 +14,7 @@ export type StringLiteralData = {
     id: string;
     interpolated: boolean;
 };
+export declare function toPaddedBytes(data: string, tabs?: number, row?: number): string;
 export declare class ObjectLiteral extends Feature.Feature<ObjectLiteralData> {
     constructor();
     create: typeof ObjectLiteral.create;
@@ -21,6 +22,7 @@ export declare class ObjectLiteral extends Feature.Feature<ObjectLiteralData> {
         scope: Feature.Scope;
         export: ObjectLiteralData;
     };
+    toAssemblyData(objectData: ObjectLiteralData, scope: Feature.Scope): string;
 }
 export declare class StringLiteral extends Feature.Feature<StringLiteralData> {
     constructor();

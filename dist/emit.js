@@ -43,7 +43,7 @@ const path = __importStar(require("path"));
 const os = __importStar(require("os"));
 const util_1 = require("~/util");
 const z_S_1 = __importDefault(require("~/asm/dist/z_S"));
-const header_1 = require("./cli/header");
+const error_1 = require("~/error");
 var Emit;
 (function (Emit) {
     async function parseIZFile(source) {
@@ -73,18 +73,23 @@ var Emit;
     ;
     async function runCommand(command, args) {
         return new Promise((resolve, reject) => {
-            const proc = (0, child_process_1.spawn)(command, args, { stdio: 'inherit' });
+            const proc = (0, child_process_1.spawn)(command, args);
+            let stderr = '';
+            let handled = false;
             proc.on('close', (code) => {
+                if (handled)
+                    return;
+                handled = true;
                 if (code === 0)
                     resolve();
                 else
-                    reject(new Error(`Command "${command} ${args.join(' ')}" failed with exit code ${code}`));
+                    reject(`
+GCC exited with exit code: ${code}
+${stderr}
+`);
             });
-            proc.on('error', (err) => {
-                util_1.Util.log(`
-${header_1.Header.Z_bug} ${header_1.Header.Zasm_bug}:
-${err.message}
-					 `);
+            proc.stderr?.on('data', (chunk) => {
+                stderr += chunk.toString();
             });
         });
     }
@@ -103,22 +108,18 @@ ${err.message}
         const cFile = path.join(tempDir, 'temp.c');
         const asmFile = path.join(tempDir, 'temp.S');
         const cOut = path.join(tempDir, 'temp_c.s');
-        const asmOut = path.join(tempDir, 'temp_asm.s');
         const elfFile = path.join(tempDir, 'output.elf');
-        // Write C and ASM temp files
         await fs.writeFile(SFile, z_S_1.default);
         await fs.writeFile(cFile, cSource);
         await fs.writeFile(asmFile, asmSource);
         // Compile to object files
         try {
             await runCommand('gcc', ['-S', cFile, '-o', cOut]);
-            await runCommand('gcc', ['-S', asmFile, '-o', asmOut]);
-            util_1.Util.debug(await fs.readFile(asmOut));
             // Link to ELF
-            await runCommand('gcc', [cOut, asmOut, '-o', elfFile]);
+            await runCommand('gcc', [cOut, SFile, asmFile, '-o', elfFile]);
         }
         catch (err) {
-            // Util.error(err.message);
+            util_1.Util.error(new error_1.Errors.IZ.Bug(err), false);
         }
         ;
         // Read ELF binary buffer

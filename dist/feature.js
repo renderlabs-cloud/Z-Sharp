@@ -306,7 +306,7 @@ var Feature;
          * @returns A string representation of a random numeric identifier.
          */
         generateRandomId() {
-            return String(Math.round(Math.random() * 10 ** 10));
+            return `s${String(Math.round(Math.random() * 10 ** 10))}`;
         }
         ;
         /**
@@ -320,6 +320,7 @@ var Feature;
         _data;
         _alias;
         _return = [];
+        _asm_data = {};
         id;
     }
     Feature_1.Scope = Scope;

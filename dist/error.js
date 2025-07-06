@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Errors = void 0;
 const ct = __importStar(require("colorette"));
 const header_1 = require("~/cli/header");
+const util_1 = require("~/util");
 var Errors;
 (function (Errors) {
     const colon = ct.reset(':');
@@ -52,7 +53,7 @@ var Errors;
         constructor(message, stack) {
             this.message = message;
             this.stack = stack;
-            this.message = header_1.Header.format(this.message);
+            this.message = (this.message);
         }
         ;
         count = 0;
@@ -77,6 +78,7 @@ var Errors;
                 super(ct.red(ct.bold('A parsing error has occurred')) + exclamation + newline +
                     message + newline +
                     highlight(position, contents));
+                util_1.Util.error(this);
             }
             ;
         }
@@ -99,6 +101,7 @@ var Errors;
                 super(ct.red(ct.bold('A syntax error has occurred')) + exclamation + newline +
                     message + newline +
                     highlight(position, contents));
+                util_1.Util.error(this);
             }
             ;
         }
@@ -160,8 +163,7 @@ var Errors;
             constructor(message) {
                 super(ct.red(ct.bold('A project error has occurred')) + exclamation + newline +
                     message);
-                console.log(this.message);
-                process.exit(1);
+                util_1.Util.error(this);
             }
             ;
         }
@@ -183,8 +185,7 @@ var Errors;
             constructor(message) {
                 super(ct.red(ct.bold('A command error has occurred')) + exclamation + newline +
                     message);
-                console.log(this.message);
-                process.exit(1);
+                util_1.Util.error(this);
             }
             ;
         }
@@ -217,6 +218,29 @@ var Errors;
         })(Conflicting = Command.Conflicting || (Command.Conflicting = {}));
         ;
     })(Command = Errors.Command || (Errors.Command = {}));
+    ;
+    let IZ;
+    (function (IZ) {
+        class IZError extends MainError {
+            constructor(message) {
+                super(ct.red(ct.bold(`A ${header_1.Header.iz} error has occurred`)) + exclamation + newline +
+                    message);
+                util_1.Util.error(this);
+            }
+            ;
+        }
+        IZ.IZError = IZError;
+        ;
+        class Bug extends IZError {
+            constructor(message) {
+                super(message + newline +
+                    header_1.Header.Z_bug + newline +
+                    header_1.Header.Zasm_bug);
+            }
+            ;
+        }
+        IZ.Bug = Bug;
+    })(IZ = Errors.IZ || (Errors.IZ = {}));
     ;
 })(Errors || (exports.Errors = Errors = {}));
 ;

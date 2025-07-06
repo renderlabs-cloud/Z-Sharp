@@ -1,7 +1,7 @@
 import { Errors } from '~/error';
 export declare namespace Parts {
     enum PartType {
-        SINGLE_LINE_COMMENT = "/\\/\\/.*/g",
+        SINGLE_LINE_COMMENT = "/\\/\\/[^\\n]*/g",
         MULTI_LINE_COMMENT = "/\\/\\*[\\s\\S]*?\\*\\//gs",
         MULTI_LINE_DEF_COMMENT = "/\\/\\*\\*[\\s\\S]*?\\*\\//gs",
         WORD = "/([a-zA-Z$_][a-zA-Z0-9$_]*)/g",
@@ -25,7 +25,7 @@ export declare namespace Parts {
         SEMICOLON = "/\\;/g",
         EQUALS = "/\\=/g",
         EXTRA_WHITESPACE = "/\\s+/g",
-        UNKNOWN = "/\\0/g"
+        UNKNOWN = "/^\0/g"
     }
     type Part = {
         content: string;
@@ -52,6 +52,5 @@ export declare namespace Parts {
      * content, type, and position information.
      * @throws {Errors.Parts.Unknown} Throws an error if an unknown token is detected.
      */
-    function toPartsButSlow(content: string, path?: string): Part[];
     function toParts(content: string, path?: string): Part[];
 }

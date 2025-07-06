@@ -1,3 +1,6 @@
+#pragma once
+#include "architecture.S"
+
 .macro FUNC name, _
 	.section .text
 	.global \name
@@ -17,4 +20,8 @@
 
 .macro FUNC_END
 	.quad 0xFF
+.endm
+
+.macro RETURN value
+	MOV (R8, \value)
 .endm

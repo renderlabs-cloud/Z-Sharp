@@ -4,21 +4,22 @@ import { Syntax } from '~/syntax';
 import { Assembler } from '~/assembler';
 import { Util } from '~/util';
 import { Errors } from '~/error';
-import { TypeRef, Type } from '~/features/type';
+import { TypeRef, Type, TypeRefData } from '~/features/type';
 import { Accessor, PropertyData } from '~/features/accessor';
 import { Body } from '~/features/body';
 import { Identifier } from '~/features/identifier';
+import { Variable, VariableData } from '~/features/variable';
 
 export type FunctionParameter = {
 	name: string,
-	type: TypeRef,
+	type: TypeRefData,
 	id: string
 };
 
 export type FunctionData = {
 	name: string,
 	parameters: FunctionParameter[],
-	type: TypeRef,
+	type: TypeRefData,
 	scope: Feature.Scope,
 	body: Syntax.SyntaxData[],
 	id: string
@@ -58,11 +59,13 @@ export class Function extends Feature.Feature<FunctionData> {
 			{ 'feature': { 'type': Body }, 'export': 'body' }
 		]);
 	};
-	public static get(data: any, scope: Feature.Scope, position: Errors.Position) {
+	public static get(data: any, scope: Feature.Scope, position: Errors.Position): FunctionData | undefined | never {
 		if (data.function) {
-			// Update !!!
-			const functionData = Identifier.create(data.function.declaration.reference, scope, position).export;
-			const _function = scope.get(`function.${scope.resolve(scope.flatten(functionData.path))}`);
+			const identifier = Identifier.create(data.function.declaration.reference, scope, position).export;
+			const _function = scope.get(`function.${scope.resolve(scope.flatten(identifier.path))}`);
+			if (!_function) {
+				Util.error(new Errors.Syntax.Generic(`Function ${scope.flatten(identifier.path)} not defined`, position));
+			};
 			return _function;
 		};
 	};
@@ -72,8 +75,14 @@ export class Function extends Feature.Feature<FunctionData> {
 		functionData.name = data.name;
 		functionData.id = scope.alias(functionData.name);
 		functionData.scope = new Feature.Scope(scope.importer, functionData.name, scope);
-		functionData.type = data.type;
-		functionData.parameters = data.parameters;
+		functionData.type = Type.get(data.type, scope, position) ?? {};
+		functionData.parameters = [];
+
+		for (const parameter of data.parameters) {
+			const type = Type.get(parameter.type, scope, position);
+			parameter.id = functionData.scope.alias(parameter.name);
+			functionData.parameters.push({ name: parameter.name, type: type ?? {}, id: parameter.id });
+		};
 
 		const features = Syntax.toFeatures(data.body.parts, functionData.scope, position);
 		functionData.body = features;
@@ -82,22 +91,21 @@ export class Function extends Feature.Feature<FunctionData> {
 		return { scope, export: functionData };
 	};
 
-	public toAssemblyText(functionData: FunctionData, scope: Feature.Scope) {
+	public async toAssemblyText(functionData: FunctionData, scope: Feature.Scope) {
 		let content = `
 /* Function ${functionData.name} */\nFUNC ${functionData.id}, PARAMS
 		`;
 		for (const parameter of functionData.parameters) {
-			const type = Type.get(parameter.type, scope);
 			parameter.id = functionData.scope.alias(parameter.name);
 			content += `
-PARAM ${type?.id}, ${parameter.id}
+PARAM ${parameter.type.id}, ${parameter.id}
 			`;
 		};
 		content += `
 PARAMS_END
 		`;
 		content += `
-${Assembler.assemble(functionData.body, functionData.scope, {})}
+${await Assembler.assemble(functionData.body, functionData.scope, {})}
 FUNC_END
 		`;
 
@@ -123,10 +131,22 @@ export class FunctionCall extends Feature.Feature<FunctionCallData> {
 	public create = FunctionCall.create;
 	public static create(data: any, scope: Feature.Scope, position: Errors.Position): Feature.Return<FunctionCallData> {
 		const callData = { parameters: {} } as FunctionCallData;
-		const _function: FunctionData = Function.get(data, scope, position);
+		const _function: FunctionData = Function.get(data, scope, position) || {} as FunctionData;
+
 		callData.function = _function;
-		callData.parameters.value = data.parameters;
+		callData.parameters.value = [];
 		callData.id = scope.alias(scope.generateRandomId());
+
+		let i = 0;
+		for (const parameter of data.parameters) {
+			const _variable = Variable.get(parameter, scope, position) ?? {} as VariableData;
+			const accessor = _variable.declaration;
+			callData.parameters.value.push({ value: accessor });
+			if (!Type.isCompatible(_function.parameters[i].type, accessor.type)) {
+				Util.error(new Errors.Syntax.Generic(`Parameter ${i + 1} of type ${Type.toString(accessor.type)} is not compatible with type ${Type.toString(_function.parameters[i].type)}`, position));
+			};
+			i++;
+		};
 
 		scope.set(`function_call_parameters.${callData.id}`, callData);
 
@@ -134,16 +154,17 @@ export class FunctionCall extends Feature.Feature<FunctionCallData> {
 	};
 	public toAssemblyText(callData: FunctionCallData, scope: Feature.Scope) {
 		let content = `
-MOV R8, ${callData.function.id}
-MOV R7, ${callData.id}
-CALL R8
+/* Function call ${callData.function.name} */
+MOV (Z7, ${callData.id})
+MOV (Z8, ${callData.function.id})
+CALL (Z8)
 		`;
 
 		return content;
 	};
 	public toAssemblyData(callData: FunctionCallData, scope: Feature.Scope) {
 		let content = `
-		${callData.id}:
+${callData.id}:
 		`;
 		for (const parameter of callData.parameters.value) {
 			content += `
