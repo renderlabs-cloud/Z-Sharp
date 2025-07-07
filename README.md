@@ -10,6 +10,12 @@ Write your code once—compile it anywhere.
 
 [Z# Documentation](https://docs.zsharp.dev)
 
+## License
+
+Z# is licensed under a custom MIT-style license. You may use, modify, and distribute it freely, but **selling the software or derivatives as standalone products is prohibited**.
+
+[View full license](./LICENSE)
+
 # Support & Donations
 
 **Z#** is built solo as a passion project and future career foundation.
