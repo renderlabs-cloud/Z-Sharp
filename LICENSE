@@ -7,7 +7,12 @@ Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to use,
 copy, modify, merge, publish, distribute, and sublicense the Software, subject to the following conditions:
 
-1. **You may NOT sell** the original Software or any derivative works **as standalone products**, whether in digital, physical, or embedded form.
+Definitions:
+------------
+“Standalone product” means any software or product distributed independently or separately, without being bundled with or dependent upon a larger software package or application.
+
+1. **You may NOT sell or distribute** the original Software or any derivative works **as standalone products**.  
+   You are permitted to use Z# and derivative works as part of larger software projects or products (such as games or applications), including for commercial purposes. However, selling or distributing Z# or any modified versions of it **by themselves** — without being bundled within or dependent upon a larger product — is prohibited.
 
 2. This Software is provided "as is", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages, or other liability.
 
@@ -18,3 +23,16 @@ copy, modify, merge, publish, distribute, and sublicense the Software, subject t
 ---
 
 Inspired by the MIT License. This is a custom license and not OSI-approved.
+
+---
+
+Logo Usage Permission
+---------------------
+
+The Z# logo is freely available for use in documentation, educational materials, marketing, and projects involving or referencing the Z# language.
+
+You may copy, modify, and use the Z# logo for any lawful purpose, provided that:
+- You do not falsely imply endorsement by the Z# organization.
+- You do not use the logo in projects intended to mislead, harm, or deceive others.
+
+Attribution is appreciated but not required.
