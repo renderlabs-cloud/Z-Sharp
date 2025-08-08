@@ -3,26 +3,24 @@ import { Errors } from '~/error';
 import { PropertyData } from '~/features/accessor';
 import { FunctionData } from '~/features/function';
 import { ListTypeData } from '~/features/list';
-import { ObjectTypeData } from '~/features/object';
 type TypeField = {
     name: string;
     type: TypeRefData;
-    comma: boolean;
+    comma?: boolean;
     id: string;
 };
 type TypeFields = {
-    name?: string;
-    fields?: TypeField[];
+    value?: TypeField[];
     id?: string;
 };
 type TypeRefBuildPart = TypeRefData | '|' | '&';
 export type TypeRefData = {
     name?: string;
+    label?: string;
     generic?: TypeRefData[];
     build?: TypeRefBuildPart[];
     fields?: TypeFields;
     list?: ListTypeData;
-    object?: ObjectTypeData;
     class?: {
         extends: TypeRefData[];
         implements: TypeRefData[];

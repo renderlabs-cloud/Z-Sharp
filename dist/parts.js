@@ -69,7 +69,6 @@ var Parts;
         const origin = content.split('\n');
         // Build master regex using PartType
         const patterns = Object.entries(PartType)
-            // .filter(([key, value]) => key !== 'UNKNOWN') // skip UNKNOWN on purpose
             .map(([key, value]) => `(?<${key}>${value.slice(1, -2)})`); // Remove the leading and trailing "/" in regex string
         const masterRegex = new RegExp(patterns.join('|'), 'gs');
         let match;

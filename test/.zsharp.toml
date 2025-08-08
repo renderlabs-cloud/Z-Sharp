@@ -11,5 +11,5 @@
 
 
 [[Mods]]
-	source = '@zap/zap.mod.toml'
+	source = '@/zap/zap.mod.toml'
 	config = '.zap.toml'

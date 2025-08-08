@@ -2,11 +2,16 @@ import { Feature } from '~/feature';
 import { Errors } from '~/error';
 import { TypeRefData } from '~/features/type';
 import { PropertyData } from '~/features/accessor';
+declare enum VariableType {
+    LET = "let",
+    CONST = "const"
+}
 export type VariableData = {
     name: string;
     type: TypeRefData;
     id: string;
     declaration: PropertyData;
+    prefix: VariableType;
 };
 export declare class Variable extends Feature.Feature<VariableData> {
     constructor();
@@ -16,3 +21,4 @@ export declare class Variable extends Feature.Feature<VariableData> {
     toAssemblyText(variableData: VariableData, scope: Feature.Scope): string;
     toAssemblyData(variableData: VariableData, scope: Feature.Scope): string;
 }
+export {};

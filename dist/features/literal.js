@@ -5,7 +5,6 @@ exports.toPaddedBytes = toPaddedBytes;
 const feature_1 = require("~/feature");
 const parts_1 = require("~/parts");
 const accessor_1 = require("~/features/accessor");
-const util_1 = require("~/util");
 function toPaddedBytes(data, tabs = 8, row = 8) {
     let wrap = row;
     return Array.from(data).map(c => {
@@ -43,7 +42,9 @@ class ObjectLiteral extends feature_1.Feature.Feature {
             const value = accessor_1.Accessor.create(field.value, scope, position).export;
             objectData.fields.push({
                 name: field.name,
+                type: { ...value.type, label: field.name },
                 value: value,
+                id: value.id
             });
         }
         ;
@@ -62,7 +63,6 @@ class ObjectLiteral extends feature_1.Feature.Feature {
 /* Object Literal */
 ${objectData.id}:
 	${objectData.fields.map((field) => {
-            util_1.Util.debug(field);
             return `
 ${(new accessor_1.Accessor).toAssemblyData(field.value, scope)}
 		`;

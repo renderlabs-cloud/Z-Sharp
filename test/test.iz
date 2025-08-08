@@ -30,7 +30,7 @@
  */
 
 /**
- * 🫎 Mooseworth is here!
+ * 🫎 Mooseworth says thanks!
  * Author: Brendan,Lucas
  * Contributors: Brendan,Lucas
  */
@@ -39,24 +39,24 @@
 
 .section .data
 #pragma section data
-TYPE main_$Person$rav975WGsxTokG41ORtHTEJtwUCV5RlEecFFNvD33FehY4ZiHOPu5TNgmElu8ooD
+TYPE main_$Person$uMWmNtvV5c6QGcuqONfsda4fW0gicBBrh4ebT1THIKItklaljYyJm9R3IfBWtFkJ
 	TYPE_FIELD BYTE, name, 
 // ??? 
 TYPE_END
-main_$s4196130936$zX6vZa3rNRpQQKPaWeHMzm1djfhAdNtHIKBudG8e3pTUv0K3q4TLeiywgh3Ngh7l:
+main_$s1431610341$ZIgL8t2CBt4u6FcIcwDQYaBVen7HscLc43YmkZD6NzIUDPG0t5DmFyqJlg7TlmfI:
 	.4byte \
 		0x42, 0x72, 0x65, 0x6e, 0x64, 0x61, 0x6e, 0x20, 0x4c, 0x75, 0x63, 0x61, 0x73
-	main_$s4196130936$zX6vZa3rNRpQQKPaWeHMzm1djfhAdNtHIKBudG8e3pTUv0K3q4TLeiywgh3Ngh7l_len = . - main_$s4196130936$zX6vZa3rNRpQQKPaWeHMzm1djfhAdNtHIKBudG8e3pTUv0K3q4TLeiywgh3Ngh7l 
+	main_$s1431610341$ZIgL8t2CBt4u6FcIcwDQYaBVen7HscLc43YmkZD6NzIUDPG0t5DmFyqJlg7TlmfI_len = . - main_$s1431610341$ZIgL8t2CBt4u6FcIcwDQYaBVen7HscLc43YmkZD6NzIUDPG0t5DmFyqJlg7TlmfI 
 		
 /* Object Literal */
-main_$s5661808051$66MpeAYggLId7kQjFEED20krGNSmVY73P8M4n9sresETUAX0yMbwJdkkMQyXE4H6:
+main_$s9403210399$ANRSdZ34j3SWya63WSoJMx6940bqLkSLrWuaMmLGeCu33infsgN16XDbUmyAKpbT:
 	
 
 		
 		
-main_$s203704748$ZPu25iCorK8Gek0BYW5xq2NdrVav09iN878uYGYuSZKlWvBKCitSqDanorsglZWL:
+main_$s1051499918$L72diLJ9FMjqywYU6XkVCvACtVyGUyoQ6ydOUWxmHToYlCBIWwxBaF0h8nXgSHp9:
 		
-	.quad main_$s104102342$1EbXxVsJhXv9F0Z2sDeuMukp58V1HvK757mA52ySIn9GJ6b1MqMBzR6IfvmziBc5
+	.quad main_$s6500225212$ewWrdvw07oiXqTJkTLIv4517jsCVXyNDkefcbg4lbXiFpqSCDxCec6nRzkI9Zpjn
 			
 #pragma section end
 .section .text
@@ -64,23 +64,23 @@ main_$s203704748$ZPu25iCorK8Gek0BYW5xq2NdrVav09iN878uYGYuSZKlWvBKCitSqDanorsglZW
 /* Variable myName */
 /* Accessor */
 		
-MOV (Z8, REF(main_$s4196130936$zX6vZa3rNRpQQKPaWeHMzm1djfhAdNtHIKBudG8e3pTUv0K3q4TLeiywgh3Ngh7l))
+MOV (Z8, REF(main_$s1431610341$ZIgL8t2CBt4u6FcIcwDQYaBVen7HscLc43YmkZD6NzIUDPG0t5DmFyqJlg7TlmfI))
 				
-VAR main_$myName$vSQwHS7T1Pn5IDNMFty0eeonHmGg2S4KPCtChNFcKQvEaKwSUNoYN3cLdGct8s6r, Z8, Z8
-SCOPE_SET main_$myName$vSQwHS7T1Pn5IDNMFty0eeonHmGg2S4KPCtChNFcKQvEaKwSUNoYN3cLdGct8s6r, Z8
+VAR main_$myName$StWjNM7siCXHgQHpQK1gFrVOqElMnWgN7LgazeBFrNUJQmDMLU5BtTSqkWElIxlU, Z6, Z6
+SCOPE_SET main_$myName$StWjNM7siCXHgQHpQK1gFrVOqElMnWgN7LgazeBFrNUJQmDMLU5BtTSqkWElIxlU, Z6
 		
 /* Variable me */
 /* Accessor */
 		
-MOV (Z8, REF(main_$s5661808051$66MpeAYggLId7kQjFEED20krGNSmVY73P8M4n9sresETUAX0yMbwJdkkMQyXE4H6))
+MOV (Z8, REF(main_$s9403210399$ANRSdZ34j3SWya63WSoJMx6940bqLkSLrWuaMmLGeCu33infsgN16XDbUmyAKpbT))
 				
-VAR main_$me$AeArqDpUPQuWmzqbrdzNfKz6wbkDyyqTtiJ1tClJDNLUSSNOvsZhuvgzlYLRSjXs, Z8, Z8
-SCOPE_SET main_$me$AeArqDpUPQuWmzqbrdzNfKz6wbkDyyqTtiJ1tClJDNLUSSNOvsZhuvgzlYLRSjXs, Z8
+VAR main_$me$MuBpJ0zpk0wXgP20wyi2882ssUer1SiSCF6Ywc1To7PHWWQ5VrM7WDcVLxwKEmDI, Z6, Z6
+SCOPE_SET main_$me$MuBpJ0zpk0wXgP20wyi2882ssUer1SiSCF6Ywc1To7PHWWQ5VrM7WDcVLxwKEmDI, Z6
 		
 /* Function greet */
-FUNC main_$greet$KuoYfdwnyO0Sj5mKMqvbdrXgkWy4tVn8NXbXufJuZ2ceKC6uD5hClgVIfeG5LaIV, PARAMS
+FUNC main_$greet$PF51A4SRPQIIDv3eUyPOqwl1CwGX6KmVF5I6KQtBm90F76dLFphYFSwr5AkiN4DA, PARAMS
 		
-PARAM main_$Person$rav975WGsxTokG41ORtHTEJtwUCV5RlEecFFNvD33FehY4ZiHOPu5TNgmElu8ooD, greet_main_$person$F94RXMd1NvzxEND9kzjwvexXHcWrC6c5TH6IgfU7RACGZ33m07RYhPnMRneCmK0o
+PARAM main_$Person$uMWmNtvV5c6QGcuqONfsda4fW0gicBBrh4ebT1THIKItklaljYyJm9R3IfBWtFkJ, greet_main_$person$lzM8P87BJ3A25V2eV0MbnW7nMUhqYwn93Q1evIXM4jGH3qVloZbJfLSUkVaFQJJ7
 			
 PARAMS_END
 		
@@ -98,13 +98,13 @@ FUNC_END
 		
 
 /* Function call greet */
-MOV (Z7, main_$s203704748$ZPu25iCorK8Gek0BYW5xq2NdrVav09iN878uYGYuSZKlWvBKCitSqDanorsglZWL)
-MOV (Z8, main_$greet$KuoYfdwnyO0Sj5mKMqvbdrXgkWy4tVn8NXbXufJuZ2ceKC6uD5hClgVIfeG5LaIV)
-CALL (Z8)
+MOV (Z7, main_$s1051499918$L72diLJ9FMjqywYU6XkVCvACtVyGUyoQ6ydOUWxmHToYlCBIWwxBaF0h8nXgSHp9)
+MOV (Z6, main_$greet$PF51A4SRPQIIDv3eUyPOqwl1CwGX6KmVF5I6KQtBm90F76dLFphYFSwr5AkiN4DA)
+CALL (Z6)
 		
 				
-VAR main_$myGreeting$qXmx5wV8cKIq4zWey57q8STIYllOix69ngtEl2ttI4BCu6L7ADcDy9S0ELQ0qxf7, Z8, Z8
-SCOPE_SET main_$myGreeting$qXmx5wV8cKIq4zWey57q8STIYllOix69ngtEl2ttI4BCu6L7ADcDy9S0ELQ0qxf7, Z8
+VAR main_$myGreeting$kNhvHA20JNp6PIXHpeHfQVo5Bd9uLKgert4TsKsUDo2LtvLlCct2QaeynLTlQ248, Z6, Z6
+SCOPE_SET main_$myGreeting$kNhvHA20JNp6PIXHpeHfQVo5Bd9uLKgert4TsKsUDo2LtvLlCct2QaeynLTlQ248, Z6
 		
 #pragma section end
 

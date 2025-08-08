@@ -33,6 +33,7 @@
    - 56 emoji characters
    - 285 hentaigana
    - 3 additional Zanabazar Square characters */
+// clang-format off
 /**
  * ! READ THIS !
  *
@@ -61,6 +62,8 @@
  * If you find Z# useful, please consider supporting the project:
  * https://zsharp.dev/donate ❤️
  */
+// clang-format off
+// clang-format off
 /**
  * # Register usage
  *
@@ -72,72 +75,27 @@
  * Z9       : Stack control
  * Z10 - Z13: Unallocated
  * Z14      : Debugger control
- * Z15      : Temporary
+ * Z15      : PC
  */
 /* Architecture mapping */
 /* x86_64 (64-bit) */
- # Registers
- # Mnemonics
- # Value
+ // Registers
+ // Mnemonics
+ // Value
 /* Z# Virtual registers */
-.macro SAVE_R0_R4
- str x0, [sp, #-16]!
- str x1, [sp, #-16]!
- str x2, [sp, #-16]!
- str x3, [sp, #-16]!
- str x4, [sp, #-16]!
-.endm
-.macro LOAD_R0_R4
- ldr x4, [sp], #16
- ldr x3, [sp], #16
- ldr x2, [sp], #16
- ldr x1, [sp], #16
- ldr x0, [sp], #16
-.endm
-.macro SAVE_ZASM
- str x5, [sp, #-16]!
- str sp, [sp, #-16]!
- str x29, [sp, #-16]!
- str x8, [sp, #-16]!
- str x9, [sp, #-16]!
- str x10, [sp, #-16]!
- str x11, [sp, #-16]!
- str x12, [sp, #-16]!
- str x13, [sp, #-16]!
- str x14, [sp, #-16]!
- str x15, [sp, #-16]!
-.endm
-.macro LOAD_ZASM
- ldr x15, [sp], #16
- ldr x14, [sp], #16
- ldr x13, [sp], #16
- ldr x12, [sp], #16
- ldr x11, [sp], #16
- ldr x10, [sp], #16
- ldr x9, [sp], #16
- ldr x8, [sp], #16
- ldr x29, [sp], #16
- ldr sp, [sp], #16
- ldr x5, [sp], #16
-.endm
-.macro SAVE
- SAVE_R0_R4
- SAVE_ZASM
-.endm
-.macro LOAD
- LOAD_ZASM
- LOAD_R0_R4
-.endm
+/* System call registers */
+// ...
+// clang-format off
 # Allocate N bytes → result in %rax
 .macro MALLOC size
  SAVE_ZASM
- mov x0, #9 ;// syscall number: mmap (Linux AArch64)
- mov x5, #0 ;// addr = NULL
- mov x4, #\size ;// length = size
- mov x3, #3 ;// PROT_READ | PROT_WRITE
- mov x10, #0x22 ;// MAP_ANONYMOUS | MAP_PRIVATE
- mov x8, #-1 ;// fd = -1
- mov #0, x9 ;// offset = 0
+ mov x0, "EVAL(SYS_GET(SYSCALL_MMAP))" ;// syscall number: mmap (Linux AArch64)
+ mov x5, "EVAL(0)" ;// addr = NULL
+ mov x4, "EVAL(\size)" ;// length = size
+ mov x3, "EVAL(3)" ;// PROT_READ | PROT_WRITE
+ mov x10, "EVAL(0x22)" ;// MAP_ANONYMOUS | MAP_PRIVATE
+ mov x8, "EVAL(-1)" ;// fd = -1
+ mov "EVAL(0)", x9 ;// offset = 0
  svc 0
  LOAD_ZASM
 .endm
@@ -168,9 +126,9 @@
  mov \ptr, x2
 1:
  mov [x2], x3
- cmp x3, #0
+ cmp x3, "EVAL(0)"
  b.eq 2f
- add x2, x2, #1
+ add x2, x2, "EVAL(1)"
  b 1b
 2:
  mov x2, \out
@@ -178,59 +136,272 @@
 .endm
 .macro FREE ptr, size
  SAVE
- mov #11, x0 ;// sys_munmap
+ mov "EVAL(11)", x0 ;// sys_munmap
  mov \ptr, x5 ;// pointer
- mov #\size, x4 ;// size in bytes
+ mov "EVAL(\size)", x4 ;// size in bytes
  svc 0
  LOAD
 .endm
 .macro DEBUG value
- mov x2, #\value
+ mov x2, "EVAL(\value)"
  LEN \value
  sub x3, x3, x2
 .endm
-.section .text
-.global _start
-_start:
-# Allocate the table itself once
-.macro LAZY_LIST_INIT name, slots
-    .lcomm \name, \slots * 8
-.endm
-# Get address of list[index] → in %rdi
-.macro LAZY_PTR_GET name, index, reg
- SAVE
- adr \name, \reg
- mov #\index, x4
- mul #8, #8, x4
- add x4, x4, \reg
- LOAD
-.endm
-# Access item at index, allocate if null
-# name = list name
-# index = integer index
-# size = allocation size
-# reg = register for result address
-.macro LAZY_BLOCK_GET name, index, size, reg
- SAVE
- LAZY_PTR_GET \name, \index, \reg
- mov (\reg), x4
- b.ne #1f
- MALLOC \size
- mov x0, \reg
-1:
- ldr \reg, [\reg, 0]
- LOAD
-.endm
-# Set value at a specific index in a lazy list
-# name = list name
-# index = integer index
-# value = value to set (in register)
-.macro LAZY_BLOCK_SET name, index, value
- SAVE
- LAZY_PTR_GET \name, \index, x5
- mov #\value, x5
- LOAD
-.endm
+ .arch armv8-a
+ .file "pre_memory.hpp"
+ .text
+ .align 2
+ .global _ZN6System9call_implEiz
+ .type _ZN6System9call_implEiz, %function
+_ZN6System9call_implEiz:
+.LFB4:
+ .cfi_startproc
+ sub sp, sp, #304
+ .cfi_def_cfa_offset 304
+ str w0, [sp, 12]
+ str x1, [sp, 248]
+ str x2, [sp, 256]
+ str x3, [sp, 264]
+ str x4, [sp, 272]
+ str x5, [sp, 280]
+ str x6, [sp, 288]
+ str x7, [sp, 296]
+ str q0, [sp, 112]
+ str q1, [sp, 128]
+ str q2, [sp, 144]
+ str q3, [sp, 160]
+ str q4, [sp, 176]
+ str q5, [sp, 192]
+ str q6, [sp, 208]
+ str q7, [sp, 224]
+ adrp x0, :got:__stack_chk_guard;ldr x0, [x0, :got_lo12:__stack_chk_guard]
+ ldr x1, [x0]
+ str x1, [sp, 104]
+ mov x1, 0
+ add x0, sp, 304
+ str x0, [sp, 72]
+ add x0, sp, 304
+ str x0, [sp, 80]
+ add x0, sp, 240
+ str x0, [sp, 88]
+ mov w0, -56
+ str w0, [sp, 96]
+ mov w0, -128
+ str w0, [sp, 100]
+ ldr w1, [sp, 96]
+ ldr x0, [sp, 72]
+ cmp w1, 0
+ blt .L2
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L3
+.L2:
+ add w2, w1, 8
+ str w2, [sp, 96]
+ ldr w2, [sp, 96]
+ cmp w2, 0
+ ble .L4
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L3
+.L4:
+ ldr x2, [sp, 80]
+ sxtw x0, w1
+ add x0, x2, x0
+.L3:
+ ldr x0, [x0]
+ str x0, [sp, 16]
+ ldr w1, [sp, 96]
+ ldr x0, [sp, 72]
+ cmp w1, 0
+ blt .L6
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L7
+.L6:
+ add w2, w1, 8
+ str w2, [sp, 96]
+ ldr w2, [sp, 96]
+ cmp w2, 0
+ ble .L8
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L7
+.L8:
+ ldr x2, [sp, 80]
+ sxtw x0, w1
+ add x0, x2, x0
+.L7:
+ ldr x0, [x0]
+ str x0, [sp, 24]
+ ldr w1, [sp, 96]
+ ldr x0, [sp, 72]
+ cmp w1, 0
+ blt .L10
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L11
+.L10:
+ add w2, w1, 8
+ str w2, [sp, 96]
+ ldr w2, [sp, 96]
+ cmp w2, 0
+ ble .L12
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L11
+.L12:
+ ldr x2, [sp, 80]
+ sxtw x0, w1
+ add x0, x2, x0
+.L11:
+ ldr x0, [x0]
+ str x0, [sp, 32]
+ ldr w1, [sp, 96]
+ ldr x0, [sp, 72]
+ cmp w1, 0
+ blt .L14
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L15
+.L14:
+ add w2, w1, 8
+ str w2, [sp, 96]
+ ldr w2, [sp, 96]
+ cmp w2, 0
+ ble .L16
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L15
+.L16:
+ ldr x2, [sp, 80]
+ sxtw x0, w1
+ add x0, x2, x0
+.L15:
+ ldr x0, [x0]
+ str x0, [sp, 40]
+ ldr w1, [sp, 96]
+ ldr x0, [sp, 72]
+ cmp w1, 0
+ blt .L18
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L19
+.L18:
+ add w2, w1, 8
+ str w2, [sp, 96]
+ ldr w2, [sp, 96]
+ cmp w2, 0
+ ble .L20
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L19
+.L20:
+ ldr x2, [sp, 80]
+ sxtw x0, w1
+ add x0, x2, x0
+.L19:
+ ldr x0, [x0]
+ str x0, [sp, 48]
+ ldr w1, [sp, 96]
+ ldr x0, [sp, 72]
+ cmp w1, 0
+ blt .L22
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L23
+.L22:
+ add w2, w1, 8
+ str w2, [sp, 96]
+ ldr w2, [sp, 96]
+ cmp w2, 0
+ ble .L24
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L23
+.L24:
+ ldr x2, [sp, 80]
+ sxtw x0, w1
+ add x0, x2, x0
+.L23:
+ ldr x0, [x0]
+ str x0, [sp, 56]
+ ldrsw x1, [sp, 12]
+ ldr x2, [sp, 16]
+ ldr x6, [sp, 24]
+ ldr x7, [sp, 32]
+ ldr x11, [sp, 40]
+ ldr x12, [sp, 48]
+ ldr x13, [sp, 56]
+#APP
+// 83 "dist/compiled/pre_memory.hpp" 1
+ mov x1, %rax
+mov x2, %rdi
+mov x6, %rsi
+mov x7, %rdx
+mov x11, %r10
+mov x12, %r8
+mov x13, %r9
+syscall
+mov %rax, x1
+// 0 "" 2
+#NO_APP
+ str x1, [sp, 64]
+ brk #1000
+ .cfi_endproc
+.LFE4:
+ .size _ZN6System9call_implEiz, .-_ZN6System9call_implEiz
+ .align 2
+ .global _ZN6Memory8allocateEv
+ .type _ZN6Memory8allocateEv, %function
+_ZN6Memory8allocateEv:
+.LFB5:
+ .cfi_startproc
+#APP
+// 105 "dist/compiled/pre_memory.hpp" 1
+ mov rdi, r8
+call allocate_impl
+mov rbp, rax
+ret
+// 0 "" 2
+#NO_APP
+ brk #1000
+ .cfi_endproc
+.LFE5:
+ .size _ZN6Memory8allocateEv, .-_ZN6Memory8allocateEv
+ .align 2
+ .global _ZN6Memory13allocate_implEi
+ .type _ZN6Memory13allocate_implEi, %function
+_ZN6Memory13allocate_implEi:
+.LFB6:
+ .cfi_startproc
+ stp x29, x30, [sp, -32]!
+ .cfi_def_cfa_offset 32
+ .cfi_offset 29, -32
+ .cfi_offset 30, -24
+ mov x29, sp
+ str w0, [sp, 28]
+ ldr w1, [sp, 28]
+ mov w0, 9
+ bl _ZN6System9call_implEiz
+ brk #1000
+ .cfi_endproc
+.LFE6:
+ .size _ZN6Memory13allocate_implEi, .-_ZN6Memory13allocate_implEi
+ .ident "GCC: (Ubuntu 14.3.0-1ubuntu1) 14.3.0"
+ .section .note.GNU-stack,"",@progbits
 # Usage:
 # STRUCT name
 # STRUCT_FIELD field_name, size
@@ -275,8 +446,263 @@ _start:
  .quad 0xFF
 .endm
 .macro RETURN value
- mov x8, \value
+ mov bp, \value
 .endm
+ .arch armv8-a
+ .file "pre_memory.hpp"
+ .text
+ .align 2
+ .global _ZN6System9call_implEiz
+ .type _ZN6System9call_implEiz, %function
+_ZN6System9call_implEiz:
+.LFB4:
+ .cfi_startproc
+ sub sp, sp, #304
+ .cfi_def_cfa_offset 304
+ str w0, [sp, 12]
+ str x1, [sp, 248]
+ str x2, [sp, 256]
+ str x3, [sp, 264]
+ str x4, [sp, 272]
+ str x5, [sp, 280]
+ str x6, [sp, 288]
+ str x7, [sp, 296]
+ str q0, [sp, 112]
+ str q1, [sp, 128]
+ str q2, [sp, 144]
+ str q3, [sp, 160]
+ str q4, [sp, 176]
+ str q5, [sp, 192]
+ str q6, [sp, 208]
+ str q7, [sp, 224]
+ adrp x0, :got:__stack_chk_guard;ldr x0, [x0, :got_lo12:__stack_chk_guard]
+ ldr x1, [x0]
+ str x1, [sp, 104]
+ mov x1, 0
+ add x0, sp, 304
+ str x0, [sp, 72]
+ add x0, sp, 304
+ str x0, [sp, 80]
+ add x0, sp, 240
+ str x0, [sp, 88]
+ mov w0, -56
+ str w0, [sp, 96]
+ mov w0, -128
+ str w0, [sp, 100]
+ ldr w1, [sp, 96]
+ ldr x0, [sp, 72]
+ cmp w1, 0
+ blt .L2
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L3
+.L2:
+ add w2, w1, 8
+ str w2, [sp, 96]
+ ldr w2, [sp, 96]
+ cmp w2, 0
+ ble .L4
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L3
+.L4:
+ ldr x2, [sp, 80]
+ sxtw x0, w1
+ add x0, x2, x0
+.L3:
+ ldr x0, [x0]
+ str x0, [sp, 16]
+ ldr w1, [sp, 96]
+ ldr x0, [sp, 72]
+ cmp w1, 0
+ blt .L6
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L7
+.L6:
+ add w2, w1, 8
+ str w2, [sp, 96]
+ ldr w2, [sp, 96]
+ cmp w2, 0
+ ble .L8
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L7
+.L8:
+ ldr x2, [sp, 80]
+ sxtw x0, w1
+ add x0, x2, x0
+.L7:
+ ldr x0, [x0]
+ str x0, [sp, 24]
+ ldr w1, [sp, 96]
+ ldr x0, [sp, 72]
+ cmp w1, 0
+ blt .L10
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L11
+.L10:
+ add w2, w1, 8
+ str w2, [sp, 96]
+ ldr w2, [sp, 96]
+ cmp w2, 0
+ ble .L12
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L11
+.L12:
+ ldr x2, [sp, 80]
+ sxtw x0, w1
+ add x0, x2, x0
+.L11:
+ ldr x0, [x0]
+ str x0, [sp, 32]
+ ldr w1, [sp, 96]
+ ldr x0, [sp, 72]
+ cmp w1, 0
+ blt .L14
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L15
+.L14:
+ add w2, w1, 8
+ str w2, [sp, 96]
+ ldr w2, [sp, 96]
+ cmp w2, 0
+ ble .L16
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L15
+.L16:
+ ldr x2, [sp, 80]
+ sxtw x0, w1
+ add x0, x2, x0
+.L15:
+ ldr x0, [x0]
+ str x0, [sp, 40]
+ ldr w1, [sp, 96]
+ ldr x0, [sp, 72]
+ cmp w1, 0
+ blt .L18
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L19
+.L18:
+ add w2, w1, 8
+ str w2, [sp, 96]
+ ldr w2, [sp, 96]
+ cmp w2, 0
+ ble .L20
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L19
+.L20:
+ ldr x2, [sp, 80]
+ sxtw x0, w1
+ add x0, x2, x0
+.L19:
+ ldr x0, [x0]
+ str x0, [sp, 48]
+ ldr w1, [sp, 96]
+ ldr x0, [sp, 72]
+ cmp w1, 0
+ blt .L22
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L23
+.L22:
+ add w2, w1, 8
+ str w2, [sp, 96]
+ ldr w2, [sp, 96]
+ cmp w2, 0
+ ble .L24
+ add x1, x0, 15
+ and x1, x1, -8
+ str x1, [sp, 72]
+ b .L23
+.L24:
+ ldr x2, [sp, 80]
+ sxtw x0, w1
+ add x0, x2, x0
+.L23:
+ ldr x0, [x0]
+ str x0, [sp, 56]
+ ldrsw x1, [sp, 12]
+ ldr x2, [sp, 16]
+ ldr x6, [sp, 24]
+ ldr x7, [sp, 32]
+ ldr x11, [sp, 40]
+ ldr x12, [sp, 48]
+ ldr x13, [sp, 56]
+#APP
+// 83 "dist/compiled/pre_memory.hpp" 1
+ mov x1, %rax
+mov x2, %rdi
+mov x6, %rsi
+mov x7, %rdx
+mov x11, %r10
+mov x12, %r8
+mov x13, %r9
+syscall
+mov %rax, x1
+// 0 "" 2
+#NO_APP
+ str x1, [sp, 64]
+ brk #1000
+ .cfi_endproc
+.LFE4:
+ .size _ZN6System9call_implEiz, .-_ZN6System9call_implEiz
+ .align 2
+ .global _ZN6Memory8allocateEv
+ .type _ZN6Memory8allocateEv, %function
+_ZN6Memory8allocateEv:
+.LFB5:
+ .cfi_startproc
+#APP
+// 105 "dist/compiled/pre_memory.hpp" 1
+ mov rdi, r8
+call allocate_impl
+mov rbp, rax
+ret
+// 0 "" 2
+#NO_APP
+ brk #1000
+ .cfi_endproc
+.LFE5:
+ .size _ZN6Memory8allocateEv, .-_ZN6Memory8allocateEv
+ .align 2
+ .global _ZN6Memory13allocate_implEi
+ .type _ZN6Memory13allocate_implEi, %function
+_ZN6Memory13allocate_implEi:
+.LFB6:
+ .cfi_startproc
+ stp x29, x30, [sp, -32]!
+ .cfi_def_cfa_offset 32
+ .cfi_offset 29, -32
+ .cfi_offset 30, -24
+ mov x29, sp
+ str w0, [sp, 28]
+ ldr w1, [sp, 28]
+ mov w0, 9
+ bl _ZN6System9call_implEiz
+ brk #1000
+ .cfi_endproc
+.LFE6:
+ .size _ZN6Memory13allocate_implEi, .-_ZN6Memory13allocate_implEi
+ .ident "GCC: (Ubuntu 14.3.0-1ubuntu1) 14.3.0"
+ .section .note.GNU-stack,"",@progbits
 # Type initialization
 .macro TYPE name
  STRUCT \name
@@ -291,3 +717,7 @@ _start:
 .endm
 .macro SCOPE_SET name, value
 .endm
+.section .text
+.global _start
+_start:
+// clang-format off

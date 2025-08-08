@@ -7,7 +7,9 @@ import { Util } from '~/util';
 
 export type ObjectLiteralFieldData = {
 	name: string,
-	value: PropertyData
+	type: TypeRefData,
+	value: PropertyData,
+	id: string
 };
 
 export type ObjectLiteralData = {
@@ -56,7 +58,9 @@ export class ObjectLiteral extends Feature.Feature<ObjectLiteralData> {
 			const value = Accessor.create(field.value, scope, position).export;
 			objectData.fields.push({
 				name: field.name,
+				type: { ...value.type, label: field.name },
 				value: value,
+				id: value.id
 			});
 		};
 
@@ -77,7 +81,6 @@ export class ObjectLiteral extends Feature.Feature<ObjectLiteralData> {
 /* Object Literal */
 ${objectData.id}:
 	${objectData.fields.map((field) => {
-			Util.debug(field);
 			return `
 ${(new Accessor).toAssemblyData(field.value, scope)}
 		`;

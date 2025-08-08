@@ -84,7 +84,7 @@ var Emit;
                     resolve();
                 else
                     reject(`
-GCC exited with exit code: ${code}
+Exited with exit code: ${code}
 ${stderr}
 `);
             });
@@ -114,15 +114,14 @@ ${stderr}
         await fs.writeFile(asmFile, asmSource);
         // Compile to object files
         try {
-            await runCommand('gcc', ['-S', cFile, '-o', cOut]);
+            await runCommand('gcc', ['-nostdlib', '-ffreestanding', '-C', '-S', cFile, '-o', cOut]);
             // Link to ELF
-            await runCommand('gcc', [cOut, SFile, asmFile, '-o', elfFile]);
+            await runCommand('gcc', ['-nostartfiles', '-ffreestanding', '-nostdlib', '-C', cOut, SFile, asmFile, '-o', elfFile]);
         }
         catch (err) {
             util_1.Util.error(new error_1.Errors.IZ.Bug(err), false);
         }
         ;
-        // Read ELF binary buffer
         const elfBuffer = await fs.readFile(elfFile);
         // Cleanup temp files
         await fs.rm(tempDir, { recursive: true, force: true });

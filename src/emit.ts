@@ -43,7 +43,7 @@ export namespace Emit {
 				handled = true;
 				if (code === 0) resolve();
 				else reject(`
-GCC exited with exit code: ${code}
+Exited with exit code: ${code}
 ${stderr}
 `);
 			});
@@ -76,14 +76,13 @@ ${stderr}
 
 		// Compile to object files
 		try {
-			await runCommand('gcc', ['-S', cFile, '-o', cOut]);
+			await runCommand('gcc', ['-nostdlib', '-ffreestanding', '-C', '-S', cFile, '-o', cOut]);
 
 			// Link to ELF
-			await runCommand('gcc', [cOut, SFile, asmFile, '-o', elfFile]);
+			await runCommand('gcc', ['-nostartfiles', '-ffreestanding', '-nostdlib', '-C', cOut, SFile, asmFile, '-o', elfFile]);
 		} catch (err) {
 			Util.error(new Errors.IZ.Bug(err as string), false);
 		};
-		// Read ELF binary buffer
 		const elfBuffer = await fs.readFile(elfFile);
 
 		// Cleanup temp files

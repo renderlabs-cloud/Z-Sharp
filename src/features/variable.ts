@@ -9,17 +9,33 @@ import { Header } from '~/cli/header';
 import { Util } from '~/util';
 import { IfStatement } from 'typescript';
 
+enum VariableType {
+	LET = 'let',
+	CONST = 'const'
+};
+
 export type VariableData = {
 	name: string,
 	type: TypeRefData,
 	id: string,
-	declaration: PropertyData
+	declaration: PropertyData,
+	prefix: VariableType
 };
 
 export class Variable extends Feature.Feature<VariableData> {
 	constructor() {
 		super([
-			{ 'part': { 'type': Parts.PartType.WORD, 'value': 'let' } },
+			{
+				'or': [
+					[
+						{ 'part': { 'type': Parts.PartType.WORD, 'value': 'const' }, 'export': 'type' },
+					],
+					[
+						{ 'part': { 'type': Parts.PartType.WORD, 'value': 'let' }, 'export': 'type' },
+					]
+				],
+				'export': 'prefix'
+			},
 			{ 'part': { 'type': Parts.PartType.WORD }, 'export': 'name' },
 			{ 'part': { 'type': Parts.PartType.COLON } },
 			{ 'feature': { 'type': TypeRef }, 'export': 'type' },
@@ -50,6 +66,11 @@ export class Variable extends Feature.Feature<VariableData> {
 		variableData.id = scope.alias(variableData.name);
 		variableData.type = new TypeRef().create(data.type, scope, position).export;
 		variableData.declaration = new Accessor().create(data.declaration, scope, position).export;
+		variableData.prefix = data.prefix.type;
+
+		if (!Type.isCompatible(variableData.type /* TODO: or null */, variableData.declaration.type)) {
+			Type.incompatible(variableData.type, variableData.declaration.type, position);
+		};
 
 		scope.set(`var.${variableData.id}`, variableData);
 
@@ -60,8 +81,8 @@ export class Variable extends Feature.Feature<VariableData> {
 		let content = `
 /* Variable ${variableData.name} */
 ${(new Accessor).toAssemblyText(variableData.declaration, scope)}
-VAR ${variableData.id}, Z8, Z8
-SCOPE_SET ${variableData.id}, Z8
+VAR ${variableData.id}, Z6, Z6
+SCOPE_SET ${variableData.id}, Z6
 		`;
 
 		return content;

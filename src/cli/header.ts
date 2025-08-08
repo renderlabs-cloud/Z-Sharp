@@ -5,7 +5,7 @@ import _package from 'package.json';
 export namespace Header {
 	// Symbols
 	export const zs = ct.red('Z#');
-	export const iz = `${ct.white('.')}${ct.blue('i')}${ct.red('z')}`;
+	export const iz = `${ct.white('.')}${ct.magenta('iz')}`;
 
 	// Messages
 	export const Zasm_error = `${ct.red(ct.bold('Z# intermediate Error'))}!`;
@@ -62,7 +62,7 @@ ${bullets([
 			timeString = `${(time / 1000).toFixed(2)}s`;
 		};
 
-		if (time < 1000) {
+		if (time < 2000) {
 			return ct.green(timeString);
 		} else if (time < 10000) {
 			return ct.yellow(timeString);

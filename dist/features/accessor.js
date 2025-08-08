@@ -49,7 +49,17 @@ class Accessor extends feature_1.Feature.Feature {
         else if (data?.declaration?.object) {
             propertyData.is = PropertyType.OBJECT;
             propertyData.value.object = new literal_1.ObjectLiteral().create(data.declaration.object, scope, position).export;
-            propertyData.type = { object: { fields: propertyData.value.object.fields } };
+            propertyData.type = {
+                fields: {
+                    value: propertyData.value.object.fields.map((field) => {
+                        return {
+                            name: field.name,
+                            type: field.type,
+                            id: field.id
+                        };
+                    })
+                }
+            };
             propertyData.relid = propertyData.value.object.id;
         }
         else if (data?.declaration?.string) {

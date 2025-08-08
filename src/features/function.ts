@@ -156,8 +156,8 @@ export class FunctionCall extends Feature.Feature<FunctionCallData> {
 		let content = `
 /* Function call ${callData.function.name} */
 MOV (Z7, ${callData.id})
-MOV (Z8, ${callData.function.id})
-CALL (Z8)
+MOV (Z6, ${callData.function.id})
+CALL (Z6)
 		`;
 
 		return content;

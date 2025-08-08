@@ -4,7 +4,7 @@ import { Errors } from '~/error';
 import { Util } from '~/util';
 import { Identifier, IdentifierData } from '~/features/identifier';
 import { TypeRefData } from '~/features/type';
-import { ObjectLiteral, StringLiteral, ObjectLiteralData, StringLiteralData, } from '~/features/literal';
+import { ObjectLiteral, StringLiteral, ObjectLiteralData, ObjectLiteralFieldData, StringLiteralData, } from '~/features/literal';
 import { FunctionCall, FunctionCallData } from '~/features/function';
 import { Variable, VariableData } from '~/features/variable';
 
@@ -73,7 +73,19 @@ export class Accessor extends Feature.Feature<PropertyData> {
 		else if (data?.declaration?.object) {
 			propertyData.is = PropertyType.OBJECT;
 			propertyData.value.object = new ObjectLiteral().create(data.declaration.object, scope, position).export;
-			propertyData.type = { object: { fields: propertyData.value.object.fields } };
+			propertyData.type = {
+				fields: {
+					value: propertyData.value.object.fields.map(
+						(field: ObjectLiteralFieldData) => {
+							return {
+								name: field.name,
+								type: field.type,
+								id: field.id
+							};
+						}
+					)
+				}
+			};
 			propertyData.relid = propertyData.value.object.id;
 		}
 

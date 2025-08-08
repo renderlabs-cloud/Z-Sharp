@@ -1,3 +1,4 @@
+// clang-format off
 #pragma section legal
 /**
  * ! READ THIS !
@@ -28,14 +29,20 @@
  * https://zsharp.dev/donate ❤️
  */
 #pragma section end
+// clang-format off
 
 #define EVAL(x) x
+
+#define HST(x) #x
 
 #define CONCAT_2(a, b) CONCAT_IMPL(a, b)
 #define CONCAT_3(a, b, c) CONCAT_IMPL(a, CONCAT_IMPL(b, c))
 #define CONCAT_4(a, b, c, d) CONCAT_IMPL(CONCAT_IMPL(a, b), CONCAT_IMPL(c, d))
 
 #define CONCAT_IMPL(a, b) a##b
+
+#define __STAR__ *
+// clang-format off
 
 /**
  * # Register usage
@@ -48,14 +55,14 @@
  * Z9       : Stack control
  * Z10 - Z13: Unallocated
  * Z14      : Debugger control
- * Z15      : Temporary
+ * Z15      : PC
  */
 
 /* Architecture mapping */
 
 /* x86_64 (64-bit) */
 #if defined(__x86_64__) || defined(__amd64__)
-	# Registers
+	// Registers
 	#define RAX rax
 	#define RBX rbx
 	#define RCX rcx
@@ -74,7 +81,7 @@
 	#define R15 r15
 	#define RIP rip
 
-	# Mnemonics
+	// Mnemonics
 	#define SYSCALL syscall
 	#define MOV(x, y) mov x, y
 	#define LDR(x, y, z) mov x, [y + z]
@@ -103,12 +110,12 @@
 	#define NOP nop
 	#define INT(x) int x
 
-	# Value
+	// Value
 	#define REF(x) $x
 
 /* ARM64 (AArch64) */
 #elif defined(__aarch64__)
-	# Registers
+	// Registers
 	#define RAX x0
 	#define RBX x1
 	#define RCX x2
@@ -116,7 +123,7 @@
 	#define RSI x4
 	#define RDI x5
 	#define RSP sp
-	#define RBP x29
+	#define RBP bp
 	#define R8  x8
 	#define R9  x9
 	#define R10 x10
@@ -127,7 +134,7 @@
 	#define R15 x15
 	#define RIP pc
 
-	# Mnemonics
+	// Mnemonics
 	#define SYSCALL svc 0
 	#define MOV(x, y) mov x, y
 	#define LDR(x, y, z) ldr x, [y, z]
@@ -138,8 +145,8 @@
 	#define SUB(x, y) sub x, x, y
 	#define IMUL(x, y) mul x, x, y
 	#define IDIV(x, y) sdiv x, x, y
-	#define INC(x) add x, x, #1
-	#define DEC(x) sub x, x, #1
+	#define INC(x) add x, x, REF(1)
+	#define DEC(x) sub x, x, REF(1)
 	#define CMP(x, y) cmp x, y
 	#define TEST(x, y) ands xzr, x, y
 	#define JMP(x) b x
@@ -151,13 +158,13 @@
 	#define JLE(x) b.le x
 	#define CALL(x) bl x
 	#define RET ret
-	#define PUSH(x) str x, [sp, #-16]!
-	#define POP(x) ldr x, [sp], #16
+	#define PUSH(x) str x, [sp, REF(-16)]!
+	#define POP(x) ldr x, [sp], REF(16)
 	#define NOP nop
 	#define INT(x) svc x
 
-	# Value
-	#define REF(x) #EVAL(x)
+	// Value
+	#define REF(x) HST(EVAL(x))
 
 #else
 	#error "Unsupported architecture for register mapping"
@@ -179,76 +186,34 @@
 #define Z12 R13
 #define Z13 R14
 #define Z14 R15
+#define Z15 RIP
 
-.macro SAVE_R0_R4
-	PUSH (RAX)
-	PUSH (RBX)
-	PUSH (RCX)
-	PUSH (RDX)
-	PUSH (RSI)
-.endm
+/* System call registers */
+#define Z_RC  RAX
+#define Z_R1 RDI
+#define Z_R2 RSI
+#define Z_R3 RDX
+#define Z_R4 R10
+#define Z_R5 R8
+#define Z_R6 R9
 
-.macro LOAD_R0_R4
-	POP (RSI)
-	POP (RDX)
-	POP (RCX)
-	POP (RBX)
-	POP (RAX)
-.endm
+#define Z_R(x) EVAL(HST(x))
 
-.macro SAVE_ZASM
-	PUSH (RDI)
-	PUSH (RSP)
-	PUSH (RBP)
-	PUSH (R8)
-	PUSH (R9)
-	PUSH (R10)
-	PUSH (R11)
-	PUSH (R12)
-	PUSH (R13)
-	PUSH (R14)
-	PUSH (R15)
-.endm
-
-.macro LOAD_ZASM
-	POP (R15)
-	POP (R14)
-	POP (R13)
-	POP (R12)
-	POP (R11)
-	POP (R10)
-	POP (R9)
-	POP (R8)
-	POP (RBP)
-	POP (RSP)
-	POP (RDI)
-.endm
-
-.macro SAVE 
-	SAVE_R0_R4
-	SAVE_ZASM
-.endm
-
-.macro LOAD
-	LOAD_ZASM
-	LOAD_R0_R4
-.endm
-
-#define WINDOWS_SYSCALL_EXIT 0
-#define WINDOWS_SYSCALL_WRITE 0
-#define WINDOWS_SYSCALL_READ 0
-#define WINDOWS_SYSCALL_OPEN 0
-#define WINDOWS_SYSCALL_CLOSE 0
-#define WINDOWS_SYSCALL_FORK 0
-#define WINDOWS_SYSCALL_EXECVE 0
-#define WINDOWS_SYSCALL_WAIT4 0
-#define WINDOWS_SYSCALL_GETPID 0
-#define WINDOWS_SYSCALL_GETUID 0
-#define WINDOWS_SYSCALL_GETGID 0
-#define WINDOWS_SYSCALL_BRK 0
-#define WINDOWS_SYSCALL_MMAP 0
-#define WINDOWS_SYSCALL_MUNMAP 0
-#define WINDOWS_SYSCALL_CLONE 0
+#define WINDOWS_SYSCALL_EXIT 0x0
+#define WINDOWS_SYSCALL_WRITE 0x0
+#define WINDOWS_SYSCALL_READ 0x0
+#define WINDOWS_SYSCALL_OPEN 0x0
+#define WINDOWS_SYSCALL_CLOSE 0x0
+#define WINDOWS_SYSCALL_FORK 0x0
+#define WINDOWS_SYSCALL_EXECVE 0x0
+#define WINDOWS_SYSCALL_WAIT4 0x0
+#define WINDOWS_SYSCALL_GETPID 0x0
+#define WINDOWS_SYSCALL_GETUID 0x0
+#define WINDOWS_SYSCALL_GETGID 0x0
+#define WINDOWS_SYSCALL_BRK 0x0
+#define WINDOWS_SYSCALL_MMAP 0x0
+#define WINDOWS_SYSCALL_MUNMAP 0x0
+#define WINDOWS_SYSCALL_CLONE 0x0
 
 #define APPLE_SYSCALL_EXIT 0x2000001
 #define APPLE_SYSCALL_WRITE 0x2000004
@@ -266,62 +231,58 @@
 #define APPLE_SYSCALL_MUNMAP 0x2000049
 #define APPLE_SYSCALL_CLONE 0x20000fa
 
-#define UNIX_SYSCALL_EXIT 1
-#define UNIX_SYSCALL_WRITE 4
-#define UNIX_SYSCALL_READ 3
-#define UNIX_SYSCALL_OPEN 5
-#define UNIX_SYSCALL_CLOSE 6
-#define UNIX_SYSCALL_FORK 2
-#define UNIX_SYSCALL_EXECVE 11
-#define UNIX_SYSCALL_WAIT4 7
-#define UNIX_SYSCALL_GETPID 20
-#define UNIX_SYSCALL_GETUID 24
-#define UNIX_SYSCALL_GETGID 47
-#define UNIX_SYSCALL_BRK 17
-#define UNIX_SYSCALL_MMAP 90
-#define UNIX_SYSCALL_MUNMAP 91
-#define UNIX_SYSCALL_CLONE 120
+#define LINUX_SYSCALL_EXIT     0x3C
+#define LINUX_SYSCALL_WRITE    0x01
+#define LINUX_SYSCALL_READ     0x00
+#define LINUX_SYSCALL_OPEN     0x02
+#define LINUX_SYSCALL_CLOSE    0x03
+#define LINUX_SYSCALL_FORK     0x39
+#define LINUX_SYSCALL_EXECVE   0x3B
+#define LINUX_SYSCALL_WAIT4    0x3D
+#define LINUX_SYSCALL_GETPID   0x27
+#define LINUX_SYSCALL_GETUID   0x66
+#define LINUX_SYSCALL_GETGID   0x68
+#define LINUX_SYSCALL_BRK      0x0C
+#define LINUX_SYSCALL_MMAP     0x09
+#define LINUX_SYSCALL_MUNMAP   0x0B
+#define LINUX_SYSCALL_CLONE    0x38
 
-#define LINUX_SYSCALL_EXIT 60
-#define LINUX_SYSCALL_WRITE 1
-#define LINUX_SYSCALL_READ 0
-#define LINUX_SYSCALL_OPEN 2
-#define LINUX_SYSCALL_CLOSE 3
-#define LINUX_SYSCALL_FORK 57
-#define LINUX_SYSCALL_EXECVE 59
-#define LINUX_SYSCALL_WAIT4 61
-#define LINUX_SYSCALL_GETPID 39
-#define LINUX_SYSCALL_GETUID 102
-#define LINUX_SYSCALL_GETGID 104
-#define LINUX_SYSCALL_BRK 12
-#define LINUX_SYSCALL_MMAP 9
-#define LINUX_SYSCALL_MUNMAP 11
-#define LINUX_SYSCALL_CLONE 56
+// ...
+// clang-format off
 
-#ifdef __WIN32
-	#define TARGET "MICROSOFT/WINDOWS"
+#if defined __WIN32
+	#define TARGET "WINDOWS"
 	#define SYS WINDOWS
-#elif TARGET_OS_MAC
-	#define TARGET "APPLE/MAC-OS"
+	#define SYS_CASE_WINDOWS(...) __VA_ARGS__
+#elif defined TARGET_OS_MAC
+	#define TARGET "APPLE"
 	#define SYS APPLE
-#elif TARGET_OS_IPHONE
-	#define TARGET "APPLE/IPHONE"
+#elif defined TARGET_OS_IPHONE
+	#define TARGET "APPLE"
 	#define SYS APPLE
-#elif __linux__
+#elif defined __linux__
 	#define TARGET "LINUX"
 	#define SYS LINUX
-#elif __ANDROID__
-	#define TARGET "ANDROID"
-	#define SYS LINUX
-#elif __unix__
+#elif defined __unix__
 	#define TARGET "UNIX"
 	#define SYS UNIX
 #else
 	#define TARGET "UNKNOWN"
-	#define SYS LINUX
+	#define SYS "UNKNOWN"
 #endif
 
-#define SYS_GET(x) CONCAT_2(EVAL(SYS), _##x)
+#define SYSCALL_GET(x) CONCAT_2(EVAL(SYS), _SYSCALL_##x)
+
+#define SYS_SWITCH(...) __VA_ARGS__
+#define SYS_CASE(system, ...) \
+	\
+ _$ if system == SYS \
+\
+		SYS_SWITCH(__VA_ARGS__) \
+\
+	\
+ _$ endif \
+
 
 # Allocate N bytes → result in %rax
 .macro MALLOC size
@@ -391,53 +352,263 @@
 	SUB (RDX, RCX)
 .endm
 
-.section .text
-.global _start
-_start:
-	
+	.arch armv8-a
+	.file	"pre_memory.hpp"
+	.text
+	.align	2
+	.global	_ZN6System9call_implEiz
+	.type	_ZN6System9call_implEiz, %function
+_ZN6System9call_implEiz:
+.LFB4:
+	.cfi_startproc
+	sub	sp, sp, #304
+	.cfi_def_cfa_offset 304
+	str	w0, [sp, 12]
+	str	x1, [sp, 248]
+	str	x2, [sp, 256]
+	str	x3, [sp, 264]
+	str	x4, [sp, 272]
+	str	x5, [sp, 280]
+	str	x6, [sp, 288]
+	str	x7, [sp, 296]
+	str	q0, [sp, 112]
+	str	q1, [sp, 128]
+	str	q2, [sp, 144]
+	str	q3, [sp, 160]
+	str	q4, [sp, 176]
+	str	q5, [sp, 192]
+	str	q6, [sp, 208]
+	str	q7, [sp, 224]
+	adrp	x0, :got:__stack_chk_guard;ldr	x0, [x0, :got_lo12:__stack_chk_guard]
+	ldr	x1, [x0]
+	str	x1, [sp, 104]
+	mov	x1, 0
+	add	x0, sp, 304
+	str	x0, [sp, 72]
+	add	x0, sp, 304
+	str	x0, [sp, 80]
+	add	x0, sp, 240
+	str	x0, [sp, 88]
+	mov	w0, -56
+	str	w0, [sp, 96]
+	mov	w0, -128
+	str	w0, [sp, 100]
+	ldr	w1, [sp, 96]
+	ldr	x0, [sp, 72]
+	cmp	w1, 0
+	blt	.L2
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L3
+.L2:
+	add	w2, w1, 8
+	str	w2, [sp, 96]
+	ldr	w2, [sp, 96]
+	cmp	w2, 0
+	ble	.L4
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L3
+.L4:
+	ldr	x2, [sp, 80]
+	sxtw	x0, w1
+	add	x0, x2, x0
+.L3:
+	ldr	x0, [x0]
+	str	x0, [sp, 16]
+	ldr	w1, [sp, 96]
+	ldr	x0, [sp, 72]
+	cmp	w1, 0
+	blt	.L6
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L7
+.L6:
+	add	w2, w1, 8
+	str	w2, [sp, 96]
+	ldr	w2, [sp, 96]
+	cmp	w2, 0
+	ble	.L8
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L7
+.L8:
+	ldr	x2, [sp, 80]
+	sxtw	x0, w1
+	add	x0, x2, x0
+.L7:
+	ldr	x0, [x0]
+	str	x0, [sp, 24]
+	ldr	w1, [sp, 96]
+	ldr	x0, [sp, 72]
+	cmp	w1, 0
+	blt	.L10
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L11
+.L10:
+	add	w2, w1, 8
+	str	w2, [sp, 96]
+	ldr	w2, [sp, 96]
+	cmp	w2, 0
+	ble	.L12
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L11
+.L12:
+	ldr	x2, [sp, 80]
+	sxtw	x0, w1
+	add	x0, x2, x0
+.L11:
+	ldr	x0, [x0]
+	str	x0, [sp, 32]
+	ldr	w1, [sp, 96]
+	ldr	x0, [sp, 72]
+	cmp	w1, 0
+	blt	.L14
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L15
+.L14:
+	add	w2, w1, 8
+	str	w2, [sp, 96]
+	ldr	w2, [sp, 96]
+	cmp	w2, 0
+	ble	.L16
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L15
+.L16:
+	ldr	x2, [sp, 80]
+	sxtw	x0, w1
+	add	x0, x2, x0
+.L15:
+	ldr	x0, [x0]
+	str	x0, [sp, 40]
+	ldr	w1, [sp, 96]
+	ldr	x0, [sp, 72]
+	cmp	w1, 0
+	blt	.L18
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L19
+.L18:
+	add	w2, w1, 8
+	str	w2, [sp, 96]
+	ldr	w2, [sp, 96]
+	cmp	w2, 0
+	ble	.L20
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L19
+.L20:
+	ldr	x2, [sp, 80]
+	sxtw	x0, w1
+	add	x0, x2, x0
+.L19:
+	ldr	x0, [x0]
+	str	x0, [sp, 48]
+	ldr	w1, [sp, 96]
+	ldr	x0, [sp, 72]
+	cmp	w1, 0
+	blt	.L22
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L23
+.L22:
+	add	w2, w1, 8
+	str	w2, [sp, 96]
+	ldr	w2, [sp, 96]
+	cmp	w2, 0
+	ble	.L24
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L23
+.L24:
+	ldr	x2, [sp, 80]
+	sxtw	x0, w1
+	add	x0, x2, x0
+.L23:
+	ldr	x0, [x0]
+	str	x0, [sp, 56]
+	ldrsw	x1, [sp, 12]
+	ldr	x2, [sp, 16]
+	ldr	x6, [sp, 24]
+	ldr	x7, [sp, 32]
+	ldr	x11, [sp, 40]
+	ldr	x12, [sp, 48]
+	ldr	x13, [sp, 56]
+#APP
+// 83 "dist/compiled/pre_memory.hpp" 1
+	mov x1, %rax
+mov x2, %rdi
+mov x6, %rsi
+mov x7, %rdx
+mov x11, %r10
+mov x12, %r8
+mov x13, %r9
+syscall
+mov %rax, x1
 
-# Allocate the table itself once
-.macro LAZY_LIST_INIT name, slots
-    .lcomm \name, \slots * 8
-.endm
+// 0 "" 2
+#NO_APP
+	str	x1, [sp, 64]
+	brk #1000
+	.cfi_endproc
+.LFE4:
+	.size	_ZN6System9call_implEiz, .-_ZN6System9call_implEiz
+	.align	2
+	.global	_ZN6Memory8allocateEv
+	.type	_ZN6Memory8allocateEv, %function
+_ZN6Memory8allocateEv:
+.LFB5:
+	.cfi_startproc
+#APP
+// 105 "dist/compiled/pre_memory.hpp" 1
+	mov rdi, r8
+call allocate_impl
+mov rbp, rax
+ret
 
-# Get address of list[index] → in %rdi
-.macro LAZY_PTR_GET name, index, reg
-	SAVE
-	LEA (\name, \reg, RIP)
-	MOV (REF(\index), RSI)
-	IMUL (REF(8), RSI)
-	ADD (RSI, \reg)
-	LOAD
-.endm
-
-# Access item at index, allocate if null
-#   name = list name
-#   index = integer index
-#   size = allocation size
-#   reg = register for result address
-.macro LAZY_BLOCK_GET name, index, size, reg
-	SAVE
-	LAZY_PTR_GET \name, \index, \reg
-	MOV ((\reg), RSI)
-	JNE (REF(1f))
-	MALLOC \size
-	MOV (RAX, \reg)
-1:
-	LDR (\reg, \reg, 0)
-	LOAD
-.endm
-
-# Set value at a specific index in a lazy list
-#   name = list name
-#   index = integer index
-#   value = value to set (in register)
-.macro LAZY_BLOCK_SET name, index, value
-	SAVE
-	LAZY_PTR_GET \name, \index, RDI
-	MOV (REF(\value), RDI)
-	LOAD
-.endm
+// 0 "" 2
+#NO_APP
+	brk #1000
+	.cfi_endproc
+.LFE5:
+	.size	_ZN6Memory8allocateEv, .-_ZN6Memory8allocateEv
+	.align	2
+	.global	_ZN6Memory13allocate_implEi
+	.type	_ZN6Memory13allocate_implEi, %function
+_ZN6Memory13allocate_implEi:
+.LFB6:
+	.cfi_startproc
+	stp	x29, x30, [sp, -32]!
+	.cfi_def_cfa_offset 32
+	.cfi_offset 29, -32
+	.cfi_offset 30, -24
+	mov	x29, sp
+	str	w0, [sp, 28]
+	ldr	w1, [sp, 28]
+	mov	w0, 9
+	bl	_ZN6System9call_implEiz
+	brk #1000
+	.cfi_endproc
+.LFE6:
+	.size	_ZN6Memory13allocate_implEi, .-_ZN6Memory13allocate_implEi
+	.ident	"GCC: (Ubuntu 14.3.0-1ubuntu1) 14.3.0"
+	.section	.note.GNU-stack,"",@progbits
 
 # Usage: 
 # STRUCT name
@@ -494,8 +665,266 @@ _start:
 .endm
 
 .macro RETURN value
-	MOV (R8, \value)
+	MOV (Z6, \value)
 .endm
+
+	.arch armv8-a
+	.file	"pre_memory.hpp"
+	.text
+	.align	2
+	.global	_ZN6System9call_implEiz
+	.type	_ZN6System9call_implEiz, %function
+_ZN6System9call_implEiz:
+.LFB4:
+	.cfi_startproc
+	sub	sp, sp, #304
+	.cfi_def_cfa_offset 304
+	str	w0, [sp, 12]
+	str	x1, [sp, 248]
+	str	x2, [sp, 256]
+	str	x3, [sp, 264]
+	str	x4, [sp, 272]
+	str	x5, [sp, 280]
+	str	x6, [sp, 288]
+	str	x7, [sp, 296]
+	str	q0, [sp, 112]
+	str	q1, [sp, 128]
+	str	q2, [sp, 144]
+	str	q3, [sp, 160]
+	str	q4, [sp, 176]
+	str	q5, [sp, 192]
+	str	q6, [sp, 208]
+	str	q7, [sp, 224]
+	adrp	x0, :got:__stack_chk_guard;ldr	x0, [x0, :got_lo12:__stack_chk_guard]
+	ldr	x1, [x0]
+	str	x1, [sp, 104]
+	mov	x1, 0
+	add	x0, sp, 304
+	str	x0, [sp, 72]
+	add	x0, sp, 304
+	str	x0, [sp, 80]
+	add	x0, sp, 240
+	str	x0, [sp, 88]
+	mov	w0, -56
+	str	w0, [sp, 96]
+	mov	w0, -128
+	str	w0, [sp, 100]
+	ldr	w1, [sp, 96]
+	ldr	x0, [sp, 72]
+	cmp	w1, 0
+	blt	.L2
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L3
+.L2:
+	add	w2, w1, 8
+	str	w2, [sp, 96]
+	ldr	w2, [sp, 96]
+	cmp	w2, 0
+	ble	.L4
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L3
+.L4:
+	ldr	x2, [sp, 80]
+	sxtw	x0, w1
+	add	x0, x2, x0
+.L3:
+	ldr	x0, [x0]
+	str	x0, [sp, 16]
+	ldr	w1, [sp, 96]
+	ldr	x0, [sp, 72]
+	cmp	w1, 0
+	blt	.L6
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L7
+.L6:
+	add	w2, w1, 8
+	str	w2, [sp, 96]
+	ldr	w2, [sp, 96]
+	cmp	w2, 0
+	ble	.L8
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L7
+.L8:
+	ldr	x2, [sp, 80]
+	sxtw	x0, w1
+	add	x0, x2, x0
+.L7:
+	ldr	x0, [x0]
+	str	x0, [sp, 24]
+	ldr	w1, [sp, 96]
+	ldr	x0, [sp, 72]
+	cmp	w1, 0
+	blt	.L10
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L11
+.L10:
+	add	w2, w1, 8
+	str	w2, [sp, 96]
+	ldr	w2, [sp, 96]
+	cmp	w2, 0
+	ble	.L12
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L11
+.L12:
+	ldr	x2, [sp, 80]
+	sxtw	x0, w1
+	add	x0, x2, x0
+.L11:
+	ldr	x0, [x0]
+	str	x0, [sp, 32]
+	ldr	w1, [sp, 96]
+	ldr	x0, [sp, 72]
+	cmp	w1, 0
+	blt	.L14
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L15
+.L14:
+	add	w2, w1, 8
+	str	w2, [sp, 96]
+	ldr	w2, [sp, 96]
+	cmp	w2, 0
+	ble	.L16
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L15
+.L16:
+	ldr	x2, [sp, 80]
+	sxtw	x0, w1
+	add	x0, x2, x0
+.L15:
+	ldr	x0, [x0]
+	str	x0, [sp, 40]
+	ldr	w1, [sp, 96]
+	ldr	x0, [sp, 72]
+	cmp	w1, 0
+	blt	.L18
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L19
+.L18:
+	add	w2, w1, 8
+	str	w2, [sp, 96]
+	ldr	w2, [sp, 96]
+	cmp	w2, 0
+	ble	.L20
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L19
+.L20:
+	ldr	x2, [sp, 80]
+	sxtw	x0, w1
+	add	x0, x2, x0
+.L19:
+	ldr	x0, [x0]
+	str	x0, [sp, 48]
+	ldr	w1, [sp, 96]
+	ldr	x0, [sp, 72]
+	cmp	w1, 0
+	blt	.L22
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L23
+.L22:
+	add	w2, w1, 8
+	str	w2, [sp, 96]
+	ldr	w2, [sp, 96]
+	cmp	w2, 0
+	ble	.L24
+	add	x1, x0, 15
+	and	x1, x1, -8
+	str	x1, [sp, 72]
+	b	.L23
+.L24:
+	ldr	x2, [sp, 80]
+	sxtw	x0, w1
+	add	x0, x2, x0
+.L23:
+	ldr	x0, [x0]
+	str	x0, [sp, 56]
+	ldrsw	x1, [sp, 12]
+	ldr	x2, [sp, 16]
+	ldr	x6, [sp, 24]
+	ldr	x7, [sp, 32]
+	ldr	x11, [sp, 40]
+	ldr	x12, [sp, 48]
+	ldr	x13, [sp, 56]
+#APP
+// 83 "dist/compiled/pre_memory.hpp" 1
+	mov x1, %rax
+mov x2, %rdi
+mov x6, %rsi
+mov x7, %rdx
+mov x11, %r10
+mov x12, %r8
+mov x13, %r9
+syscall
+mov %rax, x1
+
+// 0 "" 2
+#NO_APP
+	str	x1, [sp, 64]
+	brk #1000
+	.cfi_endproc
+.LFE4:
+	.size	_ZN6System9call_implEiz, .-_ZN6System9call_implEiz
+	.align	2
+	.global	_ZN6Memory8allocateEv
+	.type	_ZN6Memory8allocateEv, %function
+_ZN6Memory8allocateEv:
+.LFB5:
+	.cfi_startproc
+#APP
+// 105 "dist/compiled/pre_memory.hpp" 1
+	mov rdi, r8
+call allocate_impl
+mov rbp, rax
+ret
+
+// 0 "" 2
+#NO_APP
+	brk #1000
+	.cfi_endproc
+.LFE5:
+	.size	_ZN6Memory8allocateEv, .-_ZN6Memory8allocateEv
+	.align	2
+	.global	_ZN6Memory13allocate_implEi
+	.type	_ZN6Memory13allocate_implEi, %function
+_ZN6Memory13allocate_implEi:
+.LFB6:
+	.cfi_startproc
+	stp	x29, x30, [sp, -32]!
+	.cfi_def_cfa_offset 32
+	.cfi_offset 29, -32
+	.cfi_offset 30, -24
+	mov	x29, sp
+	str	w0, [sp, 28]
+	ldr	w1, [sp, 28]
+	mov	w0, 9
+	bl	_ZN6System9call_implEiz
+	brk #1000
+	.cfi_endproc
+.LFE6:
+	.size	_ZN6Memory13allocate_implEi, .-_ZN6Memory13allocate_implEi
+	.ident	"GCC: (Ubuntu 14.3.0-1ubuntu1) 14.3.0"
+	.section	.note.GNU-stack,"",@progbits
 
 # Type initialization
 .macro TYPE name
@@ -519,3 +948,10 @@ _start:
 .macro SCOPE_SET name, value
 	
 .endm
+
+.section .text
+.global _start
+_start:
+	
+
+// clang-format off

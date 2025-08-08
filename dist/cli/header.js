@@ -43,7 +43,7 @@ var Header;
 (function (Header) {
     // Symbols
     Header.zs = ct.red('Z#');
-    Header.iz = `${ct.white('.')}${ct.blue('i')}${ct.red('z')}`;
+    Header.iz = `${ct.white('.')}${ct.magenta('iz')}`;
     // Messages
     Header.Zasm_error = `${ct.red(ct.bold('Z# intermediate Error'))}!`;
     Header.Z_bug = `${ct.red(ct.bold('This should not happen'))}!`;
@@ -87,7 +87,7 @@ ${bullets([
             timeString = `${(time / 1000).toFixed(2)}s`;
         }
         ;
-        if (time < 1000) {
+        if (time < 2000) {
             return ct.green(timeString);
         }
         else if (time < 10000) {
