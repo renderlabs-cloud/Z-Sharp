@@ -6,7 +6,7 @@ import { Util } from '~/util';
 
 export type ListTypeData = {
 	size?: number,
-	type?: TypeRefData
+	next?: TypeRefData
 };
 
 export class List extends Feature.Feature<ListTypeData> {
@@ -18,14 +18,15 @@ export class List extends Feature.Feature<ListTypeData> {
 					[
 						{ 'part': { 'type': Parts.PartType.NUMBER }, 'export': 'length', 'required': false }
 					],
-				]
+				],
+				'export': 'list'
 			},
 			{ 'part': { 'type': Parts.PartType.SQUARE_BRACKET_CLOSE } }
 		]);
 	};
 
 	public static create(data: any, scope: Feature.Scope, position: Errors.Position) {
-		let listData: ListTypeData = { size: data.length || null };
+		let listData: ListTypeData = { size: data.list?.length || null };
 
 		return { scope, export: listData };
 	};

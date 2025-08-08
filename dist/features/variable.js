@@ -9,10 +9,26 @@ const type_1 = require("~/features/type");
 const accessor_1 = require("~/features/accessor");
 const header_1 = require("~/cli/header");
 const util_1 = require("~/util");
+var VariableType;
+(function (VariableType) {
+    VariableType["LET"] = "let";
+    VariableType["CONST"] = "const";
+})(VariableType || (VariableType = {}));
+;
 class Variable extends feature_1.Feature.Feature {
     constructor() {
         super([
-            { 'part': { 'type': parts_1.Parts.PartType.WORD, 'value': 'let' } },
+            {
+                'or': [
+                    [
+                        { 'part': { 'type': parts_1.Parts.PartType.WORD, 'value': 'const' }, 'export': 'type' },
+                    ],
+                    [
+                        { 'part': { 'type': parts_1.Parts.PartType.WORD, 'value': 'let' }, 'export': 'type' },
+                    ]
+                ],
+                'export': 'prefix'
+            },
             { 'part': { 'type': parts_1.Parts.PartType.WORD }, 'export': 'name' },
             { 'part': { 'type': parts_1.Parts.PartType.COLON } },
             { 'feature': { 'type': type_1.TypeRef }, 'export': 'type' },
@@ -46,6 +62,11 @@ class Variable extends feature_1.Feature.Feature {
         variableData.id = scope.alias(variableData.name);
         variableData.type = new type_1.TypeRef().create(data.type, scope, position).export;
         variableData.declaration = new accessor_1.Accessor().create(data.declaration, scope, position).export;
+        variableData.prefix = data.prefix.type;
+        if (!type_1.Type.isCompatible(variableData.type /* TODO: or null */, variableData.declaration.type)) {
+            type_1.Type.incompatible(variableData.type, variableData.declaration.type, position);
+        }
+        ;
         scope.set(`var.${variableData.id}`, variableData);
         return { scope, export: variableData };
     }
@@ -54,8 +75,8 @@ class Variable extends feature_1.Feature.Feature {
         let content = `
 /* Variable ${variableData.name} */
 ${(new accessor_1.Accessor).toAssemblyText(variableData.declaration, scope)}
-VAR ${variableData.id}, Z8, Z8
-SCOPE_SET ${variableData.id}, Z8
+VAR ${variableData.id}, Z6, Z6
+SCOPE_SET ${variableData.id}, Z6
 		`;
         return content;
     }

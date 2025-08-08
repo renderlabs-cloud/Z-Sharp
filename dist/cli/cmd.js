@@ -39,6 +39,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 require('module-alias/register');
 const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const process_1 = __importDefault(require("process"));
 const commander_1 = require("commander");
 const ct = __importStar(require("colorette"));
@@ -51,6 +52,30 @@ const util_1 = require("~/util");
 const package_json_1 = __importDefault(require("package.json"));
 process_1.default.addListener('SIGINT', util_1.Util.terminate);
 process_1.default.addListener('SIGTERM', util_1.Util.terminate);
+const home = process.env.HOME || process.env.USERPROFILE || '~';
+const folder = path_1.default.join(home, '.zsharp');
+if (!fs_1.default.existsSync(folder)) {
+    const termsAgreement = (0, prompts_1.select)({
+        choices: [
+            'I agree',
+            'I disagree'
+        ],
+        message: `
+Welcome to ${header_1.Header.zs}!
+${header_1.Header.zs} is licensed under a custom open-source license (MIT-based, no resale).
+By using ${header_1.Header.zs}, you agree to the license terms at: ${header_1.Header.hyperlink('https://zsharp.dev/license', 'https://zsharp.dv/license')}
+		`,
+        default: 'I disagree'
+    });
+    termsAgreement.then((v) => {
+        if (v == 'I disagree') {
+            util_1.Util.terminate();
+        }
+        ;
+        fs_1.default.mkdirSync(folder);
+    });
+}
+;
 let config = {};
 commander_1.program
     .addHelpText('after', `
@@ -62,7 +87,7 @@ If the seller refuses, you are encouraged to pursue legal action.
 Any attempt to sell this software, or modified versions of it, is strictly prohibited
 and may result in prosecution.
 
-"We are always watching" 🫎
+"We are always watching"
 	`);
 commander_1.program
     .name('zs')
@@ -97,29 +122,21 @@ commander_1.program.command('emit')
     .option('--input, -I <path>')
     .option('--output, -O <path>')
     .option('--target, -T <arch>')
-    .option('--agree, -A')
     .action(async (_options) => {
     if (!_options.input) {
         throw new error_1.Errors.Command.Missing.Parameters(['input']);
-    }
-    ;
-    if (!_options.agree) {
-        const termsAgreement = await (0, prompts_1.select)({
-            choices: [
-                'I agree',
-                'I disagree'
-            ],
-            message: `Please read the Intermediate ${header_1.Header.zs} file (${header_1.Header.iz}) and accept the terms.`,
-            default: 'I disagree'
-        });
-        if (termsAgreement == 'I disagree') {
-            util_1.Util.terminate();
-        }
-        ;
     }
     ;
     const asm = fs_1.default.readFileSync(_options.input).toString();
     const binary = await zs_1.Z.emit(asm);
     fs_1.default.writeFileSync(_options.output, binary);
 });
-commander_1.program.parse();
+commander_1.program.command('reset')
+    .description(`Reset the ${header_1.Header.zs} configuration`)
+    .action(async () => {
+    fs_1.default.rmSync(folder, { recursive: true, force: true });
+});
+if (fs_1.default.existsSync(folder)) {
+    commander_1.program.parse();
+}
+;

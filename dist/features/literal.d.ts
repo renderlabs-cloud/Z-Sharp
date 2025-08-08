@@ -1,9 +1,12 @@
 import { Feature } from '~/feature';
 import { Errors } from '~/error';
 import { PropertyData } from '~/features/accessor';
+import { TypeRefData } from '~/features/type';
 export type ObjectLiteralFieldData = {
     name: string;
+    type: TypeRefData;
     value: PropertyData;
+    id: string;
 };
 export type ObjectLiteralData = {
     fields: ObjectLiteralFieldData[];

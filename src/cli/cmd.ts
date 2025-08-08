@@ -3,6 +3,7 @@
 require('module-alias/register');
 
 import fs from 'fs';
+import Path from 'path';
 import Process from 'process';
 import { program } from 'commander';
 import * as ct from 'colorette';
@@ -21,6 +22,29 @@ import _package from 'package.json';
 Process.addListener('SIGINT', Util.terminate);
 Process.addListener('SIGTERM', Util.terminate);
 
+const home = process.env.HOME || process.env.USERPROFILE || '~';
+const folder = Path.join(home, '.zsharp');
+if (!fs.existsSync(folder)) {
+	const termsAgreement = select<string>({
+		choices: [
+			'I agree',
+			'I disagree'
+		],
+		message: `
+Welcome to ${Header.zs}!
+${Header.zs} is licensed under a custom open-source license (MIT-based, no resale).
+By using ${Header.zs}, you agree to the license terms at: ${Header.hyperlink('https://zsharp.dev/license', 'https://zsharp.dv/license')}
+		`,
+		default: 'I disagree'
+	});
+	termsAgreement.then((v) => {
+		if (v == 'I disagree') {
+			Util.terminate();
+		};
+		fs.mkdirSync(folder);
+	});
+};
+
 let config: Project.Configuration = {};
 
 program
@@ -33,7 +57,7 @@ If the seller refuses, you are encouraged to pursue legal action.
 Any attempt to sell this software, or modified versions of it, is strictly prohibited
 and may result in prosecution.
 
-"We are always watching" 🫎
+"We are always watching"
 	`)
 	;
 
@@ -76,23 +100,9 @@ program.command('emit')
 	.option('--input, -I <path>')
 	.option('--output, -O <path>')
 	.option('--target, -T <arch>')
-	.option('--agree, -A')
 	.action(async (_options) => {
 		if (!_options.input) {
 			throw new Errors.Command.Missing.Parameters(['input']);
-		};
-		if (!_options.agree) {
-			const termsAgreement = await select<string>({
-				choices: [
-					'I agree',
-					'I disagree'
-				],
-				message: `Please read the Intermediate ${Header.zs} file (${Header.iz}) and accept the terms.`,
-				default: 'I disagree'
-			});
-			if (termsAgreement == 'I disagree') {
-				Util.terminate();
-			};
 		};
 		const asm = fs.readFileSync(_options.input).toString();
 		const binary = await Z.emit(asm);
@@ -100,4 +110,13 @@ program.command('emit')
 	})
 	;
 
-program.parse();
+program.command('reset')
+	.description(`Reset the ${Header.zs} configuration`)
+	.action(async () => {
+		fs.rmSync(folder, { recursive: true, force: true });	
+	})
+	;
+
+if (fs.existsSync(folder)) {
+	program.parse();
+};

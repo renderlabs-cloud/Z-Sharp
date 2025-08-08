@@ -12,14 +12,15 @@ class List extends feature_1.Feature.Feature {
                     [
                         { 'part': { 'type': parts_1.Parts.PartType.NUMBER }, 'export': 'length', 'required': false }
                     ],
-                ]
+                ],
+                'export': 'list'
             },
             { 'part': { 'type': parts_1.Parts.PartType.SQUARE_BRACKET_CLOSE } }
         ]);
     }
     ;
     static create(data, scope, position) {
-        let listData = { size: data.length || null };
+        let listData = { size: data.list?.length || null };
         return { scope, export: listData };
     }
     ;

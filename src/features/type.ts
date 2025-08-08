@@ -14,13 +14,12 @@ import lodash from 'lodash';
 type TypeField = {
 	name: string,
 	type: TypeRefData,
-	comma: boolean
+	comma?: boolean
 	id: string;
 };
 
 type TypeFields = {
-	name?: string,
-	fields?: TypeField[],
+	value?: TypeField[],
 	id?: string;
 	// To be extended in the future
 };
@@ -33,11 +32,11 @@ type TypeRefBuildPart =
 
 export type TypeRefData = {
 	name?: string,
+	label?: string,
 	generic?: TypeRefData[],
 	build?: TypeRefBuildPart[],
 	fields?: TypeFields,
 	list?: ListTypeData,
-	object?: ObjectTypeData,
 	class?: {
 		extends: TypeRefData[],
 		implements: TypeRefData[],
@@ -87,7 +86,9 @@ export class Type extends Feature.Feature<TypeRefData> {
 
 	public static toString(type: TypeRefData) {
 		let content = '';
-		content += type.name ?? '';
+		if (type?.name) {
+			content += type.name;
+		};
 		if (type?.generic?.length) {
 			content += '<';
 			content += type.generic.map((v: any) => {
@@ -95,11 +96,10 @@ export class Type extends Feature.Feature<TypeRefData> {
 			}).join(', ');
 			content += '>';
 		};
-		if (type?.object) {
+		if (type?.fields && !type.name) {
 			content += '{';
-			content += type.object.fields.map((v: TypeRefData) => {
-				Util.debug(v);
-				return `${v.name}: ${Type.toString(v)}`;
+			content += type.fields.value?.map((v: TypeField) => {
+				return `${v.name}: ${Type.toString(v.type)}`;
 			}).join(', ');
 			content += '}';
 		};
@@ -116,22 +116,27 @@ export class Type extends Feature.Feature<TypeRefData> {
 		return content;
 	};
 	public static isCompatible(type1: TypeRefData, type2: TypeRefData): boolean {
+		function listComponentCompatible(list1: TypeRefData['list'], list2: TypeRefData['list']): boolean {
+			if (list1?.size == list2?.size || (list1?.size == null && list2?.size !== undefined)) {
+				if (list1?.next && list2?.next) {
+					return Type.isCompatible(list1.next, list2?.next);
+				} else {
+					return true;
+				};
+			};
+			return false;
+		};
 		delete (type1 as any).typeRef;
 		delete (type2 as any).typeRef;
-		if (type1 == type2) {
+		if (lodash.isEqual(type1, type2)) {
 			return true;
 		};
-		if (type1?.list && type2?.list && lodash.isEqual({ ...type1, list: null }, { ...type2, list: null })) {
-			return type1?.list?.size == undefined;
+
+		if (!listComponentCompatible(type1?.list, type2?.list)) {
+			return false;
 		};
 
-		if (type1?.generic?.length == type2?.generic?.length) {
-			return type1?.generic?.every((v: any, i: number) => {
-				return Type.isCompatible(v, type2.generic?.[i] || {}); // This will return false next iteration
-			}) || false;
-		};
-
-		return false;
+		return true;
 	};
 	public static incompatible(type1: TypeRefData, type2: TypeRefData, position: Errors.Position): never {
 		Util.error(new Errors.Syntax.Generic(`Type ${Type.toString(type2)} is incompatible with type ${Type.toString(type1)}`, position));
@@ -142,7 +147,7 @@ export class Type extends Feature.Feature<TypeRefData> {
 		typeData.name = data.name;
 		typeData.id = scope.alias(data.name);
 		if (data.type.fields) {
-			let typeFields: TypeFields = { fields: [], id: typeData.id, name: typeData.name };
+			let typeFields: TypeFields = { value: [], id: typeData.id };
 			for (const i in data.type.fields) {
 				const item = data.type.fields[i];
 				if (!item.comma && Number(i) < data.type.fields.length - 1) {
@@ -156,13 +161,13 @@ export class Type extends Feature.Feature<TypeRefData> {
 				item.type = _type;
 
 				// Check if type is defined
-				if (typeFields.fields?.map((v: TypeField) => {
+				if (typeFields.value?.map((v: TypeField) => {
 					return v?.name == item?.name && v && item;
 				}).includes(true)) {
 					Util.error(new Errors.Syntax.Duplicate(item.name, position));
 				};
 				scope.set(`type_field.${item.id}`, _type);
-				typeFields.fields?.push(item);
+				typeFields.value?.push(item);
 			};
 			typeData.fields = typeFields;
 		};
@@ -173,7 +178,7 @@ export class Type extends Feature.Feature<TypeRefData> {
 
 	public toAssemblyData(typeData: TypeRefData, scope: Feature.Scope) {
 		let content = `TYPE ${(typeData as any)?.id}\n`;
-		for (const field of typeData.fields?.fields || []) {
+		for (const field of typeData.fields?.value || []) {
 			content += '\tTYPE_FIELD ';
 			if (field.type.name == 'byte') {
 				content += `BYTE, ${field.name}, ${field.type.list?.size || ''}\n`;
@@ -214,8 +219,8 @@ export class TypeRef extends Feature.Feature<TypeRefData> {
 		if (data?.list) {
 			const list = List.create(data.list, scope, position).export;
 			const subType: TypeRefData = {};
-			subType.list = subType.list?.type?.list;
-			list.type = subType;
+			subType.list = subType.list?.next?.list;
+			list.next = subType;
 			typeRef.list = list;
 		};
 		/** TODO: 
