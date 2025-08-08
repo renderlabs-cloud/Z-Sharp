@@ -12,9 +12,7 @@ Write your code once—compile it anywhere.
 
 ## License
 
-Z# is licensed under a custom MIT-style license. You may use, modify, and distribute it freely, but **selling the software or derivatives as standalone products is prohibited**.
-
-[View full license](./LICENSE)
+Z# is licensed under the [MIT License](./LICENSE).
 
 # Support & Donations
 
